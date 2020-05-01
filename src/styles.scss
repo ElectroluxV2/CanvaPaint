@@ -1,1 +1,96 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100vh; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+@import url(http://pl.allfont.net/allfont.css?fonts=comic-sans-ms);
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+@import '~@angular/material/theming';
+
+@include mat-core();
+
+$app-primary: mat-palette($mat-amber);
+$app-accent:  mat-palette($mat-red, A200, A100, A400);
+
+$app-theme: mat-light-theme($app-primary, $app-accent);
+
+@mixin mix-app-theme($app-theme) {
+  $primary: map-get($app-theme, primary);
+  $accent: map-get($app-theme, accent);
+
+
+  .connect_error, .reconnect_error, .reconnect_failed {
+    color: mat-color($mat-orange, 500);
+  }
+
+  .disconnect {
+    color: mat-color($mat-gray, 900);
+  }
+
+  .connected {
+    color: mat-color($mat-green, 500);
+  }
+
+  .error {
+    color: mat-color($mat-red, 500);
+  }
+
+  .mat-button-toggle {
+    background-color: mat-color($primary);
+    color: mat-color($primary, default-contrast);
+
+    &.red {
+        background-color: mat-color($mat-red, 500);
+    }
+
+    &.green {
+        background-color: mat-color($mat-green, 500);
+    }
+
+    &.blue {
+        background-color: mat-color($mat-blue, 500);
+    }
+
+    &.yellow {
+        background-color: mat-color($mat-yellow, 600);
+    }
+
+    &.black {
+        background-color: mat-color($mat-grey, 900);
+    }
+  }
+
+  .mat-button-toggle-checked {
+    background-color: mat-color($accent);
+    color: mat-color($accent, default-contrast);
+
+    &.red {
+        //background-color: mat-color($mat-red, 900);
+        color: mat-color($mat-red, 100);
+    }
+
+    &.green {
+        //background-color: mat-color($mat-green, 900);
+        color: mat-color($mat-green, 100);
+    }
+
+    &.blue {
+        //background-color: mat-color($mat-blue, 900);
+        color: mat-color($mat-blue, 100);
+    }
+
+    &.yellow {
+        //background-color: mat-color($mat-yellow, 900);
+        color: mat-color($mat-yellow, 50);
+    }
+
+    &.black {
+        //background-color: mat-color($mat-grey, 900);
+        color: mat-color($mat-grey, 500);
+    }
+  }
+}
+
+// Include the mixin
+@include mix-app-theme($app-theme);
