@@ -2,7 +2,11 @@
 
     <mat-toolbar-row>
         <span class="copy">&copy; Mateusz Budzisz - kropoki i kreski</span>
-        <mat-icon class="icon" (click)="iconClick()" [ngClass]="iconColor">gesture</mat-icon>
+
+        <button mat-mini-fab class="roundBtn darkBtn" (click)="iconClick()">
+            <mat-icon [ngClass]="iconColor">gesture</mat-icon>
+        </button>
+
         <span class="spacer"></span>
 
         <button mat-mini-fab class="roundBtn" color="warn" (click)="clear()">
@@ -17,7 +21,7 @@
             <mat-icon>redo</mat-icon>
         </button>
 
-        <mat-button-toggle-group style="margin-right: 1em;" value="black" (change)="changeColor($event)">
+        <mat-button-toggle-group class="colors" value="black" (change)="changeColor($event)">
 
             <mat-button-toggle value="red" class="red">
                 <mat-icon>palette</mat-icon>
@@ -41,7 +45,7 @@
 
         </mat-button-toggle-group>
 
-        <mat-button-toggle-group value="free" (change)="changeMode($event)">
+        <mat-button-toggle-group class="tools" value="free" (change)="changeMode($event)">
 
             <mat-button-toggle value="free">
                 <mat-icon>gesture</mat-icon>

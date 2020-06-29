@@ -1,5 +1,7 @@
+import { SettingsComponent } from './../settings/settings.component';
 import { Component, Output, EventEmitter, Input, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatButtonToggleChange } from '@angular/material/button-toggle/public-api';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-bar',
@@ -14,6 +16,10 @@ export class BarComponent implements AfterViewInit, OnDestroy {
   @Output() onClear: EventEmitter<null> = new EventEmitter<null>();
   @Output() onIconClick: EventEmitter<null> = new EventEmitter<null>();
   @Input('statusUpdate') onStatusUpdate: EventEmitter<string>;
+
+  constructor(public dialog: MatDialog) {
+    
+  }
 
   public iconColor: string[] = [];
 
@@ -48,6 +54,16 @@ export class BarComponent implements AfterViewInit, OnDestroy {
   }
 
   public iconClick(): void {
-    this.onIconClick.emit();
+
+    const dialogRef = this.dialog.open(SettingsComponent, {
+      width: '250px',
+      data: {}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log(result);
+    });
+
+    //this.onIconClick.emit();
   }
 }

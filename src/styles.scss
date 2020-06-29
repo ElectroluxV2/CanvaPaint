@@ -61,6 +61,32 @@ $app-theme: mat-light-theme($app-primary, $app-accent);
     }
   }
 
+  .mat-mini-fab[color="accent"] {
+    background-color: #FFDC00 !important;
+  }
+
+  .mat-button[color="accent"] {
+    background-color: #FFDC00 !important;
+    color: mat-color($mat-purple, 900);
+  }
+
+  .mat-dialog-container {
+    background-color: mat-color($mat-purple, 900);
+    color: #FFDC00;
+  }
+
+  .mat-form-field-label {
+    color: #FFDC00 !important;
+  }
+
+  .mat-form-field-underline {
+    background-color: #FFDC00 !important;
+  }
+
+  .mat-focused {
+    color: #FFDC00 !important;
+}
+
   .mat-button-toggle-checked {
     background-color: mat-color($accent);
     color: mat-color($accent, default-contrast);
