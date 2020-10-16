@@ -15,12 +15,12 @@ export enum PacketType {
 }
 
 export enum Color {
-    RED = "#f44336",
-    BLUE = "#2196f3",
-    GREEN = "#4caf50",
-    YELLOW = "#ffeb3b",
-    BLACK = "#212121",
-    INTERNAL = "#673ab7"
+    RED = '#f44336',
+    BLUE = '#2196f3',
+    GREEN = '#4caf50',
+    YELLOW = '#ffeb3b',
+    BLACK = '#212121',
+    INTERNAL = '#673ab7'
 }
 
 export enum Mode {
@@ -77,8 +77,8 @@ interface Part {
 }
 
 export interface Packet {
-    socketId: string
-    //type: PacketType;
+    socketId: string;
+    // type: PacketType;
 }
 
 export interface CharDraw extends Packet {
@@ -120,11 +120,11 @@ export interface StraightPredict extends Packet {
     start: {
         x: number;
         y: number;
-    },
+    };
     end: {
         x: number;
         y: number;
-    },
+    };
     color: Color;
 }
 
@@ -132,11 +132,11 @@ export interface StraightDraw extends Packet {
     start: {
         x: number;
         y: number;
-    },
+    };
     end: {
         x: number;
         y: number;
-    },
+    };
     color: Color;
 }
 

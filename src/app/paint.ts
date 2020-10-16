@@ -18,8 +18,8 @@ interface PaintData {
             y: number;
         },
         color: Color;
-    }
-    chars: Char[]
+    };
+    chars: Char[];
     startStraightX: number;
     startStraightY: number;
     lastPointX: number;
@@ -32,10 +32,10 @@ interface PaintData {
 
 export class Paint {
     // Internal
-    private leftDown: boolean = false;
-    private rightDown: boolean = false;
-    private dragging: boolean = false;
-    private canDraw: boolean = false;
+    private leftDown = false;
+    private rightDown = false;
+    private dragging = false;
+    private canDraw = false;
 
     private currentColor: Color = Color.BLACK;
     private mode: Mode = Mode.FREE;
@@ -55,28 +55,28 @@ export class Paint {
 
     private socket: Socket;
     // Emits connection status
-    public statusEmiter: EventEmitter<string> = new EventEmitter<string>();
+    public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
     constructor(private canvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private backgroundCanvas: HTMLCanvasElement) {
 
         // Internal
         predictCanvas.height = predictCanvas.parentElement.offsetHeight;
         predictCanvas.width = predictCanvas.parentElement.offsetWidth;
-        this.ctx2 = predictCanvas.getContext("2d");
+        this.ctx2 = predictCanvas.getContext('2d');
 
         canvas.height = canvas.parentElement.offsetHeight;
         canvas.width = canvas.parentElement.offsetWidth;
-        this.ctx = canvas.getContext("2d");
+        this.ctx = canvas.getContext('2d');
 
         backgroundCanvas.height = backgroundCanvas.parentElement.offsetHeight;
         backgroundCanvas.width = backgroundCanvas.parentElement.offsetWidth;
-        this.ctx3 = backgroundCanvas.getContext("2d");
+        this.ctx3 = backgroundCanvas.getContext('2d');
 
         // Defaults
         this.ctx.lineWidth = this.ctx2.lineWidth = 5;
         this.ctx3.lineWidth = 2;
-        this.ctx.lineJoin = "round";
-        this.ctx.lineCap = "round";
+        this.ctx.lineJoin = 'round';
+        this.ctx.lineCap = 'round';
         this.ctx.strokeStyle = this.ctx2.strokeStyle = this.currentColor;
 
         // Setup Paint data for local and remote
@@ -111,28 +111,28 @@ export class Paint {
         this.remote = [];
 
         // Setup Socket
-        this.socket = io("http://ipmateusza.ga:3000");
+        this.socket = io('http://ipmateusza.ga:3000');
         console.log('Connecting to http://ipmateusza.ga:3000');
 
         // Control connection
         this.socket.on('connect_error', (err: any) => {
-            this.statusEmiter.emit('connect_error');
+            this.statusEmitter.emit('connect_error');
         });
-        
+
         this.socket.on('reconnect_failed', () => {
-            this.statusEmiter.emit('reconnect_failed');
+            this.statusEmitter.emit('reconnect_failed');
         });
-        
+
         this.socket.on('reconnect_error', (err: any) => {
-            this.statusEmiter.emit('reconnect_error');
+            this.statusEmitter.emit('reconnect_error');
         });
-        
+
         this.socket.on('disconnect', () => {
-            this.statusEmiter.emit('disconnect');
+            this.statusEmitter.emit('disconnect');
         });
-        
+
         this.socket.on('error', (err: any) => {
-            this.statusEmiter.emit('error');
+            this.statusEmitter.emit('error');
         });
 
         this.socket.on('pong', (latency: any) => {
@@ -141,7 +141,8 @@ export class Paint {
 
         // Notify server
         this.socket.on('connect', () => {
-            this.statusEmiter.emit('connected');
+            this.statusEmitter.emit('connected');
+            // @ts-ignore
             this.socket.emit(PacketType.RESIZE, {
                 x: this.canvas.width,
                 y: this.canvas.height
@@ -149,6 +150,7 @@ export class Paint {
         });
 
         // Listen to data from other clients
+        // @ts-ignore
         this.socket.on(PacketType.FREE_START, (packet: FreeStart) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -159,6 +161,7 @@ export class Paint {
             this.remote[id].currentFreeLine.start.y = this.remote[id].startY;
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.CHAR_DRAW, (packet: CharDraw) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -173,13 +176,14 @@ export class Paint {
 
             this.remote[id].chars.push(c);
 
-            this.ctx.font = "50px Comic Sans MS";
+            this.ctx.font = '50px Comic Sans MS';
             this.ctx.fillStyle = packet.color;
             const x = this.ctx.measureText(packet.char).width;
             const y = this.ctx.measureText(packet.char).actualBoundingBoxAscent;
-            this.ctx.fillText(packet.char, packet.x - (x/2), packet.y + (y/2));
+            this.ctx.fillText(packet.char, packet.x - (x / 2), packet.y + (y / 2));
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.FREE_DRAW, (packet: FreeDraw) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -194,10 +198,10 @@ export class Paint {
                 this.ctx.beginPath();
 
                 // Corupted path on corners - add one px
-                if (packet.movementX < 0) last.x++;
-                else if (packet.movementX > 0) last.x--;
-                if (packet.movementY < 0) last.y++;
-                else if (packet.movementY > 0) last.y--;
+                if (packet.movementX < 0) { last.x++; }
+                else if (packet.movementX > 0) { last.x--; }
+                if (packet.movementY < 0) { last.y++; }
+                else if (packet.movementY > 0) { last.y--; }
 
                 this.ctx.moveTo(last.x, last.y);
                 this.ctx.lineTo(packet.x, packet.y);
@@ -213,6 +217,7 @@ export class Paint {
 
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.FREE_END, (packet: FreeEnd) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -220,17 +225,20 @@ export class Paint {
             // Add FreeLine
             this.remote[id].currentFreeLine.color = packet.color;
             this.remote[id].freeLines.push(JSON.parse(JSON.stringify(this.remote[id].currentFreeLine)));
-            this.remote[id].currentFreeLine.parts = [];  
+            this.remote[id].currentFreeLine.parts = [];
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.CLEAR, (packet: Packet) => {
             this.clear(false);
         });
-        
+
+        // @ts-ignore
         this.socket.on(PacketType.NEWMAXSIZE, (packet: Resize) => {
             this.drawMaxVisibleForOthers(packet.x, packet.y);
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.STRAIGHT_PREDICT, (packet: StraightPredict) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -242,12 +250,12 @@ export class Paint {
             this.remote[id].straightPredict.start = packet.start;
             this.remote[id].straightPredict.end = packet.end;
             this.remote[id].straightPredict.color = packet.color;
-            
+
             // Draw all remote predict
-            for (let id in this.remote) {
+            for (const id in this.remote) {
                 const client = this.remote[id];
-                
-                if (client.straightPredict.start.x === -1) continue;
+
+                if (client.straightPredict.start.x === -1) { continue; }
 
                 this.ctx2.beginPath();
                 this.ctx2.moveTo(client.straightPredict.start.x, client.straightPredict.start.y);
@@ -266,6 +274,7 @@ export class Paint {
             }
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.STRAIGHT_DRAW, (packet: StraightDraw) => {
             this.ctx.beginPath();
             this.ctx.moveTo(packet.start.x, packet.start.y);
@@ -298,16 +307,17 @@ export class Paint {
             // TODO history
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.UNDO, (packet: Undo) => {
             const id = packet.socketId;
             this.checkRemote(id);
 
             // Remove this
-            switch(packet.type) {
+            switch (packet.type) {
                 case Mode.FREE:
                     this.restory.push(this.remote[id].freeLines.pop());
                     break;
-                case Mode.STRAIGHT: 
+                case Mode.STRAIGHT:
                     this.restory.push(this.remote[id].straightLines.pop());
                     break;
                 case Mode.DOT:
@@ -323,6 +333,7 @@ export class Paint {
             this.redraw();
         });
 
+        // @ts-ignore
         this.socket.on(PacketType.REDO, (packet: Redo) => {
             const id = packet.socketId;
             this.checkRemote(id);
@@ -334,13 +345,13 @@ export class Paint {
                 this.remote[id].freeLines.push(packet.element as FreeLine);
                 // TODO shared history
             }
-    
+
             if (packet.element.type === Mode.STRAIGHT) {
                 const line: StraightLine = packet.element as StraightLine;
                 this.remote[id].straightLines.push(line);
                 // TODO shared history
             }
-    
+
             if (packet.element.type === Mode.DOT) {
                 this.remote[id].dots.push(packet.element as Dot);
                 // TODO shared history
@@ -350,13 +361,13 @@ export class Paint {
                 this.remote[id].chars.push(packet.element as Char);
                 // TODO shared history
             }
-    
+
             this.redraw();
         });
 
         this.predictCanvas.onmousedown = (event: MouseEvent) => {
-            if (event.button === 0) this.leftDown = true;
-            else if (event.button === 2) this.rightDown = true;
+            if (event.button === 0) { this.leftDown = true; }
+            else if (event.button === 2) { this.rightDown = true; }
 
             const poss = this.getMousePoss(event);
 
@@ -369,11 +380,11 @@ export class Paint {
                     this.local[0].startStraightX = poss.x;
                     this.local[0].startStraightY = poss.y;
                 }
-                //console.log(poss.x + " " + poss.y + "   |||   " + this.lastPointX + " " + this.lastPointY);
+                // console.log(poss.x + " " + poss.y + "   |||   " + this.lastPointX + " " + this.lastPointY);
 
                 if ((event.button === 0) && (this.mode === Mode.POINT)) {
- 
-                    
+
+
                     if ((this.local[0].lastPointX !== -1) && (this.local[0].lastPointX !== -1)) {
 
                         this.ctx.beginPath();
@@ -398,7 +409,7 @@ export class Paint {
 
                         this.local[0].straightLines.push(JSON.parse(JSON.stringify(straightLine)));
                         // Add to history
-                        this.history.push(Mode.STRAIGHT); 
+                        this.history.push(Mode.STRAIGHT);
 
                          // Notify others
                         const packet: StraightDraw = {
@@ -413,6 +424,7 @@ export class Paint {
                             color: this.currentColor,
                             socketId: this.socket.id,
                         };
+                        // @ts-ignore
                         this.socket.emit(PacketType.STRAIGHT_DRAW, packet);
                     }
                 }
@@ -434,17 +446,18 @@ export class Paint {
                 this.local[0].currentFreeLine.start.y = this.local[0].startY;
 
                 const packet: FreeStart = { x: this.local[0].startX, y: this.local[0].startY, socketId: this.socket.id };
+               // @ts-ignore
                 this.socket.emit(PacketType.FREE_START, packet);
             }
-        }
+        };
 
         this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
             event.preventDefault();
-        }
+        };
 
         this.predictCanvas.onmouseup = (event: MouseEvent) => {
-            if (event.button === 0) this.leftDown = false;
-            else if (event.button === 2) this.rightDown = false;
+            if (event.button === 0) { this.leftDown = false; }
+            else if (event.button === 2) { this.rightDown = false; }
 
             this.canDraw = false;
             const poss = this.getMousePoss(event);
@@ -452,12 +465,12 @@ export class Paint {
             if (this.mode === Mode.FREE) {
                 // Just dot
                 if (this.local[0].currentFreeLine.parts.length === 0) {
-                   
+
                     this.ctx.fillStyle = this.currentColor;
                     this.ctx.beginPath();
                     this.ctx.arc(poss.x, poss.y, 4, 0, 2 * Math.PI);
                     this.ctx.fill();
-                    
+
                     this.local[0].dots.push({
                         type: Mode.DOT,
                         x: poss.x,
@@ -466,15 +479,16 @@ export class Paint {
                     });
 
                     // Add to history
-                    this.history.push(Mode.DOT); 
+                    this.history.push(Mode.DOT);
 
-                    const packet: FreeDot = { 
+                    const packet: FreeDot = {
                         color: this.currentColor,
                         x: poss.x,
                         y: poss.y,
-                        socketId: this.socket.id 
+                        socketId: this.socket.id
                     };
 
+                  // @ts-ignore
                     this.socket.emit(PacketType.FREE_DOT, packet);
                     return;
                 }
@@ -482,11 +496,12 @@ export class Paint {
                 // Add FreeLine
                 this.local[0].currentFreeLine.color = this.currentColor;
                 this.local[0].freeLines.push(JSON.parse(JSON.stringify(this.local[0].currentFreeLine)));
-                this.local[0].currentFreeLine.parts = [];  
+                this.local[0].currentFreeLine.parts = [];
                 // Add to history
-                this.history.push(Mode.FREE); 
+                this.history.push(Mode.FREE);
 
                 const packet: FreeEnd = { color: this.currentColor, socketId: this.socket.id };
+              // @ts-ignore
                 this.socket.emit(PacketType.FREE_END, packet);
             }
 
@@ -521,11 +536,11 @@ export class Paint {
                         return;
                     }
                 }
-                
+
                 this.ctx.lineTo(poss.x, poss.y);
                 this.ctx.strokeStyle = this.currentColor;
                 this.ctx.stroke();
-    
+
                 // When dragging start location is diffrent than when it's just click
                 let x = 0, y = 0;
                 if (this.dragging) {
@@ -535,16 +550,16 @@ export class Paint {
                     x = this.local[0].startStraightX;
                     y = this.local[0].startStraightY;
                 }
-                
+
                 this.addLocationDot({x, y}, true);
-                
-                
+
+
                 // Add StraightLine
                 const straightLine = {
                     type: Mode.STRAIGHT,
                     start: {
-                        x: x,
-                        y: y
+                        x,
+                        y
                     },
                     end: {
                         x: poss.x,
@@ -560,8 +575,8 @@ export class Paint {
                 // Notify others
                 const packet: StraightDraw = {
                     start: {
-                        x: x,
-                        y: y
+                        x,
+                        y
                     },
                     end: {
                         x: poss.x,
@@ -570,14 +585,15 @@ export class Paint {
                     color: this.currentColor,
                     socketId: this.socket.id,
                 };
+              // @ts-ignore
                 this.socket.emit(PacketType.STRAIGHT_DRAW, packet);
             }
-        }
+        };
 
         this.predictCanvas.onmousemove = (event: MouseEvent) => {
-            if ((this.rightDown) || (this.leftDown)) this.dragging = true;
-            else this.dragging = false; 
-            
+            if ((this.rightDown) || (this.leftDown)) { this.dragging = true; }
+            else { this.dragging = false; }
+
             if ((this.mode === Mode.STRAIGHT) && (this.rightDown)) {
                 // No predict for right click
                 return;
@@ -586,7 +602,7 @@ export class Paint {
             if (!this.canDraw) {
                 return;
             }
-            
+
             const poss = this.getMousePoss(event);
 
             if (this.mode === Mode.FREE) {
@@ -601,10 +617,10 @@ export class Paint {
                     this.ctx.beginPath();
 
                     // Corupted path on corners - add one px
-                    if (event.movementX < 0) last.x++;
-                    else if (event.movementX > 0) last.x--;
-                    if (event.movementY < 0) last.y++;
-                    else if (event.movementY > 0) last.y--;
+                    if (event.movementX < 0) { last.x++; }
+                    else if (event.movementX > 0) { last.x--; }
+                    if (event.movementY < 0) { last.y++; }
+                    else if (event.movementY > 0) { last.y--; }
 
                     this.ctx.moveTo(last.x, last.y);
                     this.ctx.lineTo(poss.x, poss.y);
@@ -618,7 +634,7 @@ export class Paint {
                     y: poss.y
                 });
 
-                const packet: FreeDraw = { 
+                const packet: FreeDraw = {
                     x: poss.x,
                     y: poss.y,
                     socketId: this.socket.id,
@@ -627,17 +643,18 @@ export class Paint {
                     movementX: event.movementX
                 };
 
+              // @ts-ignore
                 this.socket.emit(PacketType.FREE_DRAW, packet);
             }
 
             if ((this.mode === Mode.STRAIGHT) && (this.dragging)) {
-                
+
                 // Clear
                 this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
                 // Draw all remote predict
-                for (let id in this.remote) {
+                for (const id in this.remote) {
                     const client = this.remote[id];
-                    if (client.straightPredict.start.x === -1) continue;
+                    if (client.straightPredict.start.x === -1) { continue; }
                     this.ctx2.beginPath();
                     this.ctx2.moveTo(client.straightPredict.start.x, client.straightPredict.start.y);
                     this.ctx2.lineTo(client.straightPredict.end.x, client.straightPredict.end.y);
@@ -652,7 +669,7 @@ export class Paint {
                 this.ctx2.strokeStyle = this.currentColor;
                 this.ctx2.stroke();
 
-                const packet: StraightPredict = { 
+                const packet: StraightPredict = {
                     start: {
                         x: this.local[0].startX,
                         y: this.local[0].startY,
@@ -665,13 +682,14 @@ export class Paint {
                     socketId: this.socket.id,
                 };
                 // Notify others
+              // @ts-ignore
                 this.socket.emit(PacketType.STRAIGHT_PREDICT, packet);
                 // Save to memory - anti flickering when someonelse doing same
                 this.local[0].straightPredict.start = packet.start;
                 this.local[0].straightPredict.end = packet.end;
                 this.local[0].straightPredict.color = packet.color;
             }
-        }
+        };
 
         this.predictCanvas.ontouchstart = (event: TouchEvent) => {
             this.canDraw = true;
@@ -684,31 +702,32 @@ export class Paint {
                 this.local[0].currentFreeLine.start.y = this.local[0].startY;
 
                 const packet: FreeStart = { x: this.local[0].startX, y: this.local[0].startY, socketId: this.socket.id };
+              // @ts-ignore
                 this.socket.emit(PacketType.FREE_START, packet);
             }
-        }
+        };
 
         this.predictCanvas.ontouchend = (event: TouchEvent) => {
             this.canDraw = false;
 
             // Don't know howthefuck is this possible
             /*if (event.touches.length === 0) {
-                this.local[0].currentFreeLine.parts = []; 
+                this.local[0].currentFreeLine.parts = [];
                 return;
             }*/
-            
+
             if (this.mode === Mode.FREE) {
 
                 // Just dot
                 if ((event.touches.length !== 0) && (this.local[0].currentFreeLine.parts.length === 0)) {
 
                     const poss = this.getTouchPoss(event.touches.item(0));
-                                
+
                     this.ctx.fillStyle = this.currentColor;
                     this.ctx.beginPath();
                     this.ctx.arc(poss.x, poss.y, 4, 0, 2 * Math.PI);
                     this.ctx.fill();
-                    
+
                     this.local[0].dots.push({
                         type: Mode.DOT,
                         x: poss.x,
@@ -717,15 +736,16 @@ export class Paint {
                     });
 
                     // Add to history
-                    this.history.push(Mode.DOT); 
+                    this.history.push(Mode.DOT);
 
-                    const packet: FreeDot = { 
+                    const packet: FreeDot = {
                         color: this.currentColor,
                         x: poss.x,
                         y: poss.y,
-                        socketId: this.socket.id 
+                        socketId: this.socket.id
                     };
 
+                  // @ts-ignore
                     this.socket.emit(PacketType.FREE_DOT, packet);
                     return;
                 }
@@ -733,22 +753,23 @@ export class Paint {
                 // Add FreeLine
                 this.local[0].currentFreeLine.color = this.currentColor;
                 this.local[0].freeLines.push(JSON.parse(JSON.stringify(this.local[0].currentFreeLine)));
-                this.local[0].currentFreeLine.parts = [];  
+                this.local[0].currentFreeLine.parts = [];
                 // Add to history
-                this.history.push(Mode.FREE); 
+                this.history.push(Mode.FREE);
 
                 const packet: FreeEnd = { color: this.currentColor, socketId: this.socket.id };
+              // @ts-ignore
                 this.socket.emit(PacketType.FREE_END, packet);
             }
-        }
+        };
 
         this.predictCanvas.ontouchmove = (event: TouchEvent) => {
-            if (!this.canDraw) return;
+            if (!this.canDraw) { return; }
 
-            for (let index: number = 0; index < event.touches.length; index++)  {
+            for (let index = 0; index < event.touches.length; index++)  {
                 const touch: Touch = event.touches.item(index);
                 const poss = this.getTouchPoss(touch);
-               
+
                 if (this.mode === Mode.FREE) {
 
                     let movementX = 0;
@@ -767,10 +788,10 @@ export class Paint {
                         movementY = poss.y - last.y;
 
                         // Corupted path on corners - add one px
-                        if (movementX < 0) last.x++;
-                        else if (movementX > 0) last.x--;
-                        if (movementY < 0) last.y++;
-                        else if (movementY > 0) last.y--;
+                        if (movementX < 0) { last.x++; }
+                        else if (movementX > 0) { last.x--; }
+                        if (movementY < 0) { last.y++; }
+                        else if (movementY > 0) { last.y--; }
 
                         this.ctx.moveTo(last.x, last.y);
                         this.ctx.lineTo(poss.x, poss.y);
@@ -784,62 +805,63 @@ export class Paint {
                         y: poss.y
                     });
 
-                    const packet: FreeDraw = { 
+                    const packet: FreeDraw = {
                         x: poss.x,
                         y: poss.y,
                         socketId: this.socket.id,
                         color: this.currentColor,
-                        movementY: movementY,
-                        movementX: movementX
+                        movementY,
+                        movementX
                     };
 
+                  // @ts-ignore
                     this.socket.emit(PacketType.FREE_DRAW, packet);
                 }
             }
-        }
+        };
 
         window.onmousemove = (event: MouseEvent) => {
             const poss = this.getMousePoss(event);
             this.local[0].cursorX = poss.x;
             this.local[0].cursorY = poss.y;
-        }
+        };
 
         window.onkeydown = (event: KeyboardEvent) => {
-            if ((this.local[0].cursorY === -1) || (this.local[0].cursorX === -1)) return;
+            if ((this.local[0].cursorY === -1) || (this.local[0].cursorX === -1)) { return; }
 
-            if (event.key === "Shift") return;
-            if (event.key === "Control") return;
-            if (event.key === "Backspace") return;
-            if (event.key === "Escape") return;
-            if (event.key === "CapsLock") return;
-            if (event.key === "Tab") return;
-            if (event.key === "Meta") return;
-            if (event.key === "NumLock") return;
-            if (event.key === "ScrollLock") return;
-            if (event.key === "Enter") return;
-            if (event.key === "PageDown") return;
-            if (event.key === "PageUp") return;
-            if (event.key === "End") return;
-            if (event.key === "ContextMenu") return;
-            if (event.key === "Home") return;
-            if (event.key === "AltGraph") return;
-            if (event.key === "ArrowLeft") return;
-            if (event.key === "ArrowRight") return;
-            if (event.key === "ArrowUp") return;
-            if (event.key === "ArrowDown") return;
-            if (event.key === "Delete") return;
-            if (event.key === "Insert") return;
-            if (event.key === "Pause") return;
-            if (event.key === "Clear") return;
-            if (event.key === "Dead") return;
-            if (event.key === "Alt") return;
-            if (event.key === "Alt") return;
+            if (event.key === 'Shift') { return; }
+            if (event.key === 'Control') { return; }
+            if (event.key === 'Backspace') { return; }
+            if (event.key === 'Escape') { return; }
+            if (event.key === 'CapsLock') { return; }
+            if (event.key === 'Tab') { return; }
+            if (event.key === 'Meta') { return; }
+            if (event.key === 'NumLock') { return; }
+            if (event.key === 'ScrollLock') { return; }
+            if (event.key === 'Enter') { return; }
+            if (event.key === 'PageDown') { return; }
+            if (event.key === 'PageUp') { return; }
+            if (event.key === 'End') { return; }
+            if (event.key === 'ContextMenu') { return; }
+            if (event.key === 'Home') { return; }
+            if (event.key === 'AltGraph') { return; }
+            if (event.key === 'ArrowLeft') { return; }
+            if (event.key === 'ArrowRight') { return; }
+            if (event.key === 'ArrowUp') { return; }
+            if (event.key === 'ArrowDown') { return; }
+            if (event.key === 'Delete') { return; }
+            if (event.key === 'Insert') { return; }
+            if (event.key === 'Pause') { return; }
+            if (event.key === 'Clear') { return; }
+            if (event.key === 'Dead') { return; }
+            if (event.key === 'Alt') { return; }
+            if (event.key === 'Alt') { return; }
 
-            this.ctx.font = "50px Comic Sans MS";
+            this.ctx.font = '50px Comic Sans MS';
             this.ctx.fillStyle = this.currentColor;
             const x = this.ctx.measureText(event.key).width;
             const y = this.ctx.measureText(event.key).actualBoundingBoxAscent;
-            this.ctx.fillText(event.key, this.local[0].cursorX - (x/2), this.local[0].cursorY + (y/2));
+            this.ctx.fillText(event.key, this.local[0].cursorX - (x / 2), this.local[0].cursorY + (y / 2));
 
             this.local[0].chars.push({
                 type: Mode.CHAR,
@@ -856,19 +878,20 @@ export class Paint {
                 color: this.currentColor,
                 char: event.key,
                 socketId: this.socket.id
-            }
+            };
+          // @ts-ignore
             this.socket.emit(PacketType.CHAR_DRAW, p);
 
             // Add to history
             this.history.push(Mode.CHAR);
-            console.log("Ddoano");
-            
-        }
+            console.log('Ddoano');
+
+        };
 
     }
 
     private checkRemote(id: string): void {
-        if (!!this.remote[id]) return;
+        if (!!this.remote[id]) { return; }
         this.remote[id] = {
             startX: -1,
             startY: -1,
@@ -897,7 +920,7 @@ export class Paint {
 
     private addLocationDot(poss: {x: number, y: number}, clearCtx2: boolean = false): void {
         // Location dot
-        if (clearCtx2) this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
+        if (clearCtx2) { this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height); }
         this.ctx2.fillStyle = Color.INTERNAL;
         this.ctx2.beginPath();
         this.ctx2.arc(poss.x, poss.y, 10, 0, 2 * Math.PI);
@@ -908,7 +931,7 @@ export class Paint {
         let top = 0;
         let left = 0;
 
-        while (element && element.tagName != "BODY") {
+        while (element && element.tagName != 'BODY') {
             top += element.offsetTop - element.scrollTop;
             left += element.offsetLeft - element.scrollLeft;
             element = element.offsetParent as HTMLElement;
@@ -920,15 +943,15 @@ export class Paint {
     private getMousePoss(event: MouseEvent): { x: number, y: number } {
         return {
             x: event.pageX - this.getElementPoss(this.canvas).left,
-            y: event.pageY - this.getElementPoss(this.canvas).top 
-        }
+            y: event.pageY - this.getElementPoss(this.canvas).top
+        };
     }
 
     private getTouchPoss(touch: Touch): { x: number, y: number } {
         return {
             x: touch.pageX - this.getElementPoss(this.canvas).left,
-            y: touch.pageY - this.getElementPoss(this.canvas).top 
-        }
+            y: touch.pageY - this.getElementPoss(this.canvas).top
+        };
     }
 
     public setColor(value: string): void {
@@ -952,9 +975,9 @@ export class Paint {
                 this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
 
                 // Draw all remote predict
-                for (let id in this.remote) {
+                for (const id in this.remote) {
                     const client = this.remote[id];
-                    if (client.straightPredict.start.x === -1) continue;
+                    if (client.straightPredict.start.x === -1) { continue; }
                     this.ctx2.beginPath();
                     this.ctx2.moveTo(client.straightPredict.start.x, client.straightPredict.start.y);
                     this.ctx2.lineTo(client.straightPredict.end.x, client.straightPredict.end.y);
@@ -983,7 +1006,7 @@ export class Paint {
                 this.ctx.lineTo(part.x, part.y);
                 this.ctx.stroke();
             }
-        }
+        };
 
         const drawStraightLine = (straightLine: StraightLine) => {
             this.ctx.beginPath();
@@ -991,23 +1014,23 @@ export class Paint {
             this.ctx.strokeStyle = straightLine.color;
             this.ctx.lineTo(straightLine.end.x, straightLine.end.y);
             this.ctx.stroke();
-        }
+        };
 
         const drawDot = (dot: Dot) => {
             this.ctx.fillStyle = dot.color;
             this.ctx.beginPath();
             this.ctx.arc(dot.x, dot.y, 4, 0, 2 * Math.PI);
             this.ctx.fill();
-        }
+        };
 
         const drawChar = (char: Char) => {
 
-            this.ctx.font = "50px Comic Sans MS";
+            this.ctx.font = '50px Comic Sans MS';
             this.ctx.fillStyle = char.color;
             const x = this.ctx.measureText(char.char).width;
             const y = this.ctx.measureText(char.char).actualBoundingBoxAscent;
-            this.ctx.fillText(char.char, char.x - (x/2), char.y + (y/2));
-        }
+            this.ctx.fillText(char.char, char.x - (x / 2), char.y + (y / 2));
+        };
 
         for (const freeLine of this.local[0].freeLines) {
             drawFreeLine(freeLine);
@@ -1026,13 +1049,13 @@ export class Paint {
         }
 
         // Redraw remote
-        for (let id in this.remote) {
-            const client = this.remote[id];           
-            
+        for (const id in this.remote) {
+            const client = this.remote[id];
+
             for (const freeLine of client.freeLines) {
                 drawFreeLine(freeLine);
             }
-    
+
             for (const straightLine of client.straightLines) {
                 drawStraightLine(straightLine);
             }
@@ -1053,9 +1076,9 @@ export class Paint {
         // Clear
         this.ctx3.clearRect(0, 0, this.backgroundCanvas.width, this.backgroundCanvas.height);
         let show = false;
-        if (x < this.backgroundCanvas.width) show = true;
-        if (y < this.backgroundCanvas.height) show = true;
-        if (!show) return;
+        if (x < this.backgroundCanvas.width) { show = true; }
+        if (y < this.backgroundCanvas.height) { show = true; }
+        if (!show) { return; }
 
         // Redraw canvas 3
         this.ctx3.beginPath();
@@ -1074,13 +1097,14 @@ export class Paint {
         // Change size
         this.backgroundCanvas.height = this.predictCanvas.height = this.canvas.height = this.canvas.parentElement.offsetHeight;
         this.backgroundCanvas.width = this.predictCanvas.width = this.canvas.width = this.canvas.parentElement.offsetWidth;
-        
+
         // Clear
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
         this.redraw();
 
         // Notify server
+      // @ts-ignore
         this.socket.emit(PacketType.RESIZE, {
             x: this.canvas.width,
             y: this.canvas.height - this.canvas.parentElement.parentElement.firstElementChild.firstElementChild.clientHeight
@@ -1088,9 +1112,9 @@ export class Paint {
 
         // Show again border
         let show = false;
-        if (this.lastBorderX < this.backgroundCanvas.width) show = true;
-        if (this.lastBorderY < this.backgroundCanvas.height) show = true;
-        if (!show) return;
+        if (this.lastBorderX < this.backgroundCanvas.width) { show = true; }
+        if (this.lastBorderY < this.backgroundCanvas.height) { show = true; }
+        if (!show) { return; }
 
         // Redraw canvas 3
         this.ctx3.beginPath();
@@ -1102,21 +1126,22 @@ export class Paint {
     }
 
     public undo(): void {
-        if (!this.history.length) return;
+        if (!this.history.length) { return; }
         const type: Mode = this.history.pop();
 
         // Notify others
         const packet: Undo = {
             type,
             socketId: this.socket.id
-        }
+        };
+      // @ts-ignore
         this.socket.emit(PacketType.UNDO, packet);
-        
-        switch(type) {
+
+        switch (type) {
             case Mode.FREE:
                 this.restory.push(this.local[0].freeLines.pop());
                 break;
-            case Mode.STRAIGHT: 
+            case Mode.STRAIGHT:
                 this.restory.push(this.local[0].straightLines.pop());
                 break;
             case Mode.DOT:
@@ -1148,7 +1173,7 @@ export class Paint {
             this.ctx.closePath();
         }
 
-        if (!this.local[0].straightLines.length) return;
+        if (!this.local[0].straightLines.length) { return; }
 
         // Get location
         let x = 0, y = 0;
@@ -1159,7 +1184,7 @@ export class Paint {
             x = this.local[0].startStraightX = this.local[0].straightLines[this.local[0].straightLines.length - 1].start.x;
             y = this.local[0].startStraightY = this.local[0].straightLines[this.local[0].straightLines.length - 1].start.y;
         }
-        
+
         // Redo location dot
         this.ctx2.fillStyle = Color.INTERNAL;
         this.ctx2.beginPath();
@@ -1168,16 +1193,17 @@ export class Paint {
     }
 
     public redo(): void {
-        if (!this.restory.length) return;
+        if (!this.restory.length) { return; }
         const element: FreeLine | StraightLine | Dot | Char = this.restory.pop();
 
         // Notify others
         const packet: Redo = {
             element,
             socketId: this.socket.id,
-        }
+        };
+      // @ts-ignore
         this.socket.emit(PacketType.REDO, packet);
-        
+
         // Clear
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx2.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
@@ -1242,10 +1268,11 @@ export class Paint {
         this.remote = [];
         this.redraw();
 
-        if (!emit) return;
+        if (!emit) { return; }
 
         // Notify others
         const packet: Packet = { socketId: this.socket.id };
+      // @ts-ignore
         this.socket.emit(PacketType.CLEAR, packet);
     }
 

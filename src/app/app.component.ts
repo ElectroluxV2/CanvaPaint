@@ -17,14 +17,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.paint = new Paint(this.canv.nativeElement, this.canv2.nativeElement, this.canv3.nativeElement);
-    this.paint.statusEmiter.subscribe((value) => {
+    this.paint.statusEmitter.subscribe((value) => {
       this.statusEmiter.emit(value);
     })
     this.paint.scale();
   }
 
   ngOnDestroy(): void {
-    this.paint.statusEmiter.unsubscribe();
+    this.paint.statusEmitter.unsubscribe();
   }
 
   public changeMode(value: string): void {
