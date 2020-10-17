@@ -1,8 +1,7 @@
 <div class="app" (window:resize)="onResize($event)">
-    <app-bar (onModeChange)="changeMode($event)" (onIconClick)="changeA()" (onColorChange)="changeColor($event)" (onUndo)="undo()" (onRedo)="redo()" (onClear)="clear()" [statusUpdate]="statusEmiter"></app-bar>
-    <div class="canvs">
-        <canvas #canv3></canvas>
-        <canvas #canv></canvas>
-        <canvas #canv2></canvas>
-    </div>
+  <app-bar (onModeChange)="changeMode($event)" (onIconClick)="changeA()" (onColorChange)="changeColor($event)" (onUndo)="undo()" (onRedo)="redo()" (onClear)="clear()" [statusUpdate]="statusEmitter"></app-bar>
+  <div class="canvas">
+    <canvas #mainCanvas></canvas>
+    <canvas #predictCanvas></canvas>
+  </div>
 </div>

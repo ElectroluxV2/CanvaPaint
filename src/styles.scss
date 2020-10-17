@@ -1,9 +1,31 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100vh; }
+html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
-@import url(http://pl.allfont.net/allfont.css?fonts=comic-sans-ms);
+body {
+  background-image: linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, .2) 25%, rgba(0, 0, 0, .2) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .2) 75%, rgba(0, 0, 0, .2) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, .2) 25%, rgba(0, 0, 0, .2) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .2) 75%, rgba(0, 0, 0, .2) 76%, transparent 77%, transparent);
+  background-size: 50px 50px;
+  overscroll-behavior: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image: linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .2) 25%, rgba(255, 255,255, .2) 26%, transparent 27%, transparent 74%, rgba(255, 255,255, .2) 75%, rgba(255, 255,255, .2) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255,255, .2) 25%, rgba(255, 255,255, .2) 26%, transparent 27%, transparent 74%, rgba(255, 255,255, .2) 75%, rgba(255, 255,255, .2) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+    background-color: #000000;
+    //filter: grayscale(50%);
+  }
+}
+
+@font-face{
+  font-family:comic sans ms;
+  font-style:normal;
+  font-weight:400;
+  src:local('Comic Sans MS'),
+  local('ComicSansMS-Regular'),
+  url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
+  url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype')}
 @import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
 
 @import '~@angular/material/theming';
