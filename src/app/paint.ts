@@ -31,11 +31,11 @@ export class Paint {
 
       this.predictCanvas.onmousedown = (event: MouseEvent) => this.MoveBegin(this.NormalizeMouse(event));
       this.predictCanvas.onmousemove = (event: MouseEvent) => this.MoveOccur(this.NormalizeMouse(event));
-      this.predictCanvas.onmouseup = (event: MouseEvent) => this.MoveComplete();
+      this.predictCanvas.onmouseup = (event: MouseEvent) => this.MoveComplete(this.NormalizeMouse(event));
 
       this.predictCanvas.ontouchstart = (event: TouchEvent) => this.MoveBegin(this.NormalizeTouch(event));
       this.predictCanvas.ontouchmove = (event: TouchEvent) => this.MoveOccur(this.NormalizeTouch(event));
-      this.predictCanvas.ontouchend = (event: TouchEvent) => this.MoveComplete();
+      this.predictCanvas.ontouchend = (event: TouchEvent) => this.MoveComplete(this.NormalizeTouch(event));
     }
 
     private NormalizeTouch(event: TouchEvent): Point {
@@ -116,30 +116,37 @@ export class Paint {
         return;
       }
 
-      point.time = new Date().getTime();
+      point.time = !!point.time ? point.time : new Date().getTime();
       const lastSmooth = this.currentSmoothFreeLine[this.currentSmoothFreeLine.length - 1];
       const timeDifference = point.time - lastSmooth.time;
 
       if (timeDifference < 50 && this.lastRawFreeLine.length < 20) {
         this.lastRawFreeLine.push(point);
 
-        this.DrawRawFreeLine();
+        this.DrawRawFreeLine('#FF0000');
         return;
       }
 
-      this.lastRawFreeLine = [];
+      // Clear Predict
+      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
       this.currentSmoothFreeLine.push(point);
 
       if (this.currentSmoothFreeLine.length < 2) {
         return;
       }
 
-      this.DrawPartOfSmoothFreeLine();
+      this.lastRawFreeLine = [];
+
+      const smoothed = this.DrawPartOfSmoothFreeLine('#22FF22');
     }
 
-    private MoveComplete(): void {
-      this.freeLineOccurringNow = false;
+    private MoveComplete(p: Point): void {
 
+      // Force smoothing despite circumstances.
+      p.time = this.currentSmoothFreeLine[this.currentSmoothFreeLine.length - 1].time + 50;
+      this.MoveOccur(p);
+
+      this.freeLineOccurringNow = false;
       /*const elem = this.lastRawFreeLine.shift();
       if (elem) {
         this.currentSmoothFreeLine.push(elem);
@@ -200,7 +207,7 @@ export class Paint {
 
       for (const p of this.currentSmoothFreeLine) {
         ar.push(p.x, p.y);
-    }
+      }
 
       const p1 = this.currentSmoothFreeLine[this.currentSmoothFreeLine.length - 1];
       const p2 = this.currentSmoothFreeLine[this.currentSmoothFreeLine.length - 2];
