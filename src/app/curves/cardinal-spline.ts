@@ -41,13 +41,15 @@ export class CardinalSpline {
     context.stroke();
   }
 
-  public AddPoint(point: Float32Array): void {
+  public get IsEmpty(): boolean {
+    return this.points.length === 0;
+  }
 
-    // Same point redraw prevention
-    const prev = this.points[this.points.length - 1];
-    if (!!prev && prev[0] === point[0] && prev[1] === point[1]) { return; }
+  public AddPoint(point: Float32Array): Float32Array[] {
+    // Deep copy
+    this.points.push(new Float32Array([...point]));
 
-    this.points.push(point);
+    const toReturn: Float32Array[] = [];
 
     // At some point there is no point in optimizing such a big line, so split it
     if (this.optimized.length > 25) {
@@ -59,23 +61,28 @@ export class CardinalSpline {
 
       // Split line
       this.optimized = Simplify.Simplify(this.points, this.tolerance);
-      this.Finish();
+      toReturn.push(...this.Finish());
 
       this.points = [last];
       this.optimized = [];
     }
 
-    if (this.points.length < 2) { return; }
+    if (this.points.length < 2) { return [new Float32Array([...point])]; }
 
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
+
+    toReturn.push(...this.optimized);
+
     this.predict.strokeStyle = this.color;
     this.predict.lineWidth = this.width;
 
     this.predict.clear();
     CardinalSpline.QuadraticCurve(this.predict, this.optimized);
+
+    return toReturn;
   }
 
-  public Finish(): void {
+  public Finish(): Float32Array[] {
     this.main.strokeStyle = this.color;
     this.main.lineWidth = this.width;
 
@@ -87,6 +94,6 @@ export class CardinalSpline {
     else { CardinalSpline.QuadraticCurve(this.main, this.optimized); }
 
     delete this.points;
-    delete this.optimized;
+    return this.optimized;
   }
 }

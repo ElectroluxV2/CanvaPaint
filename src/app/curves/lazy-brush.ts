@@ -3,19 +3,15 @@ export class LazyBrush {
   private readonly radius: number;
   private pointer: LazyPoint;
   private brush: LazyPoint;
-  private angle: number;
-  private distance: number;
-  private hasMoved: boolean;
+  private angle = 0;
+  private distance = 0;
+  private hasMoved = false;
 
-  constructor(radius: number) {
+  constructor(radius: number, startPoint: Float32Array) {
     this.radius = radius;
 
-    this.pointer = new LazyPoint();
-    this.brush = new LazyPoint();
-
-    this.angle = 0;
-    this.distance = 0;
-    this.hasMoved = false;
+    this.pointer = new LazyPoint(startPoint);
+    this.brush = new LazyPoint(startPoint);
   }
 
   /**
@@ -43,6 +39,10 @@ export class LazyBrush {
     return true;
   }
 
+  public get HasMoved(): boolean {
+    return this.hasMoved;
+  }
+
   public Get(): Float32Array {
     return this.brush.ToArray();
   }
@@ -50,6 +50,11 @@ export class LazyBrush {
 
 class LazyPoint {
   private coords: Float32Array = new Float32Array(2);
+
+  constructor(startPoint: Float32Array) {
+    this.coords[0] = startPoint[0];
+    this.coords[1] = startPoint[1];
+  }
 
   public EqualsTo(another: Float32Array): boolean {
     return this.coords[0] === another[0] && this.coords[1] === another[1];
@@ -67,7 +72,7 @@ class LazyPoint {
 
   public GetAngleTo(another: Float32Array): number {
     const diff = this.GetDifferenceTo(another);
-    return Math.atan2(diff[0], diff[1]);
+    return Math.atan2(diff[1], diff[0]);
   }
 
   public MoveByAngle(angle: number, distance: number): void {

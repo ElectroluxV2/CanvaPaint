@@ -1,5 +1,6 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { CardinalSpline } from './curves/cardinal-spline';
+import {LazyBrush} from './curves/lazy-brush';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -17,9 +18,9 @@ export class Paint {
 
     private freeLineOccurringNow = false;
     private currentSpline: CardinalSpline;
+    private currentLazyBrush: LazyBrush;
 
     constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
-
       // Calculate canvas position once, then only on window resize
       this.CalcCanvasPosition();
 
@@ -75,15 +76,25 @@ export class Paint {
 
     public OnLazyUpdate(): void {
 
-      // Prevent from wrong point of start
-      if (!((!this.lastPointer) || (this.lastPointer[0] === -1))) {
-        // Method itself check if there was update
-        this.currentSpline.AddPoint(this.lastPointer);
-      }
+      const loop = () => {
+        this.ngZone.runOutsideAngular(() => {
+          this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
+        });
+      };
 
-      this.ngZone.runOutsideAngular(() => {
-        this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
-      });
+      if (!this.lastPointer) { return loop(); }
+      if (!this.currentSpline) { return loop(); }
+      if (!this.currentLazyBrush) { return loop(); }
+
+      this.currentLazyBrush.Update(this.lastPointer);
+
+      // Same redraw prevention
+      if (!this.currentLazyBrush.HasMoved && !this.currentSpline.IsEmpty) { return loop(); }
+
+      // TODO: Networking staff
+      const compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+
+      return loop();
     }
 
     private NormalizePoint(event: TouchEvent | MouseEvent): Float32Array {
@@ -131,15 +142,27 @@ export class Paint {
     private MoveBegin(): void {
       this.freeLineOccurringNow = true;
 
-      // For realtime processing
-      this.currentSpline = new CardinalSpline(this.mainCanvasCTX, this.predictCanvasCTX, 1, 5, 'red');
-
       // Draw and calc only on frame request
       this.OnLazyUpdate();
     }
 
     private MoveOccur(point: Float32Array): void {
       if (!this.freeLineOccurringNow) { return; }
+
+      if (!this.currentSpline) {
+        // For realtime processing
+        this.currentSpline = new CardinalSpline(this.mainCanvasCTX, this.predictCanvasCTX, 1, 5, 'red');
+      }
+
+      if (!this.currentLazyBrush) {
+        // Make radius 1% of screen width nor height
+        // TODO: Settings
+        const w10 = this.predictCanvas.width * 0.01;
+        const h10 = this.predictCanvas.height * 0.01;
+
+        // Draw stabilizer
+        this.currentLazyBrush = new LazyBrush(Math.max(w10, h10), point);
+      }
 
       // Save for frame request processing
       this.lastPointer = point;
@@ -150,13 +173,12 @@ export class Paint {
 
       window.cancelAnimationFrame(this.animFrameGlobID);
 
-      this.currentSpline.Finish();
-
-
+      // TODO: Networking staff
+      const compiled = this.currentSpline.Finish();
 
       // Cleanup
       delete this.currentSpline;
-      // Prevent drawing
-      this.lastPointer[0] = -1;
+      delete this.currentLazyBrush;
+      delete this.lastPointer;
     }
 }
