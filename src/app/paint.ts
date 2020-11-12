@@ -1,16 +1,22 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { CardinalSpline } from './curves/cardinal-spline';
 
+declare global {
+  interface CanvasRenderingContext2D {
+    clear(): void;
+  }
+}
+
 export class Paint {
     private readonly mainCanvasCTX: CanvasRenderingContext2D;
     private readonly predictCanvasCTX: CanvasRenderingContext2D;
     public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
     private canvasPosition: Float32Array = new Float32Array(2);
     private animFrameGlobID;
+    private lastPointer: Float32Array;
 
     private freeLineOccurringNow = false;
     private currentSpline: CardinalSpline;
-
 
     constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
 
@@ -30,10 +36,16 @@ export class Paint {
       this.mainCanvasCTX.lineWidth = 5;
       this.mainCanvasCTX.lineJoin = 'round';
       this.mainCanvasCTX.lineCap = 'round';
+      this.mainCanvasCTX.clear = () => {
+        this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
+      };
 
       this.predictCanvasCTX.lineWidth = 5;
       this.predictCanvasCTX.lineJoin = 'round';
       this.predictCanvasCTX.lineCap = 'round';
+      this.predictCanvasCTX.clear = () => {
+        this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
+      };
 
       // Events
       this.predictCanvas.onmousedown = (event: MouseEvent) => {
@@ -62,7 +74,12 @@ export class Paint {
     }
 
     public OnLazyUpdate(): void {
-      console.log('a');
+
+      // Prevent from wrong point of start
+      if (!((!this.lastPointer) || (this.lastPointer[0] === -1))) {
+        // Method itself check if there was update
+        this.currentSpline.AddPoint(this.lastPointer);
+      }
 
       this.ngZone.runOutsideAngular(() => {
         this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
@@ -117,24 +134,29 @@ export class Paint {
       // For realtime processing
       this.currentSpline = new CardinalSpline(this.mainCanvasCTX, this.predictCanvasCTX, 1, 5, 'red');
 
+      // Draw and calc only on frame request
       this.OnLazyUpdate();
     }
 
     private MoveOccur(point: Float32Array): void {
       if (!this.freeLineOccurringNow) { return; }
 
-      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
-      this.currentSpline.AddPoint(point);
+      // Save for frame request processing
+      this.lastPointer = point;
     }
 
     private MoveComplete(): void {
-      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvas.width, this.predictCanvas.height);
       this.freeLineOccurringNow = false;
-      this.currentSpline.Finish();
 
       window.cancelAnimationFrame(this.animFrameGlobID);
 
+      this.currentSpline.Finish();
+
+
+
       // Cleanup
       delete this.currentSpline;
+      // Prevent drawing
+      this.lastPointer[0] = -1;
     }
 }
