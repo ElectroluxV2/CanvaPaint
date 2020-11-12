@@ -42,20 +42,19 @@ export class CardinalSpline {
   }
 
   public AddPoint(point: Float32Array): void {
-    let last;
-    // Same point update prevention
-    if (this.points.length) {
-      last = this.points[this.points.length - 1];
-      if (last[0] === point[0] && last[1] === point[1]) { return; }
-    }
+
+    // Same point redraw prevention
+    const prev = this.points[this.points.length - 1];
+    if (!!prev && prev[0] === point[0] && prev[1] === point[1]) { return; }
 
     this.points.push(point);
 
     // At some point there is no point in optimizing such a big line, so split it
-    if (this.optimized.length > 50) {
+    if (this.optimized.length > 25) {
       // TODO: smooth blend point
 
       // Copy last point
+      const last = this.points[this.points.length - 1];
       this.points.slice(0, this.points.length - 1);
 
       // Split line
@@ -72,9 +71,7 @@ export class CardinalSpline {
     this.predict.strokeStyle = this.color;
     this.predict.lineWidth = this.width;
 
-    // Clear predict
     this.predict.clear();
-    // Draw new predict
     CardinalSpline.QuadraticCurve(this.predict, this.optimized);
   }
 
