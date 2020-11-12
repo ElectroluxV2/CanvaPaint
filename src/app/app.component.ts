@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, EventEmitter, OnDestroy } from '@angular/core';
+import {Component, ViewChild, ElementRef, AfterViewInit, EventEmitter, OnDestroy, NgZone} from '@angular/core';
 import { Paint } from './paint';
 
 @Component({
@@ -14,8 +14,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
+  constructor(private ngZone: NgZone) { }
+
   ngAfterViewInit(): void {
-    this.paint = new Paint(this.mainCanvas.nativeElement, this.predictCanvas.nativeElement);
+    this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement);
 
     this.paint.statusEmitter.subscribe((value) => {
       this.statusEmitter.emit(value);
