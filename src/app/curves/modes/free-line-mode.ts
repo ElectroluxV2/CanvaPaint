@@ -9,20 +9,6 @@ export class FreeLineMode extends PaintMode {
   private currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
 
-  OnLazyUpdate(lastPointer: Float32Array): void {
-
-    if (!this.currentSpline) { return; }
-    if (!this.currentLazyBrush) { return; }
-
-    this.currentLazyBrush.Update(lastPointer);
-
-    // Same redraw prevention
-    if (!this.currentLazyBrush.HasMoved && !this.currentSpline.IsEmpty) { return; }
-
-    // TODO: Networking staff
-    const compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
-  }
-
   OnMoveBegin(): void {
     this.freeLineOccurringNow = true;
   }
@@ -45,6 +31,25 @@ export class FreeLineMode extends PaintMode {
       // Draw stabilizer
       this.currentLazyBrush = new LazyBrush(Math.max(w10, h10), point);
     }
+  }
+
+  OnLazyUpdate(lastPointer: Float32Array): void {
+
+    if (!this.currentSpline) { return; }
+    if (!this.currentLazyBrush) { return; }
+
+    this.currentLazyBrush.Update(lastPointer);
+
+    if (this.currentSpline.IsEmpty) {
+      // Force update first time
+      this.currentLazyBrush.ForceBrush(lastPointer);
+    }
+
+    // Same redraw prevention
+    if (!this.currentLazyBrush.HasMoved) { return; }
+
+    // TODO: Networking staff
+    const compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
   }
 
   OnMoveComplete(): void {

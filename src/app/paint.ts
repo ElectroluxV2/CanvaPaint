@@ -20,7 +20,6 @@ export class Paint {
     private canvasPosition: Float32Array = new Float32Array(2);
     private animFrameGlobID;
     private lastPointer: Float32Array;
-    protected scale = 1;
 
     private currentMode: PaintMode;
     private readonly currentSettings: PaintSettings;
@@ -29,11 +28,9 @@ export class Paint {
       // Calculate canvas position once, then only on window resize
       this.CalcCanvasPosition();
 
-      this.scale = window.devicePixelRatio;
-
       // Setup canvas, remember to rescale on window resize
-      mainCanvas.height = mainCanvas.parentElement.offsetHeight * this.scale;
-      mainCanvas.width = mainCanvas.parentElement.offsetWidth * this.scale;
+      mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
+      mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
       this.mainCanvasCTX = mainCanvas.getContext('2d');
 
       predictCanvas.height = mainCanvas.height;
@@ -128,8 +125,8 @@ export class Paint {
       point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
       point[1] = point[1] < 0 ? 0 : point[1];
 
-      point[0] *= this.scale;
-      point[1] *= this.scale;
+      point[0] *= window.devicePixelRatio;
+      point[1] *= window.devicePixelRatio;
 
       return point;
     }
@@ -219,8 +216,8 @@ export class Paint {
     public OnResize(event: Event): void {
       this.CalcCanvasPosition();
 
-      this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight;
-      this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth;
+      this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
+      this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
 
       this.predictCanvas.height = this.mainCanvas.height;
       this.predictCanvas.width = this.mainCanvas.width;

@@ -46,6 +46,12 @@ export class LazyBrush {
   public Get(): Float32Array {
     return this.brush.ToArray();
   }
+
+  public ForceBrush(lastPointer: Float32Array) {
+    this.brush.Update(lastPointer);
+    this.pointer.Update(lastPointer);
+    this.hasMoved = true;
+  }
 }
 
 class LazyPoint {
