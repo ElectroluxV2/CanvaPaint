@@ -3,25 +3,25 @@
     <mat-toolbar-row>
         <span class="copy">&copy; Mateusz Budzisz - kropoki i kreski</span>
 
-        <button mat-mini-fab class="roundBtn darkBtn" (click)="iconClick()">
+        <button mat-mini-fab class="roundBtn darkBtn" (click)="emitIconClick()">
             <mat-icon [ngClass]="iconColor">gesture</mat-icon>
         </button>
 
         <span class="spacer"></span>
 
-        <button mat-mini-fab class="roundBtn" color="warn" (click)="clear()">
+        <button mat-mini-fab class="roundBtn" color="warn" (click)="emitClear()">
             <mat-icon>clear</mat-icon>
         </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="undo()">
+        <button mat-mini-fab class="roundBtn" color="accent" (click)="emitUndo()">
             <mat-icon>undo</mat-icon>
         </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="redo()">
+        <button mat-mini-fab class="roundBtn" color="accent" (click)="emitRedo()">
             <mat-icon>redo</mat-icon>
         </button>
 
-        <mat-button-toggle-group class="colors" value="black" (change)="changeColor($event)">
+        <mat-button-toggle-group class="colors" value="black" (change)="emitColorChange($event)">
 
             <mat-button-toggle value="red" class="red">
                 <mat-icon>palette</mat-icon>
@@ -45,9 +45,9 @@
 
         </mat-button-toggle-group>
 
-        <mat-button-toggle-group class="tools" value="free" (change)="changeMode($event)">
+        <mat-button-toggle-group class="tools" value="free" (change)="emitModeChange($event)">
 
-            <mat-button-toggle value="free">
+            <mat-button-toggle value="free-line">
                 <mat-icon>gesture</mat-icon>
             </mat-button-toggle>
 

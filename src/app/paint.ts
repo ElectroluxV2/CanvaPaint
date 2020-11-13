@@ -1,11 +1,16 @@
 import { EventEmitter, NgZone } from '@angular/core';
-import { CardinalSpline } from './curves/cardinal-spline';
-import {LazyBrush} from './curves/lazy-brush';
+import { PaintMode } from './curves/modes/paint-mode';
+import { FreeLineMode } from './curves/modes/free-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
     clear(): void;
   }
+}
+
+export interface PaintSettings {
+  color: string;
+  width: number;
 }
 
 export class Paint {
@@ -15,38 +20,50 @@ export class Paint {
     private canvasPosition: Float32Array = new Float32Array(2);
     private animFrameGlobID;
     private lastPointer: Float32Array;
+    protected scale = 1;
 
-    private freeLineOccurringNow = false;
-    private currentSpline: CardinalSpline;
-    private currentLazyBrush: LazyBrush;
+    private currentMode: PaintMode;
+    private readonly currentSettings: PaintSettings;
 
     constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
       // Calculate canvas position once, then only on window resize
       this.CalcCanvasPosition();
 
+      this.scale = window.devicePixelRatio;
+
       // Setup canvas, remember to rescale on window resize
-      mainCanvas.height = mainCanvas.parentElement.offsetHeight;
-      mainCanvas.width = mainCanvas.parentElement.offsetWidth;
+      mainCanvas.height = mainCanvas.parentElement.offsetHeight * this.scale;
+      mainCanvas.width = mainCanvas.parentElement.offsetWidth * this.scale;
       this.mainCanvasCTX = mainCanvas.getContext('2d');
 
       predictCanvas.height = mainCanvas.height;
       predictCanvas.width = mainCanvas.width;
       this.predictCanvasCTX = predictCanvas.getContext('2d');
 
+      this.mainCanvasCTX.translate(0.5, 0.5);
+      this.predictCanvasCTX.translate(0.5, 0.5);
+
       // Defaults
-      this.mainCanvasCTX.lineWidth = 5;
       this.mainCanvasCTX.lineJoin = 'round';
       this.mainCanvasCTX.lineCap = 'round';
       this.mainCanvasCTX.clear = () => {
         this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
       };
 
-      this.predictCanvasCTX.lineWidth = 5;
       this.predictCanvasCTX.lineJoin = 'round';
       this.predictCanvasCTX.lineCap = 'round';
       this.predictCanvasCTX.clear = () => {
         this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
       };
+
+      // TODO: make no need for setting them here
+      // Preselected options
+      this.currentSettings = {
+        color: Paint.GetColor('black'),
+        width: 5,
+      };
+
+      this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
       // Events
       this.predictCanvas.onmousedown = (event: MouseEvent) => {
@@ -71,30 +88,33 @@ export class Paint {
 
       this.predictCanvas.ontouchmove = (event: TouchEvent) => this.MoveOccur(this.NormalizePoint(event));
 
-      this.predictCanvas.ontouchend = (event: TouchEvent) => this.MoveComplete();
+      this.predictCanvas.ontouchend = () => this.MoveComplete();
     }
 
-    public OnLazyUpdate(): void {
-
-      const loop = () => {
-        this.ngZone.runOutsideAngular(() => {
-          this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
-        });
+    private static GetColor(color: string): string {
+      const colors = {
+        red: '#f44336',
+        blue: '#2196f3',
+        green: '#4caf50',
+        yellow: '#ffeb3b',
+        black: '#212121',
+        internal: '#673ab7'
       };
 
-      if (!this.lastPointer) { return loop(); }
-      if (!this.currentSpline) { return loop(); }
-      if (!this.currentLazyBrush) { return loop(); }
+      const colorsDark = {
+        red: '#f44336',
+        blue: '#2196f3',
+        green: '#4caf50',
+        yellow: '#ffeb3b',
+        black: '#fefefe',
+        internal: '#673ab7'
+      };
 
-      this.currentLazyBrush.Update(this.lastPointer);
-
-      // Same redraw prevention
-      if (!this.currentLazyBrush.HasMoved && !this.currentSpline.IsEmpty) { return loop(); }
-
-      // TODO: Networking staff
-      const compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
-
-      return loop();
+      // Switch color scheme
+      if (window.matchMedia('(prefers-color-scheme: dark)').media !== 'not all') {
+        return colorsDark[color];
+      }
+      return colors[color];
     }
 
     private NormalizePoint(event: TouchEvent | MouseEvent): Float32Array {
@@ -107,6 +127,9 @@ export class Paint {
 
       point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
       point[1] = point[1] < 0 ? 0 : point[1];
+
+      point[0] *= this.scale;
+      point[1] *= this.scale;
 
       return point;
     }
@@ -139,46 +162,67 @@ export class Paint {
       return new Float32Array([touch.pageX - this.canvasPosition[0], touch.pageY - this.canvasPosition[1]]);
     }
 
+    public OnLazyUpdate(): void {
+
+    const loop = () => {
+      this.ngZone.runOutsideAngular(() => {
+        this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
+      });
+    };
+
+    if (!this.lastPointer) { return loop(); }
+
+    this.currentMode.OnLazyUpdate(this.lastPointer);
+
+    return loop();
+  }
+
     private MoveBegin(): void {
-      this.freeLineOccurringNow = true;
+      this.currentMode.OnMoveBegin();
 
       // Draw and calc only on frame request
       this.OnLazyUpdate();
     }
 
     private MoveOccur(point: Float32Array): void {
-      if (!this.freeLineOccurringNow) { return; }
-
-      if (!this.currentSpline) {
-        // For realtime processing
-        this.currentSpline = new CardinalSpline(this.mainCanvasCTX, this.predictCanvasCTX, 1, 5, 'red');
-      }
-
-      if (!this.currentLazyBrush) {
-        // Make radius 1% of screen width nor height
-        // TODO: Settings
-        const w10 = this.predictCanvas.width * 0.01;
-        const h10 = this.predictCanvas.height * 0.01;
-
-        // Draw stabilizer
-        this.currentLazyBrush = new LazyBrush(Math.max(w10, h10), point);
-      }
+      this.currentMode.OnMoveOccur(point);
 
       // Save for frame request processing
       this.lastPointer = point;
     }
 
     private MoveComplete(): void {
-      this.freeLineOccurringNow = false;
+      this.currentMode.OnMoveComplete();
 
-      window.cancelAnimationFrame(this.animFrameGlobID);
-
-      // TODO: Networking staff
-      const compiled = this.currentSpline.Finish();
-
-      // Cleanup
-      delete this.currentSpline;
-      delete this.currentLazyBrush;
       delete this.lastPointer;
+      window.cancelAnimationFrame(this.animFrameGlobID);
+    }
+
+    public OnModeChange(mode: string): void {
+      switch (mode) {
+        case 'free-line':
+        default:
+          this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+      }
+    }
+
+    public OnColorChange(color: string): void {
+      this.currentSettings.color = Paint.GetColor(color.toLocaleLowerCase());
+      this.currentMode.OnSettingsUpdate(this.currentSettings);
+    }
+
+    public OnClear(): void {
+      this.mainCanvasCTX.clear();
+      this.predictCanvasCTX.clear();
+    }
+
+    public OnResize(event: Event): void {
+      this.CalcCanvasPosition();
+
+      this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight;
+      this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth;
+
+      this.predictCanvas.height = this.mainCanvas.height;
+      this.predictCanvas.width = this.mainCanvas.width;
     }
 }

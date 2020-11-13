@@ -29,11 +29,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   public changeMode(value: string): void {
-
+    this.paint.OnModeChange(value);
   }
 
   public changeColor(value: string): void {
-
+    this.paint.OnColorChange(value);
   }
 
   public undo(): void {
@@ -45,11 +45,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   public clear(): void {
-
+    this.paint.OnClear();
   }
 
   public onResize(event: Event): void {
-
+    this.paint.OnResize(event);
   }
 
   public changeA(): void {

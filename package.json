@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build --prod && mv dist/paint/index.html dist/paint/3ab39fc73ea580664e3353c691da2664d6b02820b0f130e8f813ab2d426897cf4f7a150a0304431b07949d43a835f348.html",
     "test": "ng test",
+    "hackMePlease": "ng serve --prod --host=0.0.0.0 --disable-host-check",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },

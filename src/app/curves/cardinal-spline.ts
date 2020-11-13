@@ -4,8 +4,8 @@ export class CardinalSpline {
   private readonly main: CanvasRenderingContext2D;
   private readonly predict: CanvasRenderingContext2D;
   private readonly tolerance: number;
-  private readonly width: number;
-  private readonly color: string;
+  private width: number;
+  private color: string;
 
   private points: Float32Array[] = [];
   private optimized: Float32Array[] = [];
@@ -39,6 +39,14 @@ export class CardinalSpline {
     );
 
     context.stroke();
+  }
+
+  public set Color(value: string) {
+    this.color = value;
+  }
+
+  public set Width(value: number) {
+    this.width = value;
   }
 
   public get IsEmpty(): boolean {
