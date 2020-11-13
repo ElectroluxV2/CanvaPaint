@@ -1,17 +1,20 @@
 export class LazyBrush {
 
-  private readonly radius: number;
+  private readonly maxDeltaTime: number;
   private pointer: LazyPoint;
   private brush: LazyPoint;
   private angle = 0;
   private distance = 0;
   private hasMoved = false;
+  private lastTimeStamp: number;
 
-  constructor(radius: number, startPoint: Float32Array) {
-    this.radius = radius;
+  constructor(maxDeltaTime: number, startPoint: Float32Array) {
+    this.maxDeltaTime = maxDeltaTime;
 
     this.pointer = new LazyPoint(startPoint);
     this.brush = new LazyPoint(startPoint);
+
+    this.lastTimeStamp = new Date().getTime();
   }
 
   /**
@@ -31,9 +34,12 @@ export class LazyBrush {
     this.distance = this.pointer.GetDistanceTo(this.brush.ToArray());
     this.angle = this.pointer.GetAngleTo(this.brush.ToArray());
 
-    if (this.distance > this.radius) {
-      this.brush.MoveByAngle(this.angle, this.distance - this.radius);
+    const now = new Date().getTime();
+    if (now - this.lastTimeStamp > this.maxDeltaTime) {
+      console.log(now - this.lastTimeStamp);
+      this.brush.MoveByAngle(this.angle, this.distance);
       this.hasMoved = true;
+      this.lastTimeStamp = now;
     }
 
     return true;

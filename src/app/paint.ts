@@ -63,11 +63,7 @@ export class Paint {
       this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
       // Events
-      this.predictCanvas.onmousedown = (event: MouseEvent) => {
-        const p = this.NormalizePoint(event);
-        this.MoveBegin();
-        this.MoveOccur(p);
-      };
+      this.predictCanvas.onmousedown = (event: MouseEvent) => this.MoveBegin(this.NormalizePoint(event));
 
       this.predictCanvas.onmousemove = (event: MouseEvent) => this.MoveOccur(this.NormalizePoint(event));
 
@@ -77,11 +73,7 @@ export class Paint {
         this.MoveComplete();
       };
 
-      this.predictCanvas.ontouchstart = (event: TouchEvent) => {
-        const p = this.NormalizePoint(event);
-        this.MoveBegin();
-        this.MoveOccur(p);
-      };
+      this.predictCanvas.ontouchstart = (event: TouchEvent) => this.MoveBegin(this.NormalizePoint(event));
 
       this.predictCanvas.ontouchmove = (event: TouchEvent) => this.MoveOccur(this.NormalizePoint(event));
 
@@ -174,8 +166,8 @@ export class Paint {
     return loop();
   }
 
-    private MoveBegin(): void {
-      this.currentMode.OnMoveBegin();
+    private MoveBegin(point: Float32Array): void {
+      this.currentMode.OnMoveBegin(point);
 
       // Draw and calc only on frame request
       this.OnLazyUpdate();

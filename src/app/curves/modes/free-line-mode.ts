@@ -1,7 +1,7 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import {PaintSettings} from '../../paint';
+import { PaintSettings } from '../../paint';
 
 export class FreeLineMode extends PaintMode {
 
@@ -9,28 +9,20 @@ export class FreeLineMode extends PaintMode {
   private currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
 
-  OnMoveBegin(): void {
+  OnMoveBegin(point: Float32Array): void {
     this.freeLineOccurringNow = true;
+
+    // For realtime processing
+    // TODO: Settings
+    this.currentSpline = new CardinalSpline(this.mainCanvas, this.predictCanvas, 1, this.settings.width, this.settings.color);
+
+    // TODO: Settings
+    // Draw stabilizer
+    this.currentLazyBrush = new LazyBrush(150, point);
   }
 
   OnMoveOccur(point: Float32Array): void {
     if (!this.freeLineOccurringNow) { return; }
-
-    if (!this.currentSpline) {
-      // For realtime processing
-      // TODO: Settings
-      this.currentSpline = new CardinalSpline(this.mainCanvas, this.predictCanvas, 1, this.settings.width, this.settings.color);
-    }
-
-    if (!this.currentLazyBrush) {
-      // Make radius 1% of screen width nor height
-      // TODO: Settings
-      const w10 = this.predictCanvas.canvas.width * 0.01;
-      const h10 = this.predictCanvas.canvas.height * 0.01;
-
-      // Draw stabilizer
-      this.currentLazyBrush = new LazyBrush(Math.max(w10, h10), point);
-    }
   }
 
   OnLazyUpdate(lastPointer: Float32Array): void {
@@ -69,6 +61,4 @@ export class FreeLineMode extends PaintMode {
     this.currentSpline.Color = settings.color;
     this.currentSpline.Width = settings.width;
   }
-
-
 }

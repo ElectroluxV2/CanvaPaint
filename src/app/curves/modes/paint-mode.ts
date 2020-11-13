@@ -6,7 +6,7 @@ export abstract class PaintMode {
   protected settings: PaintSettings;
 
   abstract OnLazyUpdate(lastPointer: Float32Array): void;
-  abstract OnMoveBegin(): void;
+  abstract OnMoveBegin(point: Float32Array): void;
   abstract OnMoveOccur(point: Float32Array): void;
   abstract OnMoveComplete(): void;
 
