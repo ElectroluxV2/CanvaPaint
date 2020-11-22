@@ -43,7 +43,7 @@
     "max-line-length": {
       "severity": "warning",
       "options": [
-        140
+        150
       ]
     },
     "member-ordering": [

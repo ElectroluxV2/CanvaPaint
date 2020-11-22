@@ -4,10 +4,13 @@ export abstract class PaintMode {
   protected readonly predictCanvas: CanvasRenderingContext2D;
   protected readonly mainCanvas: CanvasRenderingContext2D;
   protected settings: PaintSettings;
+  protected lastPointer: Float32Array;
 
   abstract OnLazyUpdate(lastPointer: Float32Array): void;
   abstract OnMoveBegin(point: Float32Array): void;
-  abstract OnMoveOccur(point: Float32Array): void;
+  public OnMoveOccur(point: Float32Array): void {
+    this.lastPointer = point;
+  }
   abstract OnMoveComplete(): void;
 
   public OnSettingsUpdate(settings: PaintSettings): void {
