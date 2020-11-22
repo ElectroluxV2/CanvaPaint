@@ -9,20 +9,17 @@ export class FreeLineMode extends PaintMode {
   private currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
 
+
   OnMoveBegin(point: Float32Array): void {
     this.freeLineOccurringNow = true;
 
     // For realtime processing
-    // TODO: Settings
-    this.currentSpline = new CardinalSpline(this.mainCanvas, this.predictCanvas, 1, this.settings.width, this.settings.color);
+    this.currentSpline = new CardinalSpline(this.mainCanvas, this.predictCanvas, this.settings.tolerance, this.settings.width, this.settings.color);
 
-    // TODO: Settings
     // Draw stabilizer
-    this.currentLazyBrush = new LazyBrush(150, point);
-  }
-
-  OnMoveOccur(point: Float32Array): void {
-    if (!this.freeLineOccurringNow) { return; }
+    const x = this.mainCanvas.canvas.width * 0.001 * this.settings.lazyMultiplier;
+    const y = this.mainCanvas.canvas.height * 0.001 * this.settings.lazyMultiplier;
+    this.currentLazyBrush = new LazyBrush(Math.min(x, y), point);
   }
 
   OnLazyUpdate(lastPointer: Float32Array): void {

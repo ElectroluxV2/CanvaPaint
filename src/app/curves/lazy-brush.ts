@@ -1,20 +1,17 @@
 export class LazyBrush {
 
-  private readonly maxDeltaTime: number;
+  private readonly percentOfDivide: number;
   private pointer: LazyPoint;
   private brush: LazyPoint;
   private angle = 0;
   private distance = 0;
   private hasMoved = false;
-  private lastTimeStamp: number;
 
-  constructor(maxDeltaTime: number, startPoint: Float32Array) {
-    this.maxDeltaTime = maxDeltaTime;
+  constructor(percentOfDivide: number, startPoint: Float32Array) {
+    this.percentOfDivide = percentOfDivide;
 
     this.pointer = new LazyPoint(startPoint);
     this.brush = new LazyPoint(startPoint);
-
-    this.lastTimeStamp = new Date().getTime();
   }
 
   /**
@@ -25,22 +22,20 @@ export class LazyBrush {
   public Update(newPointerPoint: Float32Array): boolean {
     this.hasMoved = false;
 
-    if (this.pointer.EqualsTo(newPointerPoint)) {
-      return false;
-    }
-
-    this.pointer.Update(newPointerPoint);
-
     this.distance = this.pointer.GetDistanceTo(this.brush.ToArray());
-    this.angle = this.pointer.GetAngleTo(this.brush.ToArray());
+    let lazyDistance;
 
-    const now = new Date().getTime();
-    if (now - this.lastTimeStamp > this.maxDeltaTime) {
-      console.log(now - this.lastTimeStamp);
-      this.brush.MoveByAngle(this.angle, this.distance);
-      this.hasMoved = true;
-      this.lastTimeStamp = now;
+    if (!this.pointer.EqualsTo(newPointerPoint)) {
+      this.pointer.Update(newPointerPoint);
+      this.angle = this.pointer.GetAngleTo(this.brush.ToArray());
+
+      lazyDistance = this.distance * this.percentOfDivide;
+    } else {
+      lazyDistance = this.distance * this.percentOfDivide * 4;
     }
+
+    this.brush.MoveByAngle(this.angle, lazyDistance);
+    this.hasMoved = true;
 
     return true;
   }
