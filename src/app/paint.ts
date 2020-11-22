@@ -25,7 +25,7 @@ export class Paint {
 
   private currentMode: PaintMode;
   private readonly currentSettings: PaintSettings;
-  private didMoved = false;
+  private startEmitted = false;
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
     // Calculate canvas position once, then only on window resize
@@ -70,44 +70,41 @@ export class Paint {
     // Events
     this.predictCanvas.onmousedown = (event: MouseEvent) => {
       this.MoveBegin(this.NormalizePoint(event));
-      this.didMoved = true;
+      this.startEmitted = true;
     };
 
     this.predictCanvas.onmousemove = (event: MouseEvent) => {
-      if (!this.didMoved) {
-        return;
-      }
       this.MoveOccur(this.NormalizePoint(event));
     };
 
     this.predictCanvas.onmouseup = (event: MouseEvent) => {
-      if (!this.didMoved) {
+      if (!this.startEmitted) {
         return;
       }
-      this.didMoved = false;
+      this.startEmitted = false;
       const p = this.NormalizePoint(event);
       this.MoveOccur(p);
       this.MoveComplete();
     };
 
     this.predictCanvas.ontouchstart = (event: TouchEvent) => {
-      this.didMoved = true;
-      this.MoveBegin(this.NormalizePoint(event));
+      const point = this.NormalizePoint(event);
+      this.MoveBegin(point);
+      this.lastPointer = point;
     };
 
     this.predictCanvas.ontouchmove = (event: TouchEvent) => {
-      if (!this.didMoved) {
-        return;
-      }
       this.MoveOccur(this.NormalizePoint(event));
     };
 
     this.predictCanvas.ontouchend = () => {
-      if (!this.didMoved) {
-        return;
-      }
-      this.didMoved = false;
       this.MoveComplete();
+    };
+
+    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
+      this.currentSettings.color = Paint.GetColor(this.currentSettings.color);
+      this.currentMode.OnSettingsUpdate(this.currentSettings);
+      this.OnResize(null);
     };
   }
 
@@ -199,7 +196,6 @@ export class Paint {
 
   private MoveBegin(point: Float32Array): void {
     this.currentMode.OnMoveBegin(point);
-
     // Draw and calc only on frame request
     this.OnLazyUpdate();
   }
