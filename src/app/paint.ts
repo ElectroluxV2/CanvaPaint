@@ -27,7 +27,35 @@ export class Paint {
   private readonly currentSettings: PaintSettings;
   private startEmitted = false;
 
+  public darkModeEnabled = false;
+  readonly colors = {
+    light: {
+      red: '#f44336',
+      blue: '#2196f3',
+      green: '#4caf50',
+      yellow: '#ffeb3b',
+      black: '#212121',
+      internal: '#673ab7'
+    },
+    dark: {
+      red: '#ba2418',
+      blue: '#176baa',
+      green: '#27a02b',
+      yellow: '#c6b515',
+      black: '#fefefe',
+      internal: '#673ab7'
+    }
+  };
+
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
+    this.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
+      this.darkModeEnabled = e.matches;
+      this.currentSettings.color = this.GetColor(this.GetColorKey(this.currentSettings.color));
+      this.currentMode.OnSettingsUpdate(this.currentSettings);
+      this.ReDraw();
+    };
+
     // Calculate canvas position once, then only on window resize
     this.CalcCanvasPosition();
 
@@ -59,7 +87,7 @@ export class Paint {
     // TODO: make no need for setting them here
     // Preselected options
     this.currentSettings = {
-      color: Paint.GetColor('black'),
+      color: this.GetColor('black'),
       width: 5,
       lazyMultiplier: 0.06,
       tolerance: 1
@@ -100,38 +128,28 @@ export class Paint {
     this.predictCanvas.ontouchend = () => {
       this.MoveComplete();
     };
-
-    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
-      this.currentSettings.color = Paint.GetColor(this.currentSettings.color);
-      this.currentMode.OnSettingsUpdate(this.currentSettings);
-      this.OnResize(null);
-    };
   }
 
-  private static GetColor(color: string): string {
-    const colors = {
-      red: '#f44336',
-      blue: '#2196f3',
-      green: '#4caf50',
-      yellow: '#ffeb3b',
-      black: '#212121',
-      internal: '#673ab7'
-    };
+  public GetColorKey(value: string): string {
+    for (const index in this.colors) {
+      if (!this.colors.hasOwnProperty(index)) {
+        continue;
+      }
+      for (const key in this.colors[index]) {
+        if (!this.colors[index].hasOwnProperty(key)) {
+          continue;
+        }
 
-    const colorsDark = {
-      red: '#f44336',
-      blue: '#2196f3',
-      green: '#4caf50',
-      yellow: '#ffeb3b',
-      black: '#fefefe',
-      internal: '#673ab7'
-    };
-
-    // Switch color scheme
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return colorsDark[color];
+        if (value === this.colors[index][key]) {
+          return key;
+        }
+      }
     }
-    return colors[color];
+  }
+
+  private GetColor(key: string): string {
+    const index = this.darkModeEnabled ? 'dark' : 'light';
+    return this.colors[index][key];
   }
 
   private NormalizePoint(event: TouchEvent | MouseEvent): Float32Array {
@@ -223,7 +241,7 @@ export class Paint {
   }
 
   public OnColorChange(color: string): void {
-    this.currentSettings.color = Paint.GetColor(color.toLocaleLowerCase());
+    this.currentSettings.color = this.GetColor(color.toLocaleLowerCase());
     this.currentMode.OnSettingsUpdate(this.currentSettings);
   }
 
@@ -240,5 +258,9 @@ export class Paint {
 
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
+  }
+
+  public ReDraw(): void {
+
   }
 }
