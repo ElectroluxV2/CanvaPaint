@@ -3,7 +3,7 @@ import { Simplify } from './simplify';
 export class CardinalSpline {
   private readonly main: CanvasRenderingContext2D;
   private readonly predict: CanvasRenderingContext2D;
-  private readonly tolerance: number;
+  private tolerance: number;
   private width: number;
   private color: string;
 
@@ -47,6 +47,10 @@ export class CardinalSpline {
 
   public set Width(value: number) {
     this.width = value;
+  }
+
+  public set Tolerance(value: number) {
+    this.tolerance = value;
   }
 
   public get IsEmpty(): boolean {

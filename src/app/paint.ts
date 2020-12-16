@@ -1,18 +1,12 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { PaintMode } from './curves/modes/paint-mode';
 import { FreeLineMode } from './curves/modes/free-line-mode';
+import { Settings, SettingsService } from './settings/settings.service';
 
 declare global {
   interface CanvasRenderingContext2D {
     clear(): void;
   }
-}
-
-export interface PaintSettings {
-  color: string;
-  width: number;
-  lazyMultiplier: number;
-  tolerance: number;
 }
 
 export class Paint {
@@ -24,38 +18,12 @@ export class Paint {
   private lastPointer: Float32Array;
 
   private currentMode: PaintMode;
-  private readonly currentSettings: PaintSettings;
+  private currentSettings: Settings;
   private startEmitted = false;
 
-  public darkModeEnabled = false;
-  readonly colors = {
-    light: {
-      red: '#f44336',
-      blue: '#2196f3',
-      green: '#4caf50',
-      yellow: '#ffeb3b',
-      black: '#212121',
-      internal: '#673ab7'
-    },
-    dark: {
-      red: '#ba2418',
-      blue: '#176baa',
-      green: '#27a02b',
-      yellow: '#c6b515',
-      black: '#fefefe',
-      internal: '#673ab7'
-    }
-  };
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement) {
-    this.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
-      this.darkModeEnabled = e.matches;
-      this.currentSettings.color = this.GetColor(this.GetColorKey(this.currentSettings.color));
-      this.currentMode.OnSettingsUpdate(this.currentSettings);
-      this.ReDraw();
-    };
 
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Calculate canvas position once, then only on window resize
     this.CalcCanvasPosition();
 
@@ -84,16 +52,19 @@ export class Paint {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
-    // TODO: make no need for setting them here
-    // Preselected options
-    this.currentSettings = {
-      color: this.GetColor('black'),
-      width: 5,
-      lazyMultiplier: 0.06,
-      tolerance: 1
-    };
-
     this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+
+    settingsService.settings.subscribe(newSettings => {
+      console.log(newSettings);
+      this.currentMode.OnSettingsUpdate(newSettings);
+
+      if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
+        this.currentSettings = newSettings;
+        this.ReDraw();
+      } else {
+        this.currentSettings = newSettings;
+      }
+    });
 
     // Events
     this.predictCanvas.onmousedown = (event: MouseEvent) => {
@@ -128,28 +99,6 @@ export class Paint {
     this.predictCanvas.ontouchend = () => {
       this.MoveComplete();
     };
-  }
-
-  public GetColorKey(value: string): string {
-    for (const index in this.colors) {
-      if (!this.colors.hasOwnProperty(index)) {
-        continue;
-      }
-      for (const key in this.colors[index]) {
-        if (!this.colors[index].hasOwnProperty(key)) {
-          continue;
-        }
-
-        if (value === this.colors[index][key]) {
-          return key;
-        }
-      }
-    }
-  }
-
-  private GetColor(key: string): string {
-    const index = this.darkModeEnabled ? 'dark' : 'light';
-    return this.colors[index][key];
   }
 
   private NormalizePoint(event: TouchEvent | MouseEvent): Float32Array {
@@ -238,11 +187,6 @@ export class Paint {
       default:
         this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
     }
-  }
-
-  public OnColorChange(color: string): void {
-    this.currentSettings.color = this.GetColor(color.toLocaleLowerCase());
-    this.currentMode.OnSettingsUpdate(this.currentSettings);
   }
 
   public OnClear(): void {

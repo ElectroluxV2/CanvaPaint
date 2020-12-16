@@ -1,6 +1,5 @@
 <div class="app" (window:resize)="onResize($event)">
-  <app-bar (modeChange)="changeMode($event)" (iconClick)="changeA()" (colorChange)="changeColor($event)"
-           (undo)="undo()" (redo)="redo()" (clear)="clear()" [statusUpdate]="statusEmitter"></app-bar>
+  <app-bar (modeChange)="changeMode($event)" (iconClick)="changeA()" (undo)="undo()" (redo)="redo()" (clear)="clear()" [statusUpdate]="statusEmitter"></app-bar>
   <div class="canvas">
     <canvas #mainCanvas></canvas>
     <canvas #predictCanvas></canvas>

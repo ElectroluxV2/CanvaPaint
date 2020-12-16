@@ -1,9 +1,9 @@
-import { PaintSettings } from '../../paint';
+import { Settings } from '../../settings/settings.service';
 
 export abstract class PaintMode {
   protected readonly predictCanvas: CanvasRenderingContext2D;
   protected readonly mainCanvas: CanvasRenderingContext2D;
-  protected settings: PaintSettings;
+  protected settings: Settings;
   protected lastPointer: Float32Array;
 
   abstract OnLazyUpdate(lastPointer: Float32Array): void;
@@ -13,11 +13,11 @@ export abstract class PaintMode {
   }
   abstract OnMoveComplete(): void;
 
-  public OnSettingsUpdate(settings: PaintSettings): void {
+  public OnSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }
 
-  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: PaintSettings) {
+  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
     this.predictCanvas = predictCanvas;
     this.mainCanvas = mainCanvas;
     this.settings = settings;

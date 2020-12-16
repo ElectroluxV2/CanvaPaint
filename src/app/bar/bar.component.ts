@@ -2,6 +2,7 @@ import { SettingsComponent } from '../settings/settings.component';
 import { Component, Output, EventEmitter, Input, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatButtonToggleChange } from '@angular/material/button-toggle/public-api';
 import { MatDialog } from '@angular/material/dialog';
+import {SettingsService} from '../settings/settings.service';
 
 @Component({
   selector: 'app-bar',
@@ -10,16 +11,13 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class BarComponent implements AfterViewInit, OnDestroy {
   @Output() modeChange: EventEmitter<string> = new EventEmitter<string>();
-  @Output() colorChange: EventEmitter<string> = new EventEmitter<string>();
   @Output() undo: EventEmitter<null> = new EventEmitter<null>();
   @Output() redo: EventEmitter<null> = new EventEmitter<null>();
   @Output() clear: EventEmitter<null> = new EventEmitter<null>();
   @Output() iconClick: EventEmitter<null> = new EventEmitter<null>();
   @Input() statusUpdate: EventEmitter<string>;
 
-  constructor(public dialog: MatDialog) {
-
-  }
+  constructor(public dialog: MatDialog, private settingsService: SettingsService) { }
 
   public iconColor: string[] = [];
 
@@ -39,8 +37,8 @@ export class BarComponent implements AfterViewInit, OnDestroy {
     this.modeChange.emit(event.value);
   }
 
-  public emitColorChange(event: MatButtonToggleChange): void {
-    this.colorChange.emit(event.value);
+  public colorChange(event: MatButtonToggleChange): void {
+    this.settingsService.SetColorByName(event.value);
   }
 
   public emitUndo(): void {

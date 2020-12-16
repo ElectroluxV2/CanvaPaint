@@ -13,6 +13,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { SettingsComponent } from './settings/settings.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSliderModule } from '@angular/material/slider';
+import { FormsModule } from '@angular/forms';
+
+
 
 
 @NgModule({
@@ -21,17 +26,20 @@ import { MatInputModule } from '@angular/material/input';
     BarComponent,
     SettingsComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonToggleModule,
-    MatButtonModule,
-    MatDialogModule,
-    MatInputModule
-  ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        BrowserAnimationsModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatButtonToggleModule,
+        MatButtonModule,
+        MatDialogModule,
+        MatInputModule,
+        MatSlideToggleModule,
+        MatSliderModule,
+        FormsModule
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

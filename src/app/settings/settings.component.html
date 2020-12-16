@@ -1,17 +1,14 @@
 <h1>Ustawienia</h1>
 
-<form>
-    <mat-form-field>
-      <mat-label>Pokój</mat-label>
-      <input type="number" matInput placeholder="#0000" value="0000">
-    </mat-form-field>
+<mat-label>Tolerancja błędu</mat-label>
+<mat-slider step="1" min="1" max="20" tickInterval="auto" thumbLabel [(ngModel)]="settings.tolerance"></mat-slider>
 
-    <mat-form-field>
-        <mat-label>Serwer</mat-label>
-        <input matInput placeholder="ipmateusz.ga" value="ipmateusza.ga">
-    </mat-form-field>
+<mat-slide-toggle labelPosition="before" [checked]="settings.lazyEnabled" (change)="settings.lazyEnabled = !settings.lazyEnabled">Wygładzanie myszy</mat-slide-toggle>
 
-    <div mat-dialog-actions align="end">
-        <button mat-button color="accent" type="submit" cdkFocusInitial>Zapisz</button>
-    </div>
-</form>
+<mat-label>Szybkość wygładzania</mat-label>
+<mat-slider [disabled]="!settings.lazyEnabled" thumbLabel tickInterval="auto" step="0.01" min="0.01" max="2" [(ngModel)]="settings.lazyMultiplier"></mat-slider>
+
+<div mat-dialog-actions [align]="'end'">
+  <button (click)="Save()" mat-button color="accent" mat-dialog-close>Zapisz</button>
+</div>
+

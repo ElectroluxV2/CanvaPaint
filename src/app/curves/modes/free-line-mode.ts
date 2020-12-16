@@ -1,7 +1,7 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import { PaintSettings } from '../../paint';
+import { Settings } from '../../settings/settings.service';
 
 export class FreeLineMode extends PaintMode {
 
@@ -17,28 +17,40 @@ export class FreeLineMode extends PaintMode {
     this.currentSpline = new CardinalSpline(this.mainCanvas, this.predictCanvas, this.settings.tolerance, this.settings.width, this.settings.color);
 
     // Draw stabilizer
-    const x = this.mainCanvas.canvas.width * 0.001 * this.settings.lazyMultiplier;
-    const y = this.mainCanvas.canvas.height * 0.001 * this.settings.lazyMultiplier;
-    this.currentLazyBrush = new LazyBrush(Math.min(x, y), point);
+    if (!this.settings.lazyEnabled) {
+      return;
+    }
+
+    this.InitLazyBrush(point);
   }
 
   OnLazyUpdate(lastPointer: Float32Array): void {
 
     if (!this.currentSpline) { return; }
-    if (!this.currentLazyBrush) { return; }
 
-    this.currentLazyBrush.Update(lastPointer);
+    let compiled;
 
-    if (this.currentSpline.IsEmpty) {
-      // Force update first time
-      this.currentLazyBrush.ForceBrush(lastPointer);
+    // Draw stabilizer
+    if (this.settings.lazyEnabled) {
+      if (!this.currentLazyBrush) { return; }
+
+      this.currentLazyBrush.Update(lastPointer);
+
+      if (this.currentSpline.IsEmpty) {
+        // Force update first time
+        this.currentLazyBrush.ForceBrush(lastPointer);
+      }
+
+      // Same redraw prevention
+      if (!this.currentLazyBrush.HasMoved) { return; }
+
+      compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+    } else {
+      compiled = this.currentSpline.AddPoint(lastPointer);
     }
 
-    // Same redraw prevention
-    if (!this.currentLazyBrush.HasMoved) { return; }
-
     // TODO: Networking staff
-    const compiled = this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+    // compiled
   }
 
   OnMoveComplete(): void {
@@ -47,15 +59,34 @@ export class FreeLineMode extends PaintMode {
 
     // Cleanup
     delete this.currentSpline;
-    delete this.currentLazyBrush;
+    if (this.settings.lazyEnabled) {
+      delete this.currentLazyBrush;
+    }
   }
 
-  OnSettingsUpdate(settings: PaintSettings) {
+  OnSettingsUpdate(settings: Settings) {
     super.OnSettingsUpdate(settings);
 
     if (!this.currentSpline) { return; }
 
+    if (settings.lazyEnabled) {
+      if (!this.currentLazyBrush) {
+        this.InitLazyBrush(this.lastPointer);
+      }
+    } else  {
+      if (!!this.currentLazyBrush) {
+        delete this.currentLazyBrush;
+      }
+    }
+
     this.currentSpline.Color = settings.color;
     this.currentSpline.Width = settings.width;
+    this.currentSpline.Tolerance = settings.tolerance;
+  }
+
+  private InitLazyBrush(point: Float32Array) {
+    const x = this.mainCanvas.canvas.width * 0.001 * this.settings.lazyMultiplier;
+    const y = this.mainCanvas.canvas.height * 0.001 * this.settings.lazyMultiplier;
+    this.currentLazyBrush = new LazyBrush(Math.min(x, y), point);
   }
 }

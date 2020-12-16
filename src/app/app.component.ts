@@ -1,5 +1,6 @@
 import {Component, ViewChild, ElementRef, AfterViewInit, EventEmitter, OnDestroy, NgZone} from '@angular/core';
 import { Paint } from './paint';
+import {SettingsService} from './settings/settings.service';
 
 @Component({
   selector: 'app-root',
@@ -14,10 +15,10 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
-  constructor(private ngZone: NgZone) { }
+  constructor(private ngZone: NgZone, private settingsService: SettingsService) { }
 
   ngAfterViewInit(): void {
-    this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement);
+    this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.settingsService);
 
     this.paint.statusEmitter.subscribe((value) => {
       this.statusEmitter.emit(value);
@@ -30,10 +31,6 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   public changeMode(value: string): void {
     this.paint.OnModeChange(value);
-  }
-
-  public changeColor(value: string): void {
-    this.paint.OnColorChange(value);
   }
 
   public undo(): void {
