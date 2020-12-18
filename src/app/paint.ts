@@ -19,7 +19,7 @@ export class Paint {
 
   private currentMode: PaintMode;
   private currentSettings: Settings;
-  private startEmitted = false;
+  private pointerMoveListening = false;
 
 
 
@@ -55,7 +55,6 @@ export class Paint {
     this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
     settingsService.settings.subscribe(newSettings => {
-      console.log(newSettings);
       this.currentMode.OnSettingsUpdate(newSettings);
 
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
@@ -67,43 +66,34 @@ export class Paint {
     });
 
     // Events
-    this.predictCanvas.onmousedown = (event: MouseEvent) => {
+    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
+      this.pointerMoveListening = true;
       this.MoveBegin(this.NormalizePoint(event));
-      this.startEmitted = true;
     };
 
-    this.predictCanvas.onmousemove = (event: MouseEvent) => {
-      this.MoveOccur(this.NormalizePoint(event));
-    };
-
-    this.predictCanvas.onmouseup = (event: MouseEvent) => {
-      if (!this.startEmitted) {
+    this.predictCanvas.onpointermove = (event: PointerEvent) => {
+      if (!this.pointerMoveListening) {
         return;
       }
-      this.startEmitted = false;
-      const p = this.NormalizePoint(event);
-      this.MoveOccur(p);
-      this.MoveComplete();
-    };
 
-    this.predictCanvas.ontouchstart = (event: TouchEvent) => {
-      const point = this.NormalizePoint(event);
-      this.MoveBegin(point);
-      this.lastPointer = point;
-    };
-
-    this.predictCanvas.ontouchmove = (event: TouchEvent) => {
       this.MoveOccur(this.NormalizePoint(event));
     };
 
-    this.predictCanvas.ontouchend = () => {
+    this.predictCanvas.onpointerup = (event: PointerEvent) => {
+      this.pointerMoveListening = false;
+      this.MoveOccur(this.NormalizePoint(event));
       this.MoveComplete();
     };
+
+    // TODO: Pointer cancel event
   }
 
-  private NormalizePoint(event: TouchEvent | MouseEvent): Float32Array {
+  private NormalizePoint(event: PointerEvent): Float32Array {
     // TODO: multi-touch
-    const point = event instanceof TouchEvent ? this.GetTouchPosition(event) : this.GetMousePosition(event);
+    const point = new Float32Array([
+      event.offsetX,
+      event.offsetY
+    ]);
 
     // Make sure the point does not go beyond the screen
     point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
@@ -133,19 +123,6 @@ export class Paint {
     this.canvasPosition[1] = y;
   }
 
-  private GetMousePosition(event: MouseEvent): Float32Array {
-    // Actual position on canvas
-    return new Float32Array([event.pageX - this.canvasPosition[0], event.pageY - this.canvasPosition[1]]);
-  }
-
-  private GetTouchPosition(event: TouchEvent): Float32Array {
-    // TODO: multi-touch
-    // TODO: hand on screen mode
-    const touch = event.touches[0];
-    // Actual position on canvas
-    return new Float32Array([touch.pageX - this.canvasPosition[0], touch.pageY - this.canvasPosition[1]]);
-  }
-
   public OnLazyUpdate(): void {
 
     const loop = () => {
@@ -156,6 +133,7 @@ export class Paint {
 
     if (!this.lastPointer) { return loop(); }
 
+    // Mode has to do same point checking on it's own
     this.currentMode.OnLazyUpdate(this.lastPointer);
 
     return loop();
@@ -163,6 +141,9 @@ export class Paint {
 
   private MoveBegin(point: Float32Array): void {
     this.currentMode.OnMoveBegin(point);
+    // Save for frame request processing
+    this.lastPointer = point;
+
     // Draw and calc only on frame request
     this.OnLazyUpdate();
   }

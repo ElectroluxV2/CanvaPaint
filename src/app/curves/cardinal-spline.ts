@@ -18,7 +18,15 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  private static QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[]): void {
+  private QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[], drawDotOnly: boolean = false): void {
+    if (drawDotOnly) {
+      context.beginPath();
+      context.arc(points[0][0], points[0][1], this.width * 2 / Math.PI, 0, 2 * Math.PI, false);
+      context.fillStyle = this.color;
+      context.fill();
+      return;
+    }
+
     // Points must be optimized at this point
     context.beginPath();
     context.moveTo(points[0][0], points[0][1]);
@@ -38,6 +46,8 @@ export class CardinalSpline {
       points[points.length - 1][1]
     );
 
+    context.strokeStyle = this.color;
+    context.lineWidth = this.width;
     context.stroke();
   }
 
@@ -58,6 +68,14 @@ export class CardinalSpline {
   }
 
   public AddPoint(point: Float32Array): Float32Array[] {
+    // Same point prevention
+    if (this.points.length) {
+      const toCheck = this.points[this.points.length - 1];
+      if (point[0] === toCheck[0] && point[1] === toCheck[1]) {
+        return;
+      }
+    }
+
     // Deep copy
     this.points.push(new Float32Array([...point]));
 
@@ -89,7 +107,7 @@ export class CardinalSpline {
     this.predict.lineWidth = this.width;
 
     this.predict.clear();
-    CardinalSpline.QuadraticCurve(this.predict, this.optimized);
+    this.QuadraticCurve(this.predict, this.optimized);
 
     return toReturn;
   }
@@ -101,9 +119,8 @@ export class CardinalSpline {
     // Clear predict
     this.predict.clear();
 
-    // Copy single point in order to make simple dot possible to draw
-    if (this.points.length === 1) { CardinalSpline.QuadraticCurve(this.main, [...this.points, ...this.points, ...this.points]); }
-    else { CardinalSpline.QuadraticCurve(this.main, this.optimized); }
+    // Dot or line
+    this.QuadraticCurve(this.main, this.points, this.points.length === 1);
 
     delete this.points;
     return this.optimized;
