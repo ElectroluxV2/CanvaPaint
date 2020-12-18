@@ -75,7 +75,7 @@ export class SettingsService {
     // Preselected options
     this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
     this.settingsData.color = this.GetColor('black');
-    this.settingsData.width = 5 * window.devicePixelRatio;
+    this.settingsData.width = 5;
     this.settingsData.lazyEnabled = false;
     this.settingsData.lazyMultiplier = 0.06;
     this.settingsData.tolerance = 1;
