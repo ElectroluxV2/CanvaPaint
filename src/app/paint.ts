@@ -13,7 +13,6 @@ export class Paint {
   private readonly mainCanvasCTX: CanvasRenderingContext2D;
   private readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
-  private canvasPosition: Float32Array = new Float32Array(2);
   private animFrameGlobID;
   private lastPointer: Float32Array;
 
@@ -24,9 +23,6 @@ export class Paint {
 
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
-    // Calculate canvas position once, then only on window resize
-    this.CalcCanvasPosition();
-
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -105,21 +101,6 @@ export class Paint {
     return point;
   }
 
-  private CalcCanvasPosition(): void {
-    let x = 0;
-    let y = 0;
-
-    let element: HTMLElement = this.mainCanvas;
-    while (element && element.tagName !== 'BODY') {
-      y += element.offsetTop - element.scrollTop;
-      x += element.offsetLeft - element.scrollLeft;
-      element = element.offsetParent as HTMLElement;
-    }
-
-    this.canvasPosition[0] = x;
-    this.canvasPosition[1] = y;
-  }
-
   public OnLazyUpdate(): void {
 
     const loop = () => {
@@ -173,8 +154,6 @@ export class Paint {
   }
 
   public OnResize(event: Event): void {
-    this.CalcCanvasPosition();
-
     this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
 
