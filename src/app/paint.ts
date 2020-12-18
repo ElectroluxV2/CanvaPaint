@@ -36,9 +36,6 @@ export class Paint {
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
 
-    this.mainCanvasCTX.translate(0.5, 0.5);
-    this.predictCanvasCTX.translate(0.5, 0.5);
-
     // Defaults
     this.mainCanvasCTX.lineJoin = 'round';
     this.mainCanvasCTX.lineCap = 'round';
