@@ -1,14 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-
-export interface Settings {
-  darkModeEnabled: boolean;
-  color: string;
-  width: number;
-  lazyEnabled: boolean;
-  lazyMultiplier: number;
-  tolerance: number;
-}
+import { Settings } from './settings.interface';
 
 @Injectable({
   providedIn: 'root'

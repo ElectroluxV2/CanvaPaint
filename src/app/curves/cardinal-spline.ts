@@ -1,8 +1,8 @@
 import { Simplify } from './simplify';
 
 export class CardinalSpline {
-  private readonly main: CanvasRenderingContext2D;
-  private readonly predict: CanvasRenderingContext2D;
+  private readonly main: OffscreenCanvasRenderingContext2D;
+  private readonly predict: OffscreenCanvasRenderingContext2D;
   private tolerance: number;
   private width: number;
   private color: string;
@@ -10,7 +10,7 @@ export class CardinalSpline {
   private points: Float32Array[] = [];
   private optimized: Float32Array[] = [];
 
-  constructor(main: CanvasRenderingContext2D, predict: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
+  constructor(main: OffscreenCanvasRenderingContext2D, predict: OffscreenCanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
     this.main = main;
     this.predict = predict;
     this.tolerance = tolerance;
@@ -18,7 +18,7 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  private QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[], drawDotOnly: boolean = false): void {
+  private QuadraticCurve(context: OffscreenCanvasRenderingContext2D, points: Float32Array[], drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
       context.arc(points[0][0], points[0][1], this.width * 2 / Math.PI, 0, 2 * Math.PI, false);

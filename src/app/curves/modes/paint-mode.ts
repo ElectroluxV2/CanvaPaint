@@ -1,8 +1,8 @@
-import { Settings } from '../../settings/settings.service';
+import { Settings } from '../../settings/settings.interface';
 
 export abstract class PaintMode {
-  protected readonly predictCanvas: CanvasRenderingContext2D;
-  protected readonly mainCanvas: CanvasRenderingContext2D;
+  protected readonly predictCanvas: OffscreenCanvasRenderingContext2D;
+  protected readonly mainCanvas: OffscreenCanvasRenderingContext2D;
   protected settings: Settings;
   protected lastPointer: Float32Array;
 
@@ -13,11 +13,11 @@ export abstract class PaintMode {
   }
   abstract OnMoveComplete(): void;
 
-  public OnSettingsUpdate(settings: Settings): void {
+  public OnSettingsUpdate(settings: any): void {
     this.settings = settings;
   }
 
-  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
+  constructor(predictCanvas: OffscreenCanvasRenderingContext2D, mainCanvas: OffscreenCanvasRenderingContext2D, settings: any) {
     this.predictCanvas = predictCanvas;
     this.mainCanvas = mainCanvas;
     this.settings = settings;
