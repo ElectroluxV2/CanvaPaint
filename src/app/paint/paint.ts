@@ -14,15 +14,18 @@ export class Paint {
   private mainCanvas: OffscreenCanvasRenderingContext2D;
   private predictCanvas: OffscreenCanvasRenderingContext2D;
   // public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
+  // private animFrameGlobID;
   private lastPointer: Float32Array;
 
   private currentMode: PaintMode;
   private currentSettings: Settings;
   private pointerMoveListening = false;
 
-  constructor() { }
+  constructor() {
 
-  public Init(mainCanvas: OffscreenCanvas, predictCanvas: OffscreenCanvas, devicePixelRatio: number) {
+  }
+
+  public Init(mainCanvas: OffscreenCanvas, predictCanvas: OffscreenCanvas) {
     this.mainCanvas = mainCanvas.getContext('2d');
     this.predictCanvas = predictCanvas.getContext('2d');
 
@@ -40,46 +43,98 @@ export class Paint {
     };
 
     this.currentMode = new FreeLineMode(this.predictCanvas, this.mainCanvas, this.currentSettings);
+
+    /* settingsService.settings.subscribe(newSettings => {
+      this.currentMode.OnSettingsUpdate(newSettings);
+
+      if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
+        this.currentSettings = newSettings;
+        this.ReDraw();
+      } else {
+        this.currentSettings = newSettings;
+      }
+    });
+
+    // Events
+    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
+      this.pointerMoveListening = true;
+      this.MoveBegin(this.NormalizePoint(event));
+    };
+
+    this.predictCanvas.onpointermove = (event: PointerEvent) => {
+      if (!this.pointerMoveListening) {
+        return;
+      }
+
+      this.MoveOccur(this.NormalizePoint(event));
+    };
+
+    this.predictCanvas.onpointerup = (event: PointerEvent) => {
+      this.pointerMoveListening = false;
+      this.MoveOccur(this.NormalizePoint(event));
+      this.MoveComplete();
+    };*/
+
+    // TODO: Pointer cancel event
   }
 
-  // TODO: Pointer cancel event
-  public OnPointerDown(point: Float32Array): void {
-    this.pointerMoveListening = true;
-    this.MoveBegin(point);
-  }
+  /*private NormalizePoint(event: PointerEvent): Float32Array {
+    // TODO: multi-touch
+    const point = new Float32Array([
+      event.offsetX,
+      event.offsetY
+    ]);
 
-  public OnPointerMove(point: Float32Array) {
-    if (!this.pointerMoveListening) {
-      return;
-    }
+    // Make sure the point does not go beyond the screen
+    point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+    point[0] = point[0] < 0 ? 0 : point[0];
 
-    this.MoveOccur(point);
-  }
+    point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+    point[1] = point[1] < 0 ? 0 : point[1];
 
-  public OnPointerUp(point: Float32Array) {
-    this.pointerMoveListening = false;
-    this.MoveOccur(point);
-    this.MoveComplete();
-  }
+    point[0] *= window.devicePixelRatio;
+    point[1] *= window.devicePixelRatio;
 
-  public OnAnimationFrame(): void {
-    if (!this.lastPointer) {
-      return;
-    }
+    return point;
+  }*/
+
+  /*public OnLazyUpdate(): void {
+
+    const loop = () => {
+      this.ngZone.runOutsideAngular(() => {
+        this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
+      });
+    };
+
+    if (!this.lastPointer) { return loop(); }
 
     // Mode has to do same point checking on it's own
     this.currentMode.OnLazyUpdate(this.lastPointer);
+
+    return loop();
   }
 
-  public OnSettingsUpdate(newSettings: Settings): void {
-    this.currentMode.OnSettingsUpdate(newSettings);
+  private MoveBegin(point: Float32Array): void {
+    this.currentMode.OnMoveBegin(point);
+    // Save for frame request processing
+    this.lastPointer = point;
 
-    if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
-      this.currentSettings = newSettings;
-      this.ReDraw();
-    } else {
-      this.currentSettings = newSettings;
-    }
+    // Draw and calc only on frame request
+    this.OnLazyUpdate();
+  }
+
+  private MoveOccur(point: Float32Array): void {
+    this.currentMode.OnMoveOccur(point);
+
+    // Save for frame request processing
+    this.lastPointer = point;
+  }
+
+  private MoveComplete(): void {
+    this.currentMode.OnMoveComplete();
+
+    delete this.lastPointer;
+    window.cancelAnimationFrame(this.animFrameGlobID);
   }
 
   public OnModeChange(mode: string): void {
@@ -95,26 +150,15 @@ export class Paint {
     this.predictCanvas.clear();
   }
 
-  private MoveBegin(point: Float32Array): void {
-    this.currentMode.OnMoveBegin(point);
-    // Save for frame request processing
-    this.lastPointer = point;
+  public OnResize(event: Event): void {
+    this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
+    this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
+
+    this.predictCanvas.height = this.mainCanvas.height;
+    this.predictCanvas.width = this.mainCanvas.width;
   }
 
-  private MoveOccur(point: Float32Array): void {
-    this.currentMode.OnMoveOccur(point);
+  public ReDraw(): void {
 
-    // Save for frame request processing
-    this.lastPointer = point;
-  }
-
-  private MoveComplete(): void {
-    this.currentMode.OnMoveComplete();
-
-    delete this.lastPointer;
-  }
-
-  private ReDraw(): void {
-
-  }
+  }*/
 }
