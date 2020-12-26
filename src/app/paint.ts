@@ -1,50 +1,53 @@
-// import { EventEmitter, NgZone } from '@angular/core';
-import { PaintMode } from '../curves/modes/paint-mode';
-import { FreeLineMode } from '../curves/modes/free-line-mode';
-import { Settings } from '../settings/settings.interface';
-// import { Settings, SettingsService } from '../settings/settings.service';
+import { EventEmitter, NgZone } from '@angular/core';
+import { PaintMode } from './curves/modes/paint-mode';
+import { FreeLineMode } from './curves/modes/free-line-mode';
+import { Settings, SettingsService } from './settings/settings.service';
 
 declare global {
-  interface OffscreenCanvasRenderingContext2D {
+  interface CanvasRenderingContext2D {
     clear(): void;
   }
 }
 
 export class Paint {
-  private mainCanvas: OffscreenCanvasRenderingContext2D;
-  private predictCanvas: OffscreenCanvasRenderingContext2D;
-  // public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
-  // private animFrameGlobID;
+  private readonly mainCanvasCTX: CanvasRenderingContext2D;
+  private readonly predictCanvasCTX: CanvasRenderingContext2D;
+  public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
+  private animFrameGlobID;
   private lastPointer: Float32Array;
 
   private currentMode: PaintMode;
   private currentSettings: Settings;
   private pointerMoveListening = false;
 
-  constructor() {
 
-  }
 
-  public Init(mainCanvas: OffscreenCanvas, predictCanvas: OffscreenCanvas) {
-    this.mainCanvas = mainCanvas.getContext('2d');
-    this.predictCanvas = predictCanvas.getContext('2d');
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
+    // Setup canvas, remember to rescale on window resize
+    mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
+    mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
+    this.mainCanvasCTX = mainCanvas.getContext('2d');
+
+    predictCanvas.height = mainCanvas.height;
+    predictCanvas.width = mainCanvas.width;
+    this.predictCanvasCTX = predictCanvas.getContext('2d');
 
     // Defaults
-    this.mainCanvas.lineJoin = 'round';
-    this.mainCanvas.lineCap = 'round';
-    this.mainCanvas.clear = () => {
-      this.mainCanvas.clearRect(0, 0, this.mainCanvas.canvas.width, this.mainCanvas.canvas.height);
+    this.mainCanvasCTX.lineJoin = 'round';
+    this.mainCanvasCTX.lineCap = 'round';
+    this.mainCanvasCTX.clear = () => {
+      this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
     };
 
-    this.predictCanvas.lineJoin = 'round';
-    this.predictCanvas.lineCap = 'round';
-    this.predictCanvas.clear = () => {
-      this.predictCanvas.clearRect(0, 0, this.predictCanvas.canvas.width, this.predictCanvas.canvas.height);
+    this.predictCanvasCTX.lineJoin = 'round';
+    this.predictCanvasCTX.lineCap = 'round';
+    this.predictCanvasCTX.clear = () => {
+      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
-    this.currentMode = new FreeLineMode(this.predictCanvas, this.mainCanvas, this.currentSettings);
+    this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
-    /* settingsService.settings.subscribe(newSettings => {
+    settingsService.settings.subscribe(newSettings => {
       this.currentMode.OnSettingsUpdate(newSettings);
 
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
@@ -73,12 +76,12 @@ export class Paint {
       this.pointerMoveListening = false;
       this.MoveOccur(this.NormalizePoint(event));
       this.MoveComplete();
-    };*/
+    };
 
     // TODO: Pointer cancel event
   }
 
-  /*private NormalizePoint(event: PointerEvent): Float32Array {
+  private NormalizePoint(event: PointerEvent): Float32Array {
     // TODO: multi-touch
     const point = new Float32Array([
       event.offsetX,
@@ -96,9 +99,9 @@ export class Paint {
     point[1] *= window.devicePixelRatio;
 
     return point;
-  }*/
+  }
 
-  /*public OnLazyUpdate(): void {
+  public OnLazyUpdate(): void {
 
     const loop = () => {
       this.ngZone.runOutsideAngular(() => {
@@ -141,13 +144,13 @@ export class Paint {
     switch (mode) {
       case 'free-line':
       default:
-        this.currentMode = new FreeLineMode(this.predictCanvas, this.mainCanvas, this.currentSettings);
+        this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
     }
   }
 
   public OnClear(): void {
-    this.mainCanvas.clear();
-    this.predictCanvas.clear();
+    this.mainCanvasCTX.clear();
+    this.predictCanvasCTX.clear();
   }
 
   public OnResize(event: Event): void {
@@ -160,5 +163,5 @@ export class Paint {
 
   public ReDraw(): void {
 
-  }*/
+  }
 }
