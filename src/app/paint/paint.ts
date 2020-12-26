@@ -1,7 +1,8 @@
 import { EventEmitter, NgZone } from '@angular/core';
-import { PaintMode } from './curves/modes/paint-mode';
-import { FreeLineMode } from './curves/modes/free-line-mode';
-import { Settings, SettingsService } from './settings/settings.service';
+import { PaintMode } from '../curves/modes/paint-mode';
+import { FreeLineMode } from '../curves/modes/free-line-mode';
+import { SettingsService } from '../settings/settings.service';
+import { Settings } from '../settings/settings.interface';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -19,8 +20,6 @@ export class Paint {
   private currentMode: PaintMode;
   private currentSettings: Settings;
   private pointerMoveListening = false;
-
-
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -61,7 +60,7 @@ export class Paint {
     // Events
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       this.pointerMoveListening = true;
-      this.MoveBegin(this.NormalizePoint(event));
+      this.MoveBegin(Paint.NormalizePoint(event));
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
@@ -69,19 +68,19 @@ export class Paint {
         return;
       }
 
-      this.MoveOccur(this.NormalizePoint(event));
+      this.MoveOccur(Paint.NormalizePoint(event));
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
       this.pointerMoveListening = false;
-      this.MoveOccur(this.NormalizePoint(event));
+      this.MoveOccur(Paint.NormalizePoint(event));
       this.MoveComplete();
     };
 
     // TODO: Pointer cancel event
   }
 
-  private NormalizePoint(event: PointerEvent): Float32Array {
+  private static NormalizePoint(event: PointerEvent): Float32Array {
     // TODO: multi-touch
     const point = new Float32Array([
       event.offsetX,
@@ -140,7 +139,7 @@ export class Paint {
     window.cancelAnimationFrame(this.animFrameGlobID);
   }
 
-  public OnModeChange(mode: string): void {
+  public ChangeMode(mode: string): void {
     switch (mode) {
       case 'free-line':
       default:
@@ -148,12 +147,12 @@ export class Paint {
     }
   }
 
-  public OnClear(): void {
+  public Clear(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
   }
 
-  public OnResize(event: Event): void {
+  public Resize(): void {
     this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
 
@@ -162,6 +161,14 @@ export class Paint {
   }
 
   public ReDraw(): void {
+
+  }
+
+  public Redo(): void {
+
+  }
+
+  public Undo(): void {
 
   }
 }

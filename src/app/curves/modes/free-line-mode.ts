@@ -1,7 +1,7 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import { Settings } from '../../settings/settings.service';
+import { Settings } from '../../settings/settings.interface';
 
 export class FreeLineMode extends PaintMode {
 
