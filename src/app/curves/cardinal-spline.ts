@@ -18,11 +18,11 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  private QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[], drawDotOnly: boolean = false): void {
+  static QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[], color: string, width: number, drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
-      context.arc(points[0][0], points[0][1], this.width * 2 / Math.PI, 0, 2 * Math.PI, false);
-      context.fillStyle = this.color;
+      context.arc(points[0][0], points[0][1], width * 2 / Math.PI, 0, 2 * Math.PI, false);
+      context.fillStyle = color;
       context.fill();
       return;
     }
@@ -46,9 +46,15 @@ export class CardinalSpline {
       points[points.length - 1][1]
     );
 
-    context.strokeStyle = this.color;
-    context.lineWidth = this.width;
+    context.strokeStyle = color;
+    context.lineWidth = width;
     context.stroke();
+  }
+
+  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Float32Array[]): void {
+    canvas.strokeStyle = color;
+    canvas.lineWidth = width;
+    CardinalSpline.QuadraticCurve(canvas, points, color, width, points.length === 1);
   }
 
   public set Color(value: string) {
@@ -81,8 +87,9 @@ export class CardinalSpline {
 
     const toReturn: Float32Array[] = [];
 
+    // TODO: better way of doing it
     // At some point there is no point in optimizing such a big line, so split it
-    if (this.optimized.length > 25) {
+    /*if (this.optimized.length > 25) {
       // TODO: smooth blend point
 
       // Copy last point
@@ -95,7 +102,7 @@ export class CardinalSpline {
 
       this.points = [last];
       this.optimized = [];
-    }
+    }*/
 
     if (this.points.length < 2) { return [new Float32Array([...point])]; }
 
@@ -107,20 +114,25 @@ export class CardinalSpline {
     this.predict.lineWidth = this.width;
 
     this.predict.clear();
-    this.QuadraticCurve(this.predict, this.optimized);
+    CardinalSpline.QuadraticCurve(this.predict, this.optimized, this.color, this.width);
 
     return toReturn;
   }
 
-  public Finish(): Float32Array[] {
-    this.main.strokeStyle = this.color;
-    this.main.lineWidth = this.width;
+  public Finish(color: string = this.color, width: number = this.width, points: Float32Array[] = []): Float32Array[] {
+    this.main.strokeStyle = color;
+    this.main.lineWidth = width;
 
     // Clear predict
     this.predict.clear();
 
+    if (points.length === 0) {
+      this.optimized = Simplify.Simplify(this.points, this.tolerance);
+      points = this.optimized;
+    }
+
     // Dot or line
-    this.QuadraticCurve(this.main, this.points, this.points.length === 1);
+    CardinalSpline.QuadraticCurve(this.main, points, color, width, points.length === 1);
 
     delete this.points;
     return this.optimized;
