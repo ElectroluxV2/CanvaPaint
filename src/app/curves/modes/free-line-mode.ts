@@ -3,14 +3,29 @@ import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
 import { Settings } from '../../settings/settings.interface';
 
+export class FreeLine {
+  color: string;
+  width: number;
+  points: Float32Array[];
+
+  constructor(color: string, width: number, compiled: Float32Array[]) {
+    this.color = color;
+    this.width = width;
+    this.points = compiled;
+  }
+}
+
 export class FreeLineMode extends PaintMode {
 
   private freeLineOccurringNow = false;
   private currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
 
+  public static Reproduce(canvas: CanvasRenderingContext2D, compiled: FreeLine) {
+    CardinalSpline.Reproduce(canvas, compiled.color, compiled.width, compiled.points);
+  }
 
-  OnMoveBegin(point: Float32Array): void {
+  public OnMoveBegin(point: Float32Array): void {
     this.freeLineOccurringNow = true;
 
     // For realtime processing
@@ -24,7 +39,7 @@ export class FreeLineMode extends PaintMode {
     this.InitLazyBrush(point);
   }
 
-  OnLazyUpdate(lastPointer: Float32Array): void {
+  public OnLazyUpdate(lastPointer: Float32Array): FreeLine {
 
     if (!this.currentSpline) { return; }
 
@@ -51,9 +66,10 @@ export class FreeLineMode extends PaintMode {
 
     // TODO: Networking staff
     // compiled
+    return new FreeLine(this.settings.color, this.settings.width, compiled);
   }
 
-  OnMoveComplete(): void {
+  public OnMoveComplete(): FreeLine {
     // TODO: Networking staff
     const compiled = this.currentSpline.Finish();
 
@@ -62,9 +78,11 @@ export class FreeLineMode extends PaintMode {
     if (this.settings.lazyEnabled) {
       delete this.currentLazyBrush;
     }
+
+    return new FreeLine(this.settings.color, this.settings.width, compiled);
   }
 
-  OnSettingsUpdate(settings: Settings) {
+  public OnSettingsUpdate(settings: Settings) {
     super.OnSettingsUpdate(settings);
 
     if (!this.currentSpline) { return; }
@@ -73,7 +91,7 @@ export class FreeLineMode extends PaintMode {
       if (!this.currentLazyBrush) {
         this.InitLazyBrush(this.lastPointer);
       }
-    } else  {
+    } else {
       if (!!this.currentLazyBrush) {
         delete this.currentLazyBrush;
       }

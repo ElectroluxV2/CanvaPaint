@@ -1,6 +1,6 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { PaintMode } from '../curves/modes/paint-mode';
-import { FreeLineMode } from '../curves/modes/free-line-mode';
+import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
 
@@ -17,9 +17,12 @@ export class Paint {
   private animFrameGlobID;
   private lastPointer: Float32Array;
 
-  private currentMode: PaintMode;
+  private currentMode = 'free-line';
+  private modes: PaintMode[] = [];
   private currentSettings: Settings;
   private pointerMoveListening = false;
+
+  private freeLines: FreeLine[] = [];
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -44,10 +47,11 @@ export class Paint {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
-    this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+    this.currentSettings = this.settingsService.settings.value;
+    this.modes[this.currentMode] = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
     settingsService.settings.subscribe(newSettings => {
-      this.currentMode.OnSettingsUpdate(newSettings);
+      this.modes[this.currentMode].OnSettingsUpdate(newSettings);
 
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
         this.currentSettings = newSettings;
@@ -111,13 +115,13 @@ export class Paint {
     if (!this.lastPointer) { return loop(); }
 
     // Mode has to do same point checking on it's own
-    this.currentMode.OnLazyUpdate(this.lastPointer);
+    this.modes[this.currentMode].OnLazyUpdate(this.lastPointer);
 
     return loop();
   }
 
   private MoveBegin(point: Float32Array): void {
-    this.currentMode.OnMoveBegin(point);
+    this.modes[this.currentMode].OnMoveBegin(point);
     // Save for frame request processing
     this.lastPointer = point;
 
@@ -126,25 +130,26 @@ export class Paint {
   }
 
   private MoveOccur(point: Float32Array): void {
-    this.currentMode.OnMoveOccur(point);
+    this.modes[this.currentMode].OnMoveOccur(point);
 
     // Save for frame request processing
     this.lastPointer = point;
   }
 
   private MoveComplete(): void {
-    this.currentMode.OnMoveComplete();
+    const compiledObject = this.modes[this.currentMode].OnMoveComplete();
+
+    if (compiledObject instanceof FreeLine) {
+      this.freeLines.push(compiledObject as FreeLine);
+    }
 
     delete this.lastPointer;
     window.cancelAnimationFrame(this.animFrameGlobID);
   }
 
   public ChangeMode(mode: string): void {
-    switch (mode) {
-      case 'free-line':
-      default:
-        this.currentMode = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
-    }
+    console.log(mode);
+    this.currentMode = mode;
   }
 
   public Clear(): void {
@@ -158,10 +163,14 @@ export class Paint {
 
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
+
+    this.ReDraw();
   }
 
   public ReDraw(): void {
-
+    for (const line of this.freeLines) {
+      FreeLineMode.Reproduce(this.mainCanvasCTX, line);
+    }
   }
 
   public Redo(): void {
