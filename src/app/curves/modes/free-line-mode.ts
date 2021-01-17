@@ -1,14 +1,13 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import { Settings } from '../../settings/settings.service';
+import {Settings} from '../../settings/settings.interface';
 
 export class FreeLineMode extends PaintMode {
 
   private freeLineOccurringNow = false;
   private currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
-
 
   OnMoveBegin(point: Float32Array): void {
     this.freeLineOccurringNow = true;
