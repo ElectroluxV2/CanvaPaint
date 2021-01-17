@@ -63,7 +63,6 @@ export class SettingsService {
   }
 
   constructor() {
-    // TODO: make no need for setting them here
     // Preselected options
     this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
     this.settingsData.color = this.GetColor('black');

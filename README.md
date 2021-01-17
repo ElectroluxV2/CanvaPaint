@@ -1,6 +1,29 @@
 # Paint
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.0.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.0 and updated to version 11.0.4
+
+# V2 TODO List
+- [x] Modular structure
+- [ ] Straignt line mode
+- [x] Free line mode
+- [ ] Draw square mode
+- [ ] Draw circle mode
+- [ ] Fast shapes mode
+- [ ] Export drawing
+- [ ] Zoom in while drawing
+- [ ] Socket.io cooperative drawing
+- [ ] Use WASM in order to boost performance
+- [ ] Use Web Workers in order to boost performance
+- [ ] Use Background Canvas in order to boost performance
+- [x] Free line points optimizer
+- [x] Free line move stabilizer
+- [ ] C++ powered backend server
+- [ ] Save settings in localstorage
+- [ ] Routing for rooms (multiple instances)
+- [ ] Per room chat
+- [ ] Password protected rooms
+- [ ] Avability to host own server
+
 
 ## Development server
 
