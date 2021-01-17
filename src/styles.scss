@@ -1,5 +1,4 @@
 /* You can add global styles to this file, and also import other style files */
-
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
@@ -18,127 +17,15 @@ body {
   }
 }
 
-@font-face{
-  font-family:comic sans ms;
-  font-style:normal;
-  font-weight:400;
-  src:local('Comic Sans MS'),
-  local('ComicSansMS-Regular'),
-  url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
-  url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype')}
-@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
-
-@import '~@angular/material/theming';
-
-@include mat-core();
-
-$app-primary: mat-palette($mat-amber);
-$app-accent:  mat-palette($mat-red, A200, A100, A400);
-
-$app-theme: mat-light-theme($app-primary, $app-accent);
-
-@mixin mix-app-theme($app-theme) {
-  $primary: map-get($app-theme, primary);
-  $accent: map-get($app-theme, accent);
-
-
-  .connect_error, .reconnect_error, .reconnect_failed {
-    color: mat-color($mat-orange, 500);
-  }
-
-  .disconnect {
-    color: mat-color($mat-gray, 900);
-  }
-
-  .connected {
-    color: mat-color($mat-green, 500);
-  }
-
-  .error {
-    color: mat-color($mat-red, 500);
-  }
-
-  .mat-button-toggle {
-    background-color: mat-color($primary);
-    color: mat-color($primary, default-contrast);
-
-    &.red {
-        background-color: mat-color($mat-red, 500);
-    }
-
-    &.green {
-        background-color: mat-color($mat-green, 500);
-    }
-
-    &.blue {
-        background-color: mat-color($mat-blue, 500);
-    }
-
-    &.yellow {
-        background-color: mat-color($mat-yellow, 600);
-    }
-
-    &.black {
-        background-color: mat-color($mat-grey, 900);
-    }
-  }
-
-  .mat-mini-fab[color="accent"] {
-    background-color: #FFDC00 !important;
-  }
-
-  .mat-button[color="accent"] {
-    background-color: #FFDC00 !important;
-    color: mat-color($mat-purple, 900);
-  }
-
-  .mat-dialog-container {
-    background-color: mat-color($mat-purple, 900);
-    color: #FFDC00;
-  }
-
-  .mat-form-field-label {
-    color: #FFDC00 !important;
-  }
-
-  .mat-form-field-underline {
-    background-color: #FFDC00 !important;
-  }
-
-  .mat-focused {
-    color: #FFDC00 !important;
+@font-face {
+  font-family: comic sans ms;
+  font-style: normal;
+  font-weight: 400;
+  src:
+    local('Comic Sans MS'),
+    local('ComicSansMS-Regular'),
+    url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.woff) format('woff'),
+    url(https://allfont.ru/cache/fonts/comic-sans-ms_53a8778a817839ef2dbc5dc94ce14334.ttf) format('truetype');
 }
 
-  .mat-button-toggle-checked {
-    background-color: mat-color($accent);
-    color: mat-color($accent, default-contrast);
-
-    &.red {
-        //background-color: mat-color($mat-red, 900);
-        color: mat-color($mat-red, 100);
-    }
-
-    &.green {
-        //background-color: mat-color($mat-green, 900);
-        color: mat-color($mat-green, 100);
-    }
-
-    &.blue {
-        //background-color: mat-color($mat-blue, 900);
-        color: mat-color($mat-blue, 100);
-    }
-
-    &.yellow {
-        //background-color: mat-color($mat-yellow, 900);
-        color: mat-color($mat-yellow, 50);
-    }
-
-    &.black {
-        //background-color: mat-color($mat-grey, 900);
-        color: mat-color($mat-grey, 500);
-    }
-  }
-}
-
-// Include the mixin
-@include mix-app-theme($app-theme);
+@import './app/styles/main';
