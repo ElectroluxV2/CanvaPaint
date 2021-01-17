@@ -1,4 +1,4 @@
-import { Settings } from '../../settings/settings.interface';
+import { Settings } from '../../settings/settings.service';
 
 export abstract class PaintMode {
   protected readonly predictCanvas: OffscreenCanvasRenderingContext2D;
