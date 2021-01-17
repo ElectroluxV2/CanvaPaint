@@ -155,6 +155,8 @@ export class Paint {
   public Clear(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
+
+    this.freeLines = [];
   }
 
   public Resize(): void {
