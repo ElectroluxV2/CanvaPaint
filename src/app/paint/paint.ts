@@ -23,6 +23,29 @@ export class Paint {
   private pointerMoveListening = false;
 
   private freeLines: FreeLine[] = [];
+  private zoom = {
+    scale: {
+      modifier: 1,
+      world: {
+        x: 0,
+        y: 0,
+      },
+      screen: {
+        x: 0,
+        y: 0
+      }
+    },
+    mouse: {
+      world: {
+        x: 0,
+        y: 0,
+      },
+      screen: {
+        x: 0,
+        y: 0
+      }
+    }
+  };
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -63,11 +86,20 @@ export class Paint {
 
     // Events
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) {
+        return;
+      }
+
       this.pointerMoveListening = true;
       this.MoveBegin(Paint.NormalizePoint(event));
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
+
+      const bounds = this.mainCanvas.getBoundingClientRect();
+      this.zoom.mouse.screen.x = event.clientX - bounds.left;
+      this.zoom.mouse.screen.y = event.clientY - bounds.top;
+
       if (!this.pointerMoveListening) {
         return;
       }
@@ -76,9 +108,40 @@ export class Paint {
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
+      if (!this.pointerMoveListening) {
+        return;
+      }
+
       this.pointerMoveListening = false;
       this.MoveOccur(Paint.NormalizePoint(event));
       this.MoveComplete();
+    };
+
+    this.predictCanvas.onwheel = (event: WheelEvent) => {
+      if (event.deltaY < 0) {
+        // Zoom in
+        this.zoom.scale.modifier = Math.min(5, this.zoom.scale.modifier * 1.01);
+      } else {
+        // Zoom out is inverse of zoom in
+        this.zoom.scale.modifier  = Math.max(0.1, this.zoom.scale.modifier * (1 / 1.01));
+      }
+
+      // Set world origin
+      this.zoom.scale.world.x = this.zoom.mouse.world.x;
+      this.zoom.scale.world.y = this.zoom.mouse.world.y;
+
+      // Set screen origin
+      this.zoom.scale.screen.x = this.zoom.mouse.world.x;
+      this.zoom.scale.screen.y = this.zoom.mouse.world.y;
+
+      // Re-calc mouse world (real) pos
+      this.zoom.mouse.world.x = this.zoomedInvX(this.zoom.mouse.screen.x);
+      this.zoom.mouse.world.y = this.zoomedInvY(this.zoom.mouse.screen.y);
+
+      console.log(this.zoom.scale.modifier);
+
+      // Re-draw with rescaled coords
+      this.ReDraw(true);
     };
 
     // TODO: Pointer cancel event
@@ -102,6 +165,38 @@ export class Paint {
     point[1] *= window.devicePixelRatio;
 
     return point;
+  }
+
+  // Just scale
+  private zoomed(n: number): number {
+    return Math.floor(n * this.zoom.scale.modifier);
+  }
+
+  // Converts from world coord to screen pixel coord
+  private zoomedX(n: number): number {
+    // scale & origin X
+    return Math.floor((n - this.zoom.scale.world.x) * this.zoom.scale.modifier + this.zoom.scale.screen.x);
+  }
+
+  // Converts from world coord to screen pixel coord
+  private zoomedY(n: number): number {
+    // scale & origin Y
+    return Math.floor((n - this.zoom.scale.world.y) * this.zoom.scale.modifier + this.zoom.scale.screen.y);
+  }
+
+  // Inverse does the reverse of a calculation. Like (3 - 1) * 5 = 10   the inverse is 10 * (1/5) + 1 = 3
+  // multiply become 1 over ie *5 becomes * 1/5  (or just /5)
+  // Adds become subtracts and subtract become add.
+  // and what is first become last and the other way round.
+  // inverse function converts from screen pixel coord to world coord
+  private zoomedInvX(n: number): number {
+    // scale & origin INV
+    return Math.floor((n - this.zoom.scale.screen.x) * (1 / this.zoom.scale.modifier) + this.zoom.scale.world.x);
+  }
+
+  private zoomedInvY(n: number): number {
+    // scale & origin INV
+    return Math.floor((n - this.zoom.scale.screen.y) * (1 / this.zoom.scale.modifier) + this.zoom.scale.world.y);
   }
 
   public OnLazyUpdate(): void {
@@ -148,7 +243,6 @@ export class Paint {
   }
 
   public ChangeMode(mode: string): void {
-    console.log(mode);
     this.currentMode = mode;
   }
 
@@ -169,9 +263,25 @@ export class Paint {
     this.ReDraw();
   }
 
-  public ReDraw(): void {
+  public ReDraw(zoomChanged: boolean = false): void {
+    this.mainCanvasCTX.clear();
+    this.predictCanvasCTX.clear();
+
     for (const line of this.freeLines) {
-      FreeLineMode.Reproduce(this.mainCanvasCTX, line);
+
+      if (!zoomChanged) {
+        FreeLineMode.Reproduce(this.mainCanvasCTX, line);
+        continue;
+      }
+
+      const deepCopy = JSON.parse(JSON.stringify(line.points));
+      const scaled = deepCopy.map(point => {
+        point[0] = this.zoomedX(point[0]);
+        point[1] = this.zoomedY(point[1]);
+        return point;
+      });
+
+      FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, line.width, scaled));
     }
   }
 
