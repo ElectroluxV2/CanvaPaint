@@ -274,11 +274,9 @@ export class Paint {
         continue;
       }
 
-      const deepCopy = JSON.parse(JSON.stringify(line.points));
-      const scaled = deepCopy.map(point => {
-        point[0] = this.zoomedX(point[0]);
-        point[1] = this.zoomedY(point[1]);
-        return point;
+      const scaled = [];
+      line.points.map(point => {
+        scaled.push(Float32Array.from([this.zoomedX(point[0]), this.zoomedY(point[1])]));
       });
 
       FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, line.width, scaled));
