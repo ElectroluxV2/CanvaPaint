@@ -120,11 +120,20 @@ export class Paint {
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       if (event.deltaY < 0) {
         // Zoom in
-        this.zoom.scale.modifier = Math.min(5, this.zoom.scale.modifier * 1.01);
+        this.zoom.scale.modifier = Math.min(5, this.zoom.scale.modifier * 1.1);
       } else {
         // Zoom out is inverse of zoom in
-        this.zoom.scale.modifier  = Math.max(0.1, this.zoom.scale.modifier * (1 / 1.01));
+        this.zoom.scale.modifier  = Math.max(0.1, this.zoom.scale.modifier * (1 / 1.1));
       }
+
+      this.modes[this.currentMode].OnSettingsUpdate({
+        darkModeEnabled: this.currentSettings.darkModeEnabled,
+        color: this.currentSettings.color,
+        width: this.zoomed(this.currentSettings.width),
+        lazyEnabled: this.currentSettings.lazyEnabled,
+        lazyMultiplier: this.currentSettings.lazyEnabled,
+        tolerance: this.currentSettings.tolerance
+      });
 
       // Set world origin
       this.zoom.scale.world.x = this.zoom.mouse.world.x;
@@ -235,7 +244,14 @@ export class Paint {
     const compiledObject = this.modes[this.currentMode].OnMoveComplete();
 
     if (compiledObject instanceof FreeLine) {
-      this.freeLines.push(compiledObject as FreeLine);
+
+      for (const point of compiledObject.points) {
+        // Match to current scale
+        point[0] = this.zoomedInvX(point[0]);
+        point[1] = this.zoomedInvY(point[1]);
+      }
+
+      this.freeLines.push(compiledObject);
     }
 
     delete this.lastPointer;
@@ -279,7 +295,7 @@ export class Paint {
         scaled.push(Float32Array.from([this.zoomedX(point[0]), this.zoomedY(point[1])]));
       });
 
-      FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, line.width, scaled));
+      FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, this.zoomed(line.width), scaled));
     }
   }
 
