@@ -280,6 +280,7 @@ export class Paint {
     this.predictCanvasCTX.clear();
 
     this.freeLines = [];
+    this.straightLines = [];
   }
 
   public Resize(): void {
