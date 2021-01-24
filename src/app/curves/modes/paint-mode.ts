@@ -1,5 +1,6 @@
 import { Settings } from '../../settings/settings.interface';
 import { FreeLine } from './free-line-mode';
+import {StraightLine} from './straight-line-mode';
 
 export abstract class PaintMode {
   protected readonly predictCanvas: CanvasRenderingContext2D;
@@ -12,7 +13,7 @@ export abstract class PaintMode {
   public OnMoveOccur(point: Float32Array): void {
     this.lastPointer = point;
   }
-  abstract OnMoveComplete(): FreeLine;
+  abstract OnMoveComplete(): FreeLine | StraightLine;
   public OnSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }

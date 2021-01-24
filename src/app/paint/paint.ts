@@ -3,6 +3,7 @@ import { PaintMode } from '../curves/modes/paint-mode';
 import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
+import {StraightLineMode} from '../curves/modes/straight-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -71,7 +72,8 @@ export class Paint {
     };
 
     this.currentSettings = this.settingsService.settings.value;
-    this.modes[this.currentMode] = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+    this.modes['free-line'] = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+    this.modes['straight-line'] = new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
     settingsService.settings.subscribe(newSettings => {
       this.modes[this.currentMode].OnSettingsUpdate(newSettings);
