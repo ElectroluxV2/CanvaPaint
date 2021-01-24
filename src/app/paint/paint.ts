@@ -3,7 +3,7 @@ import { PaintMode } from '../curves/modes/paint-mode';
 import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
-import {StraightLineMode} from '../curves/modes/straight-line-mode';
+import {StraightLine, StraightLineMode} from '../curves/modes/straight-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -24,6 +24,7 @@ export class Paint {
   private pointerMoveListening = false;
 
   private freeLines: FreeLine[] = [];
+  private straightLines: StraightLine[] = [];
   private zoom = {
     scale: {
       modifier: 1,
@@ -254,6 +255,16 @@ export class Paint {
       }
 
       this.freeLines.push(compiledObject);
+    } else if (compiledObject instanceof  StraightLine) {
+
+      // Match to current scale
+      compiledObject.start[0] = this.zoomedInvX(compiledObject.start[0]);
+      compiledObject.start[1] = this.zoomedInvY(compiledObject.start[1]);
+
+      compiledObject.stop[0] = this.zoomedInvX(compiledObject.stop[0]);
+      compiledObject.stop[1] = this.zoomedInvY(compiledObject.stop[1]);
+
+      this.straightLines.push(compiledObject);
     }
 
     delete this.lastPointer;
@@ -298,6 +309,26 @@ export class Paint {
       });
 
       FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, this.zoomed(line.width), scaled));
+    }
+
+    for (const line of this.straightLines) {
+
+      if (!zoomChanged) {
+        StraightLineMode.Reproduce(this.mainCanvasCTX, line);
+        continue;
+      }
+
+      const startScaled = new Float32Array([
+        this.zoomedX(line.start[0]),
+        this.zoomedY(line.start[1])
+      ]);
+
+      const stopScaled = new Float32Array([
+        this.zoomedX(line.stop[0]),
+        this.zoomedY(line.stop[1])
+      ]);
+
+      StraightLineMode.Reproduce(this.mainCanvasCTX, new StraightLine(line.color, this.zoomed(line.width), startScaled, stopScaled));
     }
   }
 
