@@ -23,6 +23,7 @@ export class StraightLineMode extends PaintMode {
   public static Reproduce(canvas: CanvasRenderingContext2D, compiled: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(compiled.start[0], compiled.start[1]);
+    canvas.lineCap = 'round';
     canvas.strokeStyle = compiled.color;
     canvas.lineWidth = compiled.width;
     canvas.lineTo(compiled.stop[0], compiled.stop[1]);
