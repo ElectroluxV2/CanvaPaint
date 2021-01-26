@@ -4,12 +4,14 @@ import { Settings } from '../../settings/settings.interface';
 export class StraightLine {
   color: string;
   width: number;
+  controlPoint: Float32Array;
   start: Float32Array;
   stop: Float32Array;
 
   constructor(color: string, width: number, start: Float32Array, stop: Float32Array) {
     this.color = color;
     this.width = width;
+    this.controlPoint = start;
     this.start = start;
     this.stop = stop;
   }
@@ -18,37 +20,85 @@ export class StraightLine {
 export class StraightLineMode extends PaintMode {
 
   private straightLineOccurringNow = false;
+  private movingControlPoint = false;
+  private currentControlPointLocation: Float32Array;
   private currentStraightLine: StraightLine;
 
   public static Reproduce(canvas: CanvasRenderingContext2D, compiled: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(compiled.start[0], compiled.start[1]);
+    canvas.lineCap = 'round';
     canvas.strokeStyle = compiled.color;
     canvas.lineWidth = compiled.width;
     canvas.lineTo(compiled.stop[0], compiled.stop[1]);
     canvas.stroke();
   }
 
-  public OnMoveBegin(point: Float32Array): void {
+  private DrawControlDot(): void {
+    this.predictCanvas.beginPath();
+    this.predictCanvas.arc(
+      this.currentControlPointLocation[0],
+      this.currentControlPointLocation[1],
+      this.settings.width * 2.5 / Math.PI,
+      0,
+      2 * Math.PI,
+      false
+    );
+    this.predictCanvas.fillStyle = 'purple';
+    this.predictCanvas.fill();
+  }
+
+  public OnMoveBegin(point: Float32Array, button: number): void {
     this.straightLineOccurringNow = true;
-    this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, point, new Float32Array(2));
+
+    if (!this.currentStraightLine) {
+      this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, point, new Float32Array(2));
+    }
+
+    this.movingControlPoint = button === 2;
+    if (!this.currentControlPointLocation) {
+      this.currentControlPointLocation = Float32Array.from(point);
+    }
+
   }
 
   public OnLazyUpdate(lastPointer: Float32Array): void {
     this.currentStraightLine.stop = lastPointer;
+
     this.predictCanvas.clear();
+
+    if (this.movingControlPoint) {
+      this.currentControlPointLocation = lastPointer;
+      this.DrawControlDot();
+      return;
+    }
+
     StraightLineMode.Reproduce(this.predictCanvas, this.currentStraightLine);
+    this.DrawControlDot();
   }
 
-  public OnMoveComplete(): StraightLine {
+  public OnMoveComplete(pointerHasMoved: boolean, button: number): StraightLine | null {
     this.straightLineOccurringNow = false;
-    this.predictCanvas.clear();
-    StraightLineMode.Reproduce(this.mainCanvas, this.currentStraightLine);
 
+    this.predictCanvas.clear();
+    this.DrawControlDot();
+
+    if (button === 2) {
+      this.currentStraightLine.controlPoint = this.lastPointer;
+      this.currentStraightLine.start = this.lastPointer;
+      this.movingControlPoint = true;
+      return null;
+    }
+
+    StraightLineMode.Reproduce(this.mainCanvas, this.currentStraightLine);
     return this.currentStraightLine;
   }
 
   public OnSettingsUpdate(settings: Settings): void {
+    if (this.currentStraightLine) {
+      this.currentStraightLine.color = settings.color;
+      this.currentStraightLine.width = settings.width;
+    }
     super.OnSettingsUpdate(settings);
   }
 }

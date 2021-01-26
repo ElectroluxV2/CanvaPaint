@@ -9,11 +9,11 @@ export abstract class PaintMode {
   protected lastPointer: Float32Array;
 
   abstract OnLazyUpdate(lastPointer: Float32Array): void;
-  abstract OnMoveBegin(point: Float32Array): void;
-  public OnMoveOccur(point: Float32Array): void {
+  abstract OnMoveBegin(point: Float32Array, button: number): void;
+  public OnMoveOccur(point: Float32Array, button: number): void {
     this.lastPointer = point;
   }
-  abstract OnMoveComplete(): FreeLine | StraightLine;
+  abstract OnMoveComplete(pointerHasMoved: boolean, button: number): FreeLine | StraightLine;
   public OnSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }
