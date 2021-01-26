@@ -23,6 +23,7 @@ export class Paint {
   private modes: PaintMode[] = [];
   private currentSettings: Settings;
   private pointerMoveListening = false;
+  private pointerHasMoved = false;
 
   private freeLines: FreeLine[] = [];
   private straightLines: StraightLine[] = [];
@@ -90,16 +91,21 @@ export class Paint {
     });
 
     // Events
-    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
-      if (event.pointerType === 'mouse' && event.button !== 0) {
-        return;
-      }
+    this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
 
+    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
+      event.preventDefault();
+
+      this.pointerHasMoved = false;
       this.pointerMoveListening = true;
-      this.MoveBegin(Paint.NormalizePoint(event));
+      this.MoveBegin(Paint.NormalizePoint(event), event.button ?? 0);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
+      event.preventDefault();
+      this.pointerHasMoved = true;
 
       const bounds = this.mainCanvas.getBoundingClientRect();
       this.zoom.mouse.screen.x = event.clientX - bounds.left;
@@ -109,7 +115,7 @@ export class Paint {
         return;
       }
 
-      this.MoveOccur(Paint.NormalizePoint(event));
+      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
@@ -117,9 +123,11 @@ export class Paint {
         return;
       }
 
+      event.preventDefault();
+
       this.pointerMoveListening = false;
-      this.MoveOccur(Paint.NormalizePoint(event));
-      this.MoveComplete();
+      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
+      this.MoveComplete(this.pointerHasMoved, event.button ?? 0);
     };
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
@@ -229,8 +237,8 @@ export class Paint {
     return loop();
   }
 
-  private MoveBegin(point: Float32Array): void {
-    this.modes[this.currentMode].OnMoveBegin(point);
+  private MoveBegin(point: Float32Array, button: number): void {
+    this.modes[this.currentMode].OnMoveBegin(point, button);
     // Save for frame request processing
     this.lastPointer = point;
 
@@ -238,15 +246,15 @@ export class Paint {
     this.OnLazyUpdate();
   }
 
-  private MoveOccur(point: Float32Array): void {
-    this.modes[this.currentMode].OnMoveOccur(point);
+  private MoveOccur(point: Float32Array, button: number): void {
+    this.modes[this.currentMode].OnMoveOccur(point, button);
 
     // Save for frame request processing
     this.lastPointer = point;
   }
 
-  private MoveComplete(): void {
-    const compiledObject = this.modes[this.currentMode].OnMoveComplete();
+  private MoveComplete(pointerHasMoved: boolean, button: number): void {
+    const compiledObject = this.modes[this.currentMode].OnMoveComplete(pointerHasMoved, button);
 
     if (compiledObject instanceof FreeLine) {
 
