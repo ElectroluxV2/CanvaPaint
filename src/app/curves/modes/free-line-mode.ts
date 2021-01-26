@@ -25,7 +25,7 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, compiled.color, compiled.width, compiled.points);
   }
 
-  public OnMoveBegin(point: Float32Array): void {
+  public OnMoveBegin(point: Float32Array, button: number): void {
     this.freeLineOccurringNow = true;
 
     // For realtime processing
@@ -69,7 +69,7 @@ export class FreeLineMode extends PaintMode {
     return new FreeLine(this.settings.color, this.settings.width, compiled);
   }
 
-  public OnMoveComplete(): FreeLine {
+  public OnMoveComplete(pointerHasMoved: boolean, button: number): FreeLine {
     // TODO: Networking staff
     const compiled = this.currentSpline.Finish();
 
