@@ -256,6 +256,8 @@ export class Paint {
   private MoveComplete(pointerHasMoved: boolean, button: number): void {
     const compiledObject = this.modes[this.currentMode].OnMoveComplete(pointerHasMoved, button);
 
+    console.log(compiledObject);
+
     if (compiledObject instanceof FreeLine) {
 
       for (const point of compiledObject.points) {

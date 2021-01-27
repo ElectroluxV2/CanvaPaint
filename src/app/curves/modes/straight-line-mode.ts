@@ -4,7 +4,7 @@ import { Settings } from '../../settings/settings.interface';
 export class StraightLine {
   color: string;
   width: number;
-  controlPoint: Float32Array;
+  controlPoint?: Float32Array;
   start: Float32Array;
   stop: Float32Array;
 
@@ -15,13 +15,16 @@ export class StraightLine {
     this.start = start;
     this.stop = stop;
   }
+
+  public Duplicate(): StraightLine {
+    return new StraightLine(this.color, this.width, this.start, this.stop);
+  }
 }
 
 export class StraightLineMode extends PaintMode {
 
   private straightLineOccurringNow = false;
   private movingControlPoint = false;
-  private currentControlPointLocation: Float32Array;
   private currentStraightLine: StraightLine;
 
   public static Reproduce(canvas: CanvasRenderingContext2D, compiled: StraightLine): void {
@@ -37,8 +40,8 @@ export class StraightLineMode extends PaintMode {
   private DrawControlDot(): void {
     this.predictCanvas.beginPath();
     this.predictCanvas.arc(
-      this.currentControlPointLocation[0],
-      this.currentControlPointLocation[1],
+      this.currentStraightLine.controlPoint[0],
+      this.currentStraightLine.controlPoint[1],
       this.settings.width * 2.5 / Math.PI,
       0,
       2 * Math.PI,
@@ -56,8 +59,8 @@ export class StraightLineMode extends PaintMode {
     }
 
     this.movingControlPoint = button === 2;
-    if (!this.currentControlPointLocation) {
-      this.currentControlPointLocation = Float32Array.from(point);
+    if (!this.currentStraightLine.controlPoint) {
+      this.currentStraightLine.controlPoint = Float32Array.from(point);
     }
 
   }
@@ -68,7 +71,7 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (this.movingControlPoint) {
-      this.currentControlPointLocation = lastPointer;
+      this.currentStraightLine.controlPoint = lastPointer;
       this.DrawControlDot();
       return;
     }
@@ -87,11 +90,16 @@ export class StraightLineMode extends PaintMode {
       this.currentStraightLine.controlPoint = this.lastPointer;
       this.currentStraightLine.start = this.lastPointer;
       this.movingControlPoint = true;
+
+      this.predictCanvas.clear();
+      this.DrawControlDot();
       return null;
     }
 
     StraightLineMode.Reproduce(this.mainCanvas, this.currentStraightLine);
-    return this.currentStraightLine;
+
+    // Return new insteadof copy
+    return this.currentStraightLine.Duplicate();
   }
 
   public OnSettingsUpdate(settings: Settings): void {
