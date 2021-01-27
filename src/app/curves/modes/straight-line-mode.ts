@@ -4,7 +4,7 @@ import { Settings } from '../../settings/settings.interface';
 export class StraightLine {
   color: string;
   width: number;
-  controlPoint: Float32Array;
+  controlPoint?: Float32Array;
   start: Float32Array;
   stop: Float32Array;
 
@@ -14,6 +14,10 @@ export class StraightLine {
     this.controlPoint = start;
     this.start = start;
     this.stop = stop;
+  }
+
+  public Duplicate(): StraightLine {
+    return new StraightLine(this.color, this.width, this.start, this.stop);
   }
 }
 
@@ -93,7 +97,9 @@ export class StraightLineMode extends PaintMode {
     }
 
     StraightLineMode.Reproduce(this.mainCanvas, this.currentStraightLine);
-    return this.currentStraightLine;
+
+    // Return new insteadof copy
+    return this.currentStraightLine.Duplicate();
   }
 
   public OnSettingsUpdate(settings: Settings): void {
