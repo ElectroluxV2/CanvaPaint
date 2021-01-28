@@ -4,14 +4,12 @@ import { Settings } from '../../settings/settings.interface';
 export class StraightLine {
   color: string;
   width: number;
-  controlPoint?: Float32Array;
   start: Float32Array;
   stop: Float32Array;
 
   constructor(color: string, width: number, start?: Float32Array, stop?: Float32Array) {
     this.color = color;
     this.width = width;
-    this.controlPoint = start;
     this.start = start ?? new Float32Array(2);
     this.stop = stop ?? new Float32Array(2);
   }
@@ -27,9 +25,8 @@ export class StraightLine {
 }
 
 export class StraightLineMode extends PaintMode {
-
-  private straightLineOccurringNow = false;
   private movingControlPoint = false;
+  private controlPointPosition: Float32Array;
   private currentStraightLine: StraightLine;
 
   public static Reproduce(canvas: CanvasRenderingContext2D, compiled: StraightLine): void {
@@ -45,8 +42,8 @@ export class StraightLineMode extends PaintMode {
   private DrawControlDot(): void {
     this.predictCanvas.beginPath();
     this.predictCanvas.arc(
-      this.currentStraightLine.controlPoint[0],
-      this.currentStraightLine.controlPoint[1],
+      this.controlPointPosition[0],
+      this.controlPointPosition[1],
       this.settings.width * 2.5 / Math.PI,
       0,
       2 * Math.PI,
@@ -57,15 +54,14 @@ export class StraightLineMode extends PaintMode {
   }
 
   public OnMoveBegin(point: Float32Array, button: number): void {
-    this.straightLineOccurringNow = true;
 
     if (!this.currentStraightLine) {
       this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, point, new Float32Array(2));
     }
 
     this.movingControlPoint = button === 2;
-    if (!this.currentStraightLine.controlPoint) {
-      this.currentStraightLine.controlPoint = Float32Array.from(point);
+    if (!this.controlPointPosition) {
+      this.controlPointPosition = Float32Array.from(point);
     }
 
   }
@@ -76,7 +72,7 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (this.movingControlPoint) {
-      this.currentStraightLine.controlPoint = lastPointer;
+      this.controlPointPosition = lastPointer;
       this.DrawControlDot();
       return;
     }
@@ -86,13 +82,12 @@ export class StraightLineMode extends PaintMode {
   }
 
   public OnMoveComplete(pointerHasMoved: boolean, button: number): StraightLine | null {
-    this.straightLineOccurringNow = false;
 
     this.predictCanvas.clear();
     this.DrawControlDot();
 
     if (button === 2) {
-      this.currentStraightLine.controlPoint = this.lastPointer;
+      this.controlPointPosition = this.lastPointer;
       this.currentStraightLine.start = this.lastPointer;
       this.movingControlPoint = true;
 
