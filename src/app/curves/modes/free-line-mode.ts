@@ -6,9 +6,9 @@ import { Settings } from '../../settings/settings.interface';
 export class FreeLine {
   color: string;
   width: number;
-  points: Float32Array[];
+  points: Uint32Array[];
 
-  constructor(color: string, width: number, compiled: Float32Array[]) {
+  constructor(color: string, width: number, compiled: Uint32Array[]) {
     this.color = color;
     this.width = width;
     this.points = compiled;
@@ -25,7 +25,7 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, compiled.color, compiled.width, compiled.points);
   }
 
-  public OnMoveBegin(point: Float32Array, button: number): void {
+  public OnMoveBegin(point: Uint32Array, button: number): void {
     this.freeLineOccurringNow = true;
 
     // For realtime processing
@@ -39,7 +39,7 @@ export class FreeLineMode extends PaintMode {
     this.InitLazyBrush(point);
   }
 
-  public OnLazyUpdate(lastPointer: Float32Array): FreeLine {
+  public OnLazyUpdate(lastPointer: Uint32Array): FreeLine {
 
     if (!this.currentSpline) { return; }
 
@@ -102,7 +102,7 @@ export class FreeLineMode extends PaintMode {
     this.currentSpline.Tolerance = settings.tolerance;
   }
 
-  private InitLazyBrush(point: Float32Array) {
+  private InitLazyBrush(point: Uint32Array) {
     const x = this.mainCanvas.canvas.width * 0.001 * this.settings.lazyMultiplier;
     const y = this.mainCanvas.canvas.height * 0.001 * this.settings.lazyMultiplier;
     this.currentLazyBrush = new LazyBrush(Math.min(x, y), point);

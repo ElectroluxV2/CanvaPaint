@@ -3,8 +3,8 @@ import { PaintMode } from '../curves/modes/paint-mode';
 import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
-import {StraightLine, StraightLineMode} from '../curves/modes/straight-line-mode';
-import {ContinuousStraightLineMode} from '../curves/modes/continuous-straight-line-mode';
+import { StraightLine, StraightLineMode } from '../curves/modes/straight-line-mode';
+import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -17,7 +17,7 @@ export class Paint {
   private readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
   private animFrameGlobID;
-  private lastPointer: Float32Array;
+  private lastPointer: Uint32Array;
 
   private currentMode = 'free-line';
   private modes: PaintMode[] = [];
@@ -169,9 +169,9 @@ export class Paint {
     // TODO: Pointer cancel event
   }
 
-  private static NormalizePoint(event: PointerEvent): Float32Array {
+  private static NormalizePoint(event: PointerEvent): Uint32Array {
     // TODO: multi-touch
-    const point = new Float32Array([
+    const point = new Uint32Array([
       event.offsetX,
       event.offsetY
     ]);
@@ -237,7 +237,7 @@ export class Paint {
     return loop();
   }
 
-  private MoveBegin(point: Float32Array, button: number): void {
+  private MoveBegin(point: Uint32Array, button: number): void {
     this.modes[this.currentMode].OnMoveBegin(point, button);
     // Save for frame request processing
     this.lastPointer = point;
@@ -246,7 +246,7 @@ export class Paint {
     this.OnLazyUpdate();
   }
 
-  private MoveOccur(point: Float32Array, button: number): void {
+  private MoveOccur(point: Uint32Array, button: number): void {
     this.modes[this.currentMode].OnMoveOccur(point, button);
 
     // Save for frame request processing

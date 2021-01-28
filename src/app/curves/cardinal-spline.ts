@@ -7,8 +7,8 @@ export class CardinalSpline {
   private width: number;
   private color: string;
 
-  private points: Float32Array[] = [];
-  private optimized: Float32Array[] = [];
+  private points: Uint32Array[] = [];
+  private optimized: Uint32Array[] = [];
 
   constructor(main: CanvasRenderingContext2D, predict: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
     this.main = main;
@@ -18,7 +18,7 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  static QuadraticCurve(context: CanvasRenderingContext2D, points: Float32Array[], color: string, width: number, drawDotOnly: boolean = false): void {
+  static QuadraticCurve(context: CanvasRenderingContext2D, points: Uint32Array[], color: string, width: number, drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
       context.arc(points[0][0], points[0][1], width * 2 / Math.PI, 0, 2 * Math.PI, false);
@@ -51,7 +51,7 @@ export class CardinalSpline {
     context.stroke();
   }
 
-  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Float32Array[]): void {
+  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Uint32Array[]): void {
     canvas.strokeStyle = color;
     canvas.lineWidth = width;
     CardinalSpline.QuadraticCurve(canvas, points, color, width, points.length === 1);
@@ -73,7 +73,7 @@ export class CardinalSpline {
     return this.points.length === 0;
   }
 
-  public AddPoint(point: Float32Array): Float32Array[] {
+  public AddPoint(point: Uint32Array): Uint32Array[] {
     // Same point prevention
     if (this.points.length) {
       const toCheck = this.points[this.points.length - 1];
@@ -83,9 +83,9 @@ export class CardinalSpline {
     }
 
     // Deep copy
-    this.points.push(new Float32Array([...point]));
+    this.points.push(new Uint32Array([...point]));
 
-    const toReturn: Float32Array[] = [];
+    const toReturn: Uint32Array[] = [];
 
     // TODO: better way of doing it
     // At some point there is no point in optimizing such a big line, so split it
@@ -104,7 +104,7 @@ export class CardinalSpline {
       this.optimized = [];
     }*/
 
-    if (this.points.length < 2) { return [new Float32Array([...point])]; }
+    if (this.points.length < 2) { return [new Uint32Array([...point])]; }
 
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
@@ -119,7 +119,7 @@ export class CardinalSpline {
     return toReturn;
   }
 
-  public Finish(color: string = this.color, width: number = this.width, points: Float32Array[] = []): Float32Array[] {
+  public Finish(color: string = this.color, width: number = this.width, points: Uint32Array[] = []): Uint32Array[] {
     this.main.strokeStyle = color;
     this.main.lineWidth = width;
 
