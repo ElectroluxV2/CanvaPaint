@@ -4,14 +4,14 @@ import { Settings } from '../../settings/settings.interface';
 export class StraightLine {
   color: string;
   width: number;
-  start: Float32Array;
-  stop: Float32Array;
+  start: Uint32Array;
+  stop: Uint32Array;
 
-  constructor(color: string, width: number, start?: Float32Array, stop?: Float32Array) {
+  constructor(color: string, width: number, start?: Uint32Array, stop?: Uint32Array) {
     this.color = color;
     this.width = width;
-    this.start = start ?? new Float32Array(2);
-    this.stop = stop ?? new Float32Array(2);
+    this.start = start ?? new Uint32Array(2);
+    this.stop = stop ?? new Uint32Array(2);
   }
 
   public Duplicate(): StraightLine {
@@ -26,7 +26,7 @@ export class StraightLine {
 
 export class StraightLineMode extends PaintMode {
   private movingControlPoint = false;
-  private controlPointPosition: Float32Array;
+  private controlPointPosition: Uint32Array;
   private currentStraightLine: StraightLine;
 
   public static Reproduce(canvas: CanvasRenderingContext2D, compiled: StraightLine): void {
@@ -53,20 +53,20 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.fill();
   }
 
-  public OnMoveBegin(point: Float32Array, button: number): void {
+  public OnMoveBegin(point: Uint32Array, button: number): void {
 
     if (!this.currentStraightLine) {
-      this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, point, new Float32Array(2));
+      this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, point, new Uint32Array(2));
     }
 
     this.movingControlPoint = button === 2;
     if (!this.controlPointPosition) {
-      this.controlPointPosition = Float32Array.from(point);
+      this.controlPointPosition = Uint32Array.from(point);
     }
 
   }
 
-  public OnLazyUpdate(lastPointer: Float32Array): void {
+  public OnLazyUpdate(lastPointer: Uint32Array): void {
     this.currentStraightLine.stop = lastPointer;
 
     this.predictCanvas.clear();

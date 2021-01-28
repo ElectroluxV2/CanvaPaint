@@ -3,7 +3,7 @@ import { Settings } from '../../settings/settings.interface';
 import { StraightLine } from './straight-line-mode';
 
 export class ContinuousStraightLineMode extends PaintMode {
-  private controlPointPosition: Float32Array;
+  private controlPointPosition: Uint32Array;
   private movingControlPoint = false;
   private readonly currentStraightLine: StraightLine;
 
@@ -22,7 +22,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public OnMoveBegin(point: Float32Array, button: number): void {
+  public OnMoveBegin(point: Uint32Array, button: number): void {
     this.movingControlPoint = button !== 0;
 
     if (button === 0) {
@@ -37,7 +37,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     }
   }
 
-  public OnMoveOccur(point: Float32Array, button: number) {
+  public OnMoveOccur(point: Uint32Array, button: number) {
     super.OnMoveOccur(point, button);
     if (this.movingControlPoint) {
       this.controlPointPosition = point;
@@ -46,7 +46,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     }
   }
 
-  public OnLazyUpdate(lastPointer: Float32Array): void {
+  public OnLazyUpdate(lastPointer: Uint32Array): void {
     this.predictCanvas.clear();
 
     if (this.movingControlPoint) {

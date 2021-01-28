@@ -1,12 +1,12 @@
 export class Simplify {
 
-  private static GetSqDist(p1: Float32Array, p2: Float32Array): number {
+  private static GetSqDist(p1: Uint32Array, p2: Uint32Array): number {
     const dx = p1[0] - p2[0];
     const dy = p1[1] - p2[1];
     return dx * dx + dy * dy;
   }
 
-  private static GetSqSegDist(p: Float32Array, p1: Float32Array, p2: Float32Array): number {
+  private static GetSqSegDist(p: Uint32Array, p1: Uint32Array, p2: Uint32Array): number {
 
     let x = p1[0];
     let y = p1[1];
@@ -33,7 +33,7 @@ export class Simplify {
     return dx * dx + dy * dy;
   }
 
-  private static SimplifyRadialDist(points: Float32Array[], sqTolerance: number) {
+  private static SimplifyRadialDist(points: Uint32Array[], sqTolerance: number) {
 
     let prevPoint = points[0];
     const newPoints = [prevPoint];
@@ -53,7 +53,7 @@ export class Simplify {
     return newPoints;
   }
 
-  private static SimplifyDPStep(points: Float32Array[], first: number, last: number, sqTolerance: number, simplified: Float32Array[]): void {
+  private static SimplifyDPStep(points: Uint32Array[], first: number, last: number, sqTolerance: number, simplified: Uint32Array[]): void {
     let maxSqDist = sqTolerance;
     let index;
 
@@ -73,7 +73,7 @@ export class Simplify {
     }
   }
 
-  public static SimplifyDouglasPeucker(points: Float32Array[], sqTolerance: number): Float32Array[] {
+  public static SimplifyDouglasPeucker(points: Uint32Array[], sqTolerance: number): Uint32Array[] {
     const last = points.length - 1;
 
     const simplified = [points[0]];
@@ -83,7 +83,7 @@ export class Simplify {
     return simplified;
   }
 
-  public static Simplify(points: Float32Array[], tolerance: number, highestQuality = false) {
+  public static Simplify(points: Uint32Array[], tolerance: number, highestQuality = false) {
 
     if (points.length <= 2) { return points; }
 
