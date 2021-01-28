@@ -52,9 +52,13 @@ export abstract class PaintMode {
   abstract OnSelected(): void;
 
   /**
-   * Induced every time user clears screen and only when mode was selected at the clearing time
+   * Induced every time event and only when mode was selected at event time
+   * Events:
+   * - user clears screen,
+   * - redraw
+   * - rescale
    */
-  abstract OnClear(): void;
+  abstract MakeReady(): void;
 
   constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
     this.predictCanvas = predictCanvas;
