@@ -7,7 +7,7 @@ export class LazyBrush {
   private distance = 0;
   private hasMoved = false;
 
-  constructor(percentOfDivide: number, startPoint: Float32Array) {
+  constructor(percentOfDivide: number, startPoint: Uint32Array) {
     this.percentOfDivide = percentOfDivide;
 
     this.pointer = new LazyPoint(startPoint);
@@ -19,7 +19,7 @@ export class LazyBrush {
    * @param newPointerPoint Array of cords
    * @returns Whether any of the two points changed
    */
-  public Update(newPointerPoint: Float32Array): boolean {
+  public Update(newPointerPoint: Uint32Array): boolean {
     this.hasMoved = false;
 
     this.distance = this.pointer.GetDistanceTo(this.brush.ToArray());
@@ -44,11 +44,11 @@ export class LazyBrush {
     return this.hasMoved;
   }
 
-  public Get(): Float32Array {
+  public Get(): Uint32Array {
     return this.brush.ToArray();
   }
 
-  public ForceBrush(lastPointer: Float32Array) {
+  public ForceBrush(lastPointer: Uint32Array) {
     this.brush.Update(lastPointer);
     this.pointer.Update(lastPointer);
     this.hasMoved = true;
@@ -56,28 +56,28 @@ export class LazyBrush {
 }
 
 class LazyPoint {
-  private coords: Float32Array = new Float32Array(2);
+  private coords: Uint32Array = new Uint32Array(2);
 
-  constructor(startPoint: Float32Array) {
+  constructor(startPoint: Uint32Array) {
     this.coords[0] = startPoint[0];
     this.coords[1] = startPoint[1];
   }
 
-  public EqualsTo(another: Float32Array): boolean {
+  public EqualsTo(another: Uint32Array): boolean {
     return this.coords[0] === another[0] && this.coords[1] === another[1];
   }
 
-  public Update(newPointerPoint: Float32Array): void {
+  public Update(newPointerPoint: Uint32Array): void {
     this.coords[0] = newPointerPoint[0];
     this.coords[1] = newPointerPoint[1];
   }
 
-  public GetDistanceTo(another: Float32Array): number {
+  public GetDistanceTo(another: Uint32Array): number {
     const diff = this.GetDifferenceTo(another);
     return Math.sqrt(Math.pow(diff[0], 2) + Math.pow(diff[1], 2));
   }
 
-  public GetAngleTo(another: Float32Array): number {
+  public GetAngleTo(another: Uint32Array): number {
     const diff = this.GetDifferenceTo(another);
     return Math.atan2(diff[1], diff[0]);
   }
@@ -89,11 +89,11 @@ class LazyPoint {
     this.coords[1] = this.coords[1] - (Math.cos(angleRotated) * distance);
   }
 
-  public ToArray(): Float32Array {
+  public ToArray(): Uint32Array {
     return this.coords;
   }
 
-  private GetDifferenceTo(another: Float32Array) {
-    return new Float32Array([this.coords[0] - another[0], this.coords[1] - another[1]]);
+  private GetDifferenceTo(another: Uint32Array) {
+    return new Uint32Array([this.coords[0] - another[0], this.coords[1] - another[1]]);
   }
 }
