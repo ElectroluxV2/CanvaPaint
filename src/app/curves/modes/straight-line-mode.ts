@@ -19,6 +19,11 @@ export class StraightLine {
   public Duplicate(): StraightLine {
     return new StraightLine(this.color, this.width, this.start, this.stop);
   }
+
+  public ApplySettings(settings: Settings): void {
+    this.width = settings.width;
+    this.color = settings.color;
+  }
 }
 
 export class StraightLineMode extends PaintMode {
@@ -103,10 +108,7 @@ export class StraightLineMode extends PaintMode {
   }
 
   public OnSettingsUpdate(settings: Settings): void {
-    if (this.currentStraightLine) {
-      this.currentStraightLine.color = settings.color;
-      this.currentStraightLine.width = settings.width;
-    }
+    this.currentStraightLine.ApplySettings(settings);
     super.OnSettingsUpdate(settings);
   }
 }
