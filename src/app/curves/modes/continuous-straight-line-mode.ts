@@ -97,8 +97,7 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public OnSettingsUpdate(settings: Settings): void {
-    this.currentStraightLine.width = settings.width;
-    this.currentStraightLine.color = settings.color;
+    this.currentStraightLine.ApplySettings(settings);
     super.OnSettingsUpdate(settings);
   }
 }
