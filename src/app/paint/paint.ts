@@ -331,12 +331,12 @@ export class Paint {
         continue;
       }
 
-      const startScaled = new Float32Array([
+      const startScaled = new Uint32Array([
         this.zoomedX(line.start[0]),
         this.zoomedY(line.start[1])
       ]);
 
-      const stopScaled = new Float32Array([
+      const stopScaled = new Uint32Array([
         this.zoomedX(line.stop[0]),
         this.zoomedY(line.stop[1])
       ]);
