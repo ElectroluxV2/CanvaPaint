@@ -8,12 +8,12 @@ export class StraightLine {
   start: Float32Array;
   stop: Float32Array;
 
-  constructor(color: string, width: number, start: Float32Array, stop: Float32Array) {
+  constructor(color: string, width: number, start?: Float32Array, stop?: Float32Array) {
     this.color = color;
     this.width = width;
     this.controlPoint = start;
-    this.start = start;
-    this.stop = stop;
+    this.start = start ?? new Float32Array(2);
+    this.stop = stop ?? new Float32Array(2);
   }
 
   public Duplicate(): StraightLine {
