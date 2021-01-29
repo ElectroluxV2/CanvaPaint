@@ -82,6 +82,14 @@ export class ContinuousStraightLineMode extends PaintMode {
     return null;
   }
 
+  public MakeReady(): void {
+    this.DrawControlDot();
+  }
+
+  public OnSelected(): void {
+    delete this?.controlPointPosition;
+  }
+
   private DrawControlDot(): void {
     this.predictCanvas.beginPath();
     this.predictCanvas.arc(
