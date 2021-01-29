@@ -106,4 +106,8 @@ export class StraightLineMode extends PaintMode {
     this.currentStraightLine.ApplySettings(settings);
     super.OnSettingsUpdate(settings);
   }
+
+  public MakeReady(): void { }
+
+  public OnSelected(): void { }
 }
