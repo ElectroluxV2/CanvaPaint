@@ -82,6 +82,14 @@ export class ContinuousStraightLineMode extends PaintMode {
     return null;
   }
 
+  public MakeReady(): void {
+    this.DrawControlDot();
+  }
+
+  public OnSelected(): void {
+    delete this?.controlPointPosition;
+  }
+
   private DrawControlDot(): void {
     this.predictCanvas.beginPath();
     this.predictCanvas.arc(
@@ -97,8 +105,7 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public OnSettingsUpdate(settings: Settings): void {
-    this.currentStraightLine.width = settings.width;
-    this.currentStraightLine.color = settings.color;
+    this.currentStraightLine.ApplySettings(settings);
     super.OnSettingsUpdate(settings);
   }
 }
