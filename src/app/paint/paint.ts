@@ -292,6 +292,8 @@ export class Paint {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
 
+    this.modes[this.currentMode].MakeReady();
+
     this.freeLines = [];
     this.straightLines = [];
   }
