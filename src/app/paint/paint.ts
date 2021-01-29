@@ -285,6 +285,7 @@ export class Paint {
 
   public ChangeMode(mode: string): void {
     this.currentMode = mode;
+    this.modes[this.currentMode].OnSelected();
   }
 
   public Clear(): void {
@@ -343,6 +344,8 @@ export class Paint {
 
       StraightLineMode.Reproduce(this.mainCanvasCTX, new StraightLine(line.color, this.zoomed(line.width), startScaled, stopScaled));
     }
+
+    this.modes[this.currentMode].MakeReady();
   }
 
   public Redo(): void {
