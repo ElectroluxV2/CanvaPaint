@@ -13,6 +13,14 @@ export class FreeLine {
     this.width = width;
     this.points = compiled;
   }
+
+  public OnSelected(): void {
+
+  }
+
+  public MakeReady(): void {
+
+  }
 }
 
 export class FreeLineMode extends PaintMode {
