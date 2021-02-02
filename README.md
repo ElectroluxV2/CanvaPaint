@@ -14,7 +14,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - [ ] Socket.io cooperative drawing
 - [ ] Use WASM in order to boost performance
 - [ ] Use Web Workers in order to boost performance
-- [ ] Use Background Canvas in order to boost performance
+- [x] Use Background Canvas in order to boost performance
 - [x] Free line points optimizer
 - [x] Free line move stabilizer
 - [ ] C++ powered backend server
