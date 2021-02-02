@@ -22,6 +22,14 @@ export class StraightLine {
     this.width = settings.width;
     this.color = settings.color;
   }
+
+  public OnSelected(): void {
+
+  }
+
+  public MakeReady(): void {
+
+  }
 }
 
 export class StraightLineMode extends PaintMode {
