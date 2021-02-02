@@ -4,11 +4,11 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 # V2 TODO List
 - [x] Modular structure
-- [ ] Straignt line mode
+- [x] Straignt line mode
+- [x] Continuous straignt line mode
 - [x] Free line mode
 - [ ] Draw square mode
 - [ ] Draw circle mode
-- [ ] Fast shapes mode
 - [ ] Export drawing
 - [ ] Zoom in while drawing
 - [ ] Socket.io cooperative drawing
