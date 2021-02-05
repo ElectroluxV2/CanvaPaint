@@ -16,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
+import { PlatformModule } from '@angular/cdk/platform';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { FormsModule } from '@angular/forms';
     MatInputModule,
     MatSlideToggleModule,
     MatSliderModule,
-    FormsModule
+    FormsModule,
+    PlatformModule
   ],
   providers: [],
   bootstrap: [AppComponent]

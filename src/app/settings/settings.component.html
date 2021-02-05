@@ -6,7 +6,7 @@
 <mat-slide-toggle labelPosition="before" [checked]="settings.lazyEnabled" (change)="settings.lazyEnabled = !settings.lazyEnabled">Wygładzanie myszy</mat-slide-toggle>
 
 <mat-label>Szybkość wygładzania</mat-label>
-<mat-slider [disabled]="!settings.lazyEnabled" thumbLabel tickInterval="auto" step="0.01" min="0.01" max="2" [(ngModel)]="settings.lazyMultiplier"></mat-slider>
+<mat-slider [disabled]="!settings.lazyEnabled" thumbLabel tickInterval="auto" step="0.05" min="0.009" max="0.2" [(ngModel)]="settings.lazyMultiplier"></mat-slider>
 
 <div mat-dialog-actions [align]="'end'">
   <button (click)="Save()" mat-button color="accent" mat-dialog-close>Zapisz</button>
