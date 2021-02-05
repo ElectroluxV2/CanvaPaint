@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Settings } from './settings.interface';
+import {Platform} from '@angular/cdk/platform';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,7 @@ export class SettingsService {
   // @ts-ignore
   public set settings(settings: Settings) {
     this.settingsData = settings;
+    console.log(settings.lazyMultiplier);
     this.settingsBehaviorSubject.next(this.settingsData);
   }
 
@@ -62,14 +64,16 @@ export class SettingsService {
     return this.colors[index][key];
   }
 
-  constructor() {
-    // Preselected options
+  constructor(public platform: Platform) {
+    // Choose settings based on device
     this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.settingsData.lazyEnabled = !platform.ANDROID && !platform.IOS;
+    this.settingsData.tolerance = !platform.ANDROID && !platform.IOS ? 3 : 1;
+    this.settingsData.lazyMultiplier = 0.2 * window.devicePixelRatio;
+
+    // Preselected options
     this.settingsData.color = this.GetColor('black');
     this.settingsData.width = 5;
-    this.settingsData.lazyEnabled = false;
-    this.settingsData.lazyMultiplier = 0.06;
-    this.settingsData.tolerance = 1;
 
     this.settingsBehaviorSubject = new BehaviorSubject<Settings>(this.settingsData);
 

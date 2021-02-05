@@ -111,8 +111,8 @@ export class FreeLineMode extends PaintMode {
   }
 
   private InitLazyBrush(point: Uint32Array) {
-    const x = this.mainCanvas.canvas.width * 0.001 * this.settings.lazyMultiplier;
-    const y = this.mainCanvas.canvas.height * 0.001 * this.settings.lazyMultiplier;
+    const x = this.settings.lazyMultiplier;
+    const y = this.settings.lazyMultiplier;
     this.currentLazyBrush = new LazyBrush(Math.min(x, y), point);
   }
 
