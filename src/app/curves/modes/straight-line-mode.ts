@@ -115,7 +115,11 @@ export class StraightLineMode extends PaintMode {
     super.OnSettingsUpdate(settings);
   }
 
-  public MakeReady(): void { }
+  public MakeReady(): void {
+    this.DrawControlDot();
+  }
 
-  public OnSelected(): void { }
+  public OnSelected(): void {
+    delete this?.controlPointPosition;
+  }
 }
