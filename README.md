@@ -11,13 +11,13 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - [ ] Draw circle mode
 - [ ] Export drawing
 - [ ] Zoom in while drawing
-- [ ] Socket.io cooperative drawing
+- [ ] HTML5 sockets cooperative drawing
 - [ ] Use WASM in order to boost performance
 - [ ] Use Web Workers in order to boost performance
 - [x] Use Background Canvas in order to boost performance
 - [x] Free line points optimizer
 - [x] Free line move stabilizer
-- [ ] C++ powered backend server
+- [x] C++ powered backend server
 - [ ] Save settings in localstorage
 - [ ] Routing for rooms (multiple instances)
 - [ ] Per room chat
