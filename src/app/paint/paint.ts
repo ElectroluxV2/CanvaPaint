@@ -27,29 +27,7 @@ export class Paint {
 
   private freeLines: FreeLine[] = [];
   private straightLines: StraightLine[] = [];
-  private zoom = {
-    scale: {
-      modifier: 1,
-      world: {
-        x: 0,
-        y: 0,
-      },
-      screen: {
-        x: 0,
-        y: 0
-      }
-    },
-    mouse: {
-      world: {
-        x: 0,
-        y: 0,
-      },
-      screen: {
-        x: 0,
-        y: 0
-      }
-    }
-  };
+
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -107,10 +85,6 @@ export class Paint {
       event.preventDefault();
       this.pointerHasMoved = true;
 
-      const bounds = this.mainCanvas.getBoundingClientRect();
-      this.zoom.mouse.screen.x = event.clientX - bounds.left;
-      this.zoom.mouse.screen.y = event.clientY - bounds.top;
-
       if (!this.pointerMoveListening) {
         return;
       }
@@ -133,37 +107,19 @@ export class Paint {
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       if (event.deltaY < 0) {
         // Zoom in
-        this.zoom.scale.modifier = Math.min(5, this.zoom.scale.modifier * 1.1);
+
       } else {
-        // Zoom out is inverse of zoom in
-        this.zoom.scale.modifier  = Math.max(0.1, this.zoom.scale.modifier * (1 / 1.1));
+        // Zoom out
       }
 
       this.modes[this.currentMode].OnSettingsUpdate({
         darkModeEnabled: this.currentSettings.darkModeEnabled,
         color: this.currentSettings.color,
-        width: this.zoomed(this.currentSettings.width),
+        width: this.currentSettings.width,
         lazyEnabled: this.currentSettings.lazyEnabled,
         lazyMultiplier: this.currentSettings.lazyEnabled,
         tolerance: this.currentSettings.tolerance
       });
-
-      // Set world origin
-      this.zoom.scale.world.x = this.zoom.mouse.world.x;
-      this.zoom.scale.world.y = this.zoom.mouse.world.y;
-
-      // Set screen origin
-      this.zoom.scale.screen.x = this.zoom.mouse.world.x;
-      this.zoom.scale.screen.y = this.zoom.mouse.world.y;
-
-      // Re-calc mouse world (real) pos
-      this.zoom.mouse.world.x = this.zoomedInvX(this.zoom.mouse.screen.x);
-      this.zoom.mouse.world.y = this.zoomedInvY(this.zoom.mouse.screen.y);
-
-      console.log(this.zoom.scale.modifier);
-
-      // Re-draw with rescaled coords
-      this.ReDraw(true);
     };
 
     // TODO: Pointer cancel event
@@ -187,38 +143,6 @@ export class Paint {
     point[1] *= window.devicePixelRatio;
 
     return point;
-  }
-
-  // Just scale
-  private zoomed(n: number): number {
-    return Math.floor(n * this.zoom.scale.modifier);
-  }
-
-  // Converts from world coord to screen pixel coord
-  private zoomedX(n: number): number {
-    // scale & origin X
-    return Math.floor((n - this.zoom.scale.world.x) * this.zoom.scale.modifier + this.zoom.scale.screen.x);
-  }
-
-  // Converts from world coord to screen pixel coord
-  private zoomedY(n: number): number {
-    // scale & origin Y
-    return Math.floor((n - this.zoom.scale.world.y) * this.zoom.scale.modifier + this.zoom.scale.screen.y);
-  }
-
-  // Inverse does the reverse of a calculation. Like (3 - 1) * 5 = 10   the inverse is 10 * (1/5) + 1 = 3
-  // multiply become 1 over ie *5 becomes * 1/5  (or just /5)
-  // Adds become subtracts and subtract become add.
-  // and what is first become last and the other way round.
-  // inverse function converts from screen pixel coord to world coord
-  private zoomedInvX(n: number): number {
-    // scale & origin INV
-    return Math.floor((n - this.zoom.scale.screen.x) * (1 / this.zoom.scale.modifier) + this.zoom.scale.world.x);
-  }
-
-  private zoomedInvY(n: number): number {
-    // scale & origin INV
-    return Math.floor((n - this.zoom.scale.screen.y) * (1 / this.zoom.scale.modifier) + this.zoom.scale.world.y);
   }
 
   public OnLazyUpdate(): void {
@@ -256,27 +180,12 @@ export class Paint {
   private MoveComplete(pointerHasMoved: boolean, button: number): void {
     const compiledObject = this.modes[this.currentMode].OnMoveComplete(pointerHasMoved, button);
 
-    console.log(compiledObject);
-
     if (compiledObject instanceof FreeLine) {
-
-      for (const point of compiledObject.points) {
-        // Match to current scale
-        point[0] = this.zoomedInvX(point[0]);
-        point[1] = this.zoomedInvY(point[1]);
-      }
-
       this.freeLines.push(compiledObject);
+
     } else if (compiledObject instanceof  StraightLine) {
-
-      // Match to current scale
-      compiledObject.start[0] = this.zoomedInvX(compiledObject.start[0]);
-      compiledObject.start[1] = this.zoomedInvY(compiledObject.start[1]);
-
-      compiledObject.stop[0] = this.zoomedInvX(compiledObject.stop[0]);
-      compiledObject.stop[1] = this.zoomedInvY(compiledObject.stop[1]);
-
       this.straightLines.push(compiledObject);
+
     }
 
     delete this.lastPointer;
@@ -308,43 +217,16 @@ export class Paint {
     this.ReDraw();
   }
 
-  public ReDraw(zoomChanged: boolean = false): void {
+  public ReDraw(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
 
     for (const line of this.freeLines) {
-
-      if (!zoomChanged) {
         FreeLineMode.Reproduce(this.mainCanvasCTX, line);
-        continue;
-      }
-
-      const scaled = [];
-      line.points.map(point => {
-        scaled.push(Float32Array.from([this.zoomedX(point[0]), this.zoomedY(point[1])]));
-      });
-
-      FreeLineMode.Reproduce(this.mainCanvasCTX, new FreeLine(line.color, this.zoomed(line.width), scaled));
     }
 
     for (const line of this.straightLines) {
-
-      if (!zoomChanged) {
         StraightLineMode.Reproduce(this.mainCanvasCTX, line);
-        continue;
-      }
-
-      const startScaled = new Uint32Array([
-        this.zoomedX(line.start[0]),
-        this.zoomedY(line.start[1])
-      ]);
-
-      const stopScaled = new Uint32Array([
-        this.zoomedX(line.stop[0]),
-        this.zoomedY(line.stop[1])
-      ]);
-
-      StraightLineMode.Reproduce(this.mainCanvasCTX, new StraightLine(line.color, this.zoomed(line.width), startScaled, stopScaled));
     }
 
     this.modes[this.currentMode].MakeReady();
