@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Settings } from './settings.interface';
-import {Platform} from '@angular/cdk/platform';
+import { Platform } from '@angular/cdk/platform';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +19,6 @@ export class SettingsService {
   // @ts-ignore
   public set settings(settings: Settings) {
     this.settingsData = settings;
-    console.log(settings.lazyMultiplier);
     this.settingsBehaviorSubject.next(this.settingsData);
   }
 
