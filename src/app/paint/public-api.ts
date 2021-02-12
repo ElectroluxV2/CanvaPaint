@@ -25,10 +25,12 @@ export class PublicApi {
    * @param mainCanvas TODO
    * @param predictCanvas TODO
    * @param settingsService TODO
+   * @returns New Paint instance
    */
-  public static Create(ngZone: NgZone, mainCanvas: HTMLCanvasElement, predictCanvas: HTMLCanvasElement, settingsService: SettingsService): void {
+  public static Create(ngZone: NgZone, mainCanvas: HTMLCanvasElement, predictCanvas: HTMLCanvasElement, settingsService: SettingsService): Paint {
     this.ngZone = ngZone;
     this.paint = new Paint(ngZone, mainCanvas, predictCanvas, settingsService);
+    return this.paint;
   }
 
   /**

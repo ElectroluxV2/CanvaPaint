@@ -71,74 +71,79 @@ export class Paint {
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       event.preventDefault();
-      this.currentMode?.OnWheel(event);
+      this.currentMode?.OnWheel?.(event);
     };
 
     this.predictCanvas.onpointerover = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerOver(event);
+      this.currentMode?.OnPointerOver?.(event);
     };
 
     this.predictCanvas.onpointerenter = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerEnter(event);
+      this.currentMode?.OnPointerEnter?.(event);
     };
 
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerDown(event);
+      this.currentMode?.OnPointerDown?.(event);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerMove(event);
+      this.currentMode?.OnPointerMove?.(event);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerUp(event);
+      this.currentMode?.OnPointerUp?.(event);
     };
 
     this.predictCanvas.onpointercancel = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerCancel(event);
+      this.currentMode?.OnPointerCancel?.(event);
     };
 
     this.predictCanvas.onpointerout = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerOut(event);
+      this.currentMode?.OnPointerOut?.(event);
     };
 
     this.predictCanvas.onpointerleave = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerLeave(event);
+      this.currentMode?.OnPointerLeave?.(event);
     };
 
     this.predictCanvas.ongotpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerGotCapture(event);
+      this.currentMode?.OnPointerGotCapture?.(event);
     };
 
     this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerLostCapture(event);
+      this.currentMode?.OnPointerLostCapture?.(event);
     };
   }
 
   public OnFrameUpdate(): void {
     // Mode has to do same point checking on it's own
-    this.currentMode?.OnFrameUpdate();
+    this.currentMode?.OnFrameUpdate?.();
   }
 
-  public ChangeMode(mode: string): void {
+  public ChangeMode(mode: string): boolean {
+    if (!this.modes.has(mode)) {
+      return false;
+    }
+
     this.currentMode = this.modes.get(mode);
-    this.currentMode?.OnSelected();
+    this.currentMode.OnSelected?.();
+    return true;
   }
 
   public Clear(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
-    this.currentMode?.MakeReady();
+    this.currentMode?.MakeReady?.();
   }
 
   public Resize(): void {
@@ -163,7 +168,7 @@ export class Paint {
         StraightLineMode.Reproduce(this.mainCanvasCTX, line);
     }*/
 
-    this.currentMode?.MakeReady();
+    this.currentMode?.MakeReady?.();
   }
 
   public Redo(): void {
