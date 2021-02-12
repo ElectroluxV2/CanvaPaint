@@ -1,6 +1,7 @@
 import { Paint } from './paint';
 import { NgZone } from '@angular/core';
 import { SettingsService } from '../settings/settings.service';
+import { CompiledObject } from '../curves/modes/paint-mode';
 
 export class PublicApi {
   /**
@@ -31,17 +32,13 @@ export class PublicApi {
   }
 
   /**
-   * Starts animation loop if not already started
+   * Starts animation loop
    */
   public static StartFrameUpdate(): void {
-    if (!!this.animationFrameId) {
-      // Already started
-      return;
-    }
-
     // Start new loop, obtain new id
     this.ngZone.runOutsideAngular(() => {
-      this.animationFrameId = window.requestAnimationFrame(this.OnFrameUpdate.bind(this));
+      this.paint?.OnFrameUpdate();
+      this.animationFrameId = window.requestAnimationFrame(this.StartFrameUpdate.bind(this));
     });
   }
 
@@ -52,7 +49,34 @@ export class PublicApi {
     window.cancelAnimationFrame(this.animationFrameId);
   }
 
-  private static OnFrameUpdate(): void {
+  /**
+   * Saves compiled object
+   * @param object Object to save
+   */
+  public static SaveCompiledObject(object: CompiledObject): void {
+    if (!this.paint.compiledObjectStorage.has(object.name)) {
+      this.paint.compiledObjectStorage.set(object.name, []);
+    }
 
+    this.paint.compiledObjectStorage.get(object.name).push(object);
   }
+
+  /**
+   * @param point to normalize
+   * @returns Normalized point
+   */
+  private static NormalizePoint(point: Uint32Array): Uint32Array {
+    // Make sure the point does not go beyond the screen
+    point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+    point[0] = point[0] < 0 ? 0 : point[0];
+
+    point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+    point[1] = point[1] < 0 ? 0 : point[1];
+
+    point[0] *= window.devicePixelRatio;
+    point[1] *= window.devicePixelRatio;
+
+    return point;
+  }
+
 }
