@@ -79,4 +79,24 @@ export class PublicApi {
     return point;
   }
 
+  /**
+   * Draws dot onto predict canvas
+   * @param position position of control dot
+   * @param width width of control dot
+   * @param color color of control dot
+   */
+  public static DrawControlDot(position: Uint32Array, width: number, color: string): void {
+    this.paint.predictCanvasCTX.beginPath();
+    this.paint.predictCanvasCTX.arc(
+      position[0],
+      position[1],
+      width / Math.PI,
+      0,
+      2 * Math.PI,
+      false
+    );
+    this.paint.predictCanvasCTX.fillStyle = color;
+    this.paint.predictCanvasCTX.fill();
+  }
+
 }

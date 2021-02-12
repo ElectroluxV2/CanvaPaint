@@ -14,7 +14,95 @@ export interface CompiledObject {
   owner?: number;
 }
 
-export abstract class PaintMode {
+abstract class PaintModeOptional {
+  /**
+   * Induced every time mode is selected
+   */
+  public OnSelected?(): void;
+
+  /**
+   * Induced every time event is fired and only when mode was selected at event fire time
+   * Possible events:
+   * - user clears screen,
+   * - redraw,
+   * - rescale,
+   */
+  public MakeReady?(): void;
+
+  /**
+   * Fired when the user rotates a wheel button on a pointing device (typically a mouse).
+   */
+  public OnWheel?(event: WheelEvent): void;
+
+  /**
+   * Fired when a pointer is moved into an element's hit test boundaries.
+   */
+  public OnPointerOver?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants,
+   * including as a result of a pointerdown event from a device that does not support hover (see pointerdown).
+   */
+  public OnPointerEnter?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer becomes active buttons state.
+   */
+  public OnPointerDown?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
+   */
+  public OnPointerMove?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is no longer active buttons state.
+   */
+  public OnPointerUp?(event: PointerEvent): void;
+
+  /**
+   * A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactivated).
+   */
+  public OnPointerCancel?(event: PointerEvent): void;
+
+  /**
+   * Fired for several reasons including: pointer is moved out of the hit test boundaries of an element;
+   * firing the pointerup event for a device that does not support hover (see pointerup);
+   * after firing the pointercancel event (see pointercancel);
+   * when a pen stylus leaves the hover range detectable by the digitizer.
+   */
+  public OnPointerOut?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is moved out of the hit test boundaries of an element.
+   * For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.
+   */
+  public OnPointerLeave?(event: PointerEvent): void;
+
+  /**
+   * Fired when an element receives pointer capture.
+   */
+  public OnPointerGotCapture?(event: PointerEvent): void;
+
+  /**
+   * Fired after pointer capture is released for a pointer.
+   */
+  public OnPointerLostCapture?(event: PointerEvent): void;
+
+  /**
+   * Induced every time settings changed
+   * @param settings updated settings
+   */
+  public OnSettingsUpdate?(settings: Settings): void;
+
+  /**
+   * Induced at every frame (depended on user's device), controlled by StartFrameUpdate() and StopFrameUpdate()
+   * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
+   */
+  public OnFrameUpdate?(): void;
+}
+
+export abstract class PaintMode extends PaintModeOptional {
   /**
    * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    */
@@ -32,101 +120,26 @@ export abstract class PaintMode {
   protected settings: Settings;
 
   /**
-   * Induced at every frame (depended on user's device), controlled by StartFrameUpdate() and StopFrameUpdate()
-   * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
-   */
-  abstract OnFrameUpdate(): void;
-
-  /**
-   * Induced every time settings changed
-   * @param settings updated settings
-   */
-  public OnSettingsUpdate(settings: Settings): void {
-    this.settings = settings;
-  }
-
-  /**
-   * Induced every time mode is selected
-   */
-  abstract OnSelected(): void;
-
-  /**
-   * Induced every time event is fired and only when mode was selected at event fire time
-   * Possible events:
-   * - user clears screen,
-   * - redraw,
-   * - rescale,
-   */
-  abstract MakeReady(): void;
-
-  /**
-   * Fired when the user rotates a wheel button on a pointing device (typically a mouse).
-   */
-  abstract OnWheel(event: WheelEvent): void;
-
-  /**
-   * Fired when a pointer is moved into an element's hit test boundaries.
-   */
-  abstract OnPointerOver(event: PointerEvent): void;
-
-  /**
-   * Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants,
-   * including as a result of a pointerdown event from a device that does not support hover (see pointerdown).
-   */
-  abstract OnPointerEnter(event: PointerEvent): void;
-
-  /**
-   * Fired when a pointer becomes active buttons state.
-   */
-  abstract OnPointerDown(event: PointerEvent): void;
-
-  /**
-   * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
-   */
-  abstract OnPointerMove(event: PointerEvent): void;
-
-  /**
-   * Fired when a pointer is no longer active buttons state.
-   */
-  abstract OnPointerUp(event: PointerEvent): void;
-
-  /**
-   * A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactivated).
-   */
-  abstract OnPointerCancel(event: PointerEvent): void;
-
-  /**
-   * Fired for several reasons including: pointer is moved out of the hit test boundaries of an element;
-   * firing the pointerup event for a device that does not support hover (see pointerup);
-   * after firing the pointercancel event (see pointercancel);
-   * when a pen stylus leaves the hover range detectable by the digitizer.
-   */
-  abstract OnPointerOut(event: PointerEvent): void;
-
-  /**
-   * Fired when a pointer is moved out of the hit test boundaries of an element.
-   * For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.
-   */
-  abstract OnPointerLeave(event: PointerEvent): void;
-
-  /**
-   * Fired when an element receives pointer capture.
-   */
-  abstract OnPointerGotCapture(event: PointerEvent): void;
-
-  /**
-   * Fired after pointer capture is released for a pointer.
-   */
-  abstract OnPointerLostCapture(event: PointerEvent): void;
-
-  /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    * @param mainCanvas This Canvas should be never cleared by mode, used to draw compiled object
    * @param settings Current settings
    */
   constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
+    super();
     this.predictCanvas = predictCanvas;
     this.mainCanvas = mainCanvas;
+    this.settings = settings;
+  }
+
+  /**
+   * Method that reproduces object created by method's object
+   * @param canvas render destination
+   * @param object object to render
+   */
+  abstract Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+
+  // Default
+  public OnSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }
 }
