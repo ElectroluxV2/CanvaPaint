@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { SettingsService } from './settings.service';
+import { ControlService } from './control.service';
 import { Settings } from './settings.interface';
 
 @Component({
@@ -9,7 +9,7 @@ import { Settings } from './settings.interface';
 })
 export class SettingsComponent {
   public settings: Settings;
-  constructor(public settingsService: SettingsService) {
+  constructor(public settingsService: ControlService) {
     settingsService.settings.subscribe(value => this.settings = value);
   }
 

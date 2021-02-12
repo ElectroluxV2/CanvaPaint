@@ -1,6 +1,6 @@
 import { Paint } from './paint';
 import { NgZone } from '@angular/core';
-import { SettingsService } from '../settings/settings.service';
+import { ControlService } from '../settings/control.service';
 import { CompiledObject } from '../curves/modes/paint-mode';
 
 export class PublicApi {
@@ -27,7 +27,7 @@ export class PublicApi {
    * @param settingsService TODO
    * @returns New Paint instance
    */
-  public static Create(ngZone: NgZone, mainCanvas: HTMLCanvasElement, predictCanvas: HTMLCanvasElement, settingsService: SettingsService): Paint {
+  public static Create(ngZone: NgZone, mainCanvas: HTMLCanvasElement, predictCanvas: HTMLCanvasElement, settingsService: ControlService): Paint {
     this.ngZone = ngZone;
     this.paint = new Paint(ngZone, mainCanvas, predictCanvas, settingsService);
     return this.paint;
