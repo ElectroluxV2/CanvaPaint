@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, EventEmitter, OnDestroy, NgZone } from '@angular/core';
-import { SettingsService } from './settings/settings.service';
+import { ControlService } from './settings/control.service';
 import { PublicApi } from './paint/public-api';
 import { Paint } from './paint/paint';
 
@@ -15,7 +15,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   public paint: Paint;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
-  constructor(private ngZone: NgZone, private settingsService: SettingsService) { }
+  constructor(private ngZone: NgZone, private settingsService: ControlService) { }
 
   ngAfterViewInit(): void {
     this.paint = PublicApi.Create(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.settingsService);

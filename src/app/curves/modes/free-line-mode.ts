@@ -17,4 +17,8 @@ export class FreeLineMode extends PaintMode {
   Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void {
 
   }
+
+  OnPointerMove(event: PointerEvent) {
+
+  }
 }

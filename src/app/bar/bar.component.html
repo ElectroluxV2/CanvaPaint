@@ -9,19 +9,19 @@
 
         <span class="spacer"></span>
 
-        <button mat-mini-fab class="roundBtn" color="warn" (click)="this.clear.emit()">
+        <button mat-mini-fab class="roundBtn" color="warn" (click)="this.controlService.clear.emit()">
             <mat-icon>clear</mat-icon>
         </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.undo.emit()">
+        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.undo.emit()">
             <mat-icon>undo</mat-icon>
         </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.redo.emit()">
+        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.redo.emit()">
             <mat-icon>redo</mat-icon>
         </button>
 
-        <mat-button-toggle-group class="colors" value="black" (change)="this.settingsService.SetColorByName($event.value)">
+        <mat-button-toggle-group class="colors" value="black" (change)="this.controlService.SetColorByName($event.value)">
 
             <mat-button-toggle value="red" class="red">
                 <mat-icon>palette</mat-icon>
@@ -45,7 +45,7 @@
 
         </mat-button-toggle-group>
 
-        <mat-button-toggle-group class="tools" value="free-line" (change)="this.changeMode.emit($event.value)">
+        <mat-button-toggle-group class="tools" value="free-line" (change)="this.controlService.mode.next($event.value)">
 
             <mat-button-toggle value="free-line">
                 <mat-icon>gesture</mat-icon>

@@ -1,7 +1,7 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { CompiledObject, PaintMode } from '../curves/modes/paint-mode';
 import { FreeLineMode } from '../curves/modes/free-line-mode';
-import { SettingsService } from '../settings/settings.service';
+import { ControlService } from '../settings/control.service';
 import { Settings } from '../settings/settings.interface';
 import { StraightLineMode } from '../curves/modes/straight-line-mode';
 import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-line-mode';
@@ -25,7 +25,7 @@ export class Paint {
    */
   public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -49,6 +49,14 @@ export class Paint {
     this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
     this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
     this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
+    this.currentMode = this.modes.get(this.settingsService.mode.value);
+    this.settingsService.mode.subscribe(mode => {
+      if (!this.modes.has(mode)) {
+        console.warn(`No mode named ${mode}!`);
+        return;
+      }
+      this.currentMode = this.modes.get(mode);
+    });
 
     // Response to settings change
     settingsService.settings.subscribe(newSettings => {
@@ -61,6 +69,13 @@ export class Paint {
       } else {
         this.currentSettings = newSettings;
       }
+    });
+
+    // Response to clear
+    this.settingsService.clear.subscribe(() => {
+      this.mainCanvasCTX.clear();
+      this.predictCanvasCTX.clear();
+      this.currentMode?.MakeReady?.();
     });
 
     // Events
@@ -130,22 +145,6 @@ export class Paint {
     this.currentMode?.OnFrameUpdate?.();
   }
 
-  public ChangeMode(mode: string): boolean {
-    if (!this.modes.has(mode)) {
-      return false;
-    }
-
-    this.currentMode = this.modes.get(mode);
-    this.currentMode.OnSelected?.();
-    return true;
-  }
-
-  public Clear(): void {
-    this.mainCanvasCTX.clear();
-    this.predictCanvasCTX.clear();
-    this.currentMode?.MakeReady?.();
-  }
-
   public Resize(): void {
     this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -169,13 +168,5 @@ export class Paint {
     }*/
 
     this.currentMode?.MakeReady?.();
-  }
-
-  public Redo(): void {
-
-  }
-
-  public Undo(): void {
-
   }
 }

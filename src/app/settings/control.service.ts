@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Settings } from './settings.interface';
 import { Platform } from '@angular/cdk/platform';
@@ -6,7 +6,12 @@ import { Platform } from '@angular/cdk/platform';
 @Injectable({
   providedIn: 'root'
 })
-export class SettingsService {
+export class ControlService {
+
+  public readonly clear: EventEmitter<null> = new EventEmitter<null>();
+  public readonly undo: EventEmitter<null> = new EventEmitter<null>();
+  public readonly redo: EventEmitter<null> = new EventEmitter<null>();
+  public readonly mode: BehaviorSubject<string> = new BehaviorSubject<string>('free-line');
 
   private settingsData: Settings = {} as Settings;
   private readonly settingsBehaviorSubject: BehaviorSubject<Settings>;
