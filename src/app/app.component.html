@@ -1,5 +1,5 @@
-<div class="app" (window:resize)="paint.Resize()">
-  <app-bar (changeMode)="paint.ChangeMode($event)" (undo)="paint.Undo()" (redo)="paint.Redo()" (clear)="paint.Clear()" [statusUpdate]="statusEmitter"></app-bar>
+<div class="app" (window:resize)="PublicApi.Resize()">
+  <app-bar (changeMode)="PublicApi.ChangeMode($event)" (undo)="PublicApi.Undo()" (redo)="PublicApi.Redo()" (clear)="PublicApi.Clear()" [statusUpdate]="statusEmitter"></app-bar>
   <div class="canvas">
     <canvas #mainCanvas></canvas>
     <canvas #predictCanvas></canvas>

@@ -1,5 +1,5 @@
 import { EventEmitter, NgZone } from '@angular/core';
-import { PaintMode } from '../curves/modes/paint-mode';
+import {CompiledObject, PaintMode} from '../curves/modes/paint-mode';
 import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
@@ -16,18 +16,14 @@ export class Paint {
   private readonly mainCanvasCTX: CanvasRenderingContext2D;
   private readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
-  private animFrameGlobID;
-  private lastPointer: Uint32Array;
-
-  private currentMode = 'free-line';
-  private modes: PaintMode[] = [];
+  private currentMode: PaintMode;
+  private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
   private currentSettings: Settings;
-  private pointerMoveListening = false;
-  private pointerHasMoved = false;
 
-  private freeLines: FreeLine[] = [];
-  private straightLines: StraightLine[] = [];
-
+  /**
+   * Contains all compiled objects
+   */
+  private compiledObjectStorage: Map<string, CompiledObject> = new Map<string, CompiledObject>();
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -58,7 +54,7 @@ export class Paint {
     this.modes['continuous-straight-line'] = new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
 
     settingsService.settings.subscribe(newSettings => {
-      this.modes[this.currentMode].OnSettingsUpdate(newSettings);
+      this.currentMode.OnSettingsUpdate(newSettings);
 
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
         this.currentSettings = newSettings;
@@ -75,51 +71,18 @@ export class Paint {
 
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       event.preventDefault();
-
-      this.pointerHasMoved = false;
-      this.pointerMoveListening = true;
-      this.MoveBegin(Paint.NormalizePoint(event), event.button ?? 0);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
       event.preventDefault();
-      this.pointerHasMoved = true;
-
-      if (!this.pointerMoveListening) {
-        return;
-      }
-
-      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
-      if (!this.pointerMoveListening) {
-        return;
-      }
-
       event.preventDefault();
-
-      this.pointerMoveListening = false;
-      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
-      this.MoveComplete(this.pointerHasMoved, event.button ?? 0);
     };
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
-      if (event.deltaY < 0) {
-        // Zoom in
-
-      } else {
-        // Zoom out
-      }
-
-      this.modes[this.currentMode].OnSettingsUpdate({
-        darkModeEnabled: this.currentSettings.darkModeEnabled,
-        color: this.currentSettings.color,
-        width: this.currentSettings.width,
-        lazyEnabled: this.currentSettings.lazyEnabled,
-        lazyMultiplier: this.currentSettings.lazyEnabled,
-        tolerance: this.currentSettings.tolerance
-      });
+      event.preventDefault();
     };
 
     // TODO: Pointer cancel event
@@ -146,19 +109,13 @@ export class Paint {
   }
 
   public OnLazyUpdate(): void {
-
-    const loop = () => {
-      this.ngZone.runOutsideAngular(() => {
-        this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
-      });
-    };
-
-    if (!this.lastPointer) { return loop(); }
-
     // Mode has to do same point checking on it's own
-    this.modes[this.currentMode].OnLazyUpdate(this.lastPointer);
+    this.currentMode.OnFrameUpdate();
 
-    return loop();
+    // Loop animation frame
+    this.ngZone.runOutsideAngular(() => {
+      this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
+    });
   }
 
   private MoveBegin(point: Uint32Array, button: number): void {
@@ -177,19 +134,21 @@ export class Paint {
     this.lastPointer = point;
   }
 
-  private MoveComplete(pointerHasMoved: boolean, button: number): void {
-    const compiledObject = this.modes[this.currentMode].OnMoveComplete(pointerHasMoved, button);
+  private MoveComplete(): void {
+    const compiledObject = this.modes[this.currentMode].OnMoveComplete();
 
     if (compiledObject instanceof FreeLine) {
       this.freeLines.push(compiledObject);
-
     } else if (compiledObject instanceof  StraightLine) {
       this.straightLines.push(compiledObject);
-
     }
 
     delete this.lastPointer;
     window.cancelAnimationFrame(this.animFrameGlobID);
+  }
+
+  public SaveCompiledObject(): void {
+
   }
 
   public ChangeMode(mode: string): void {

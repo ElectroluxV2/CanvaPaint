@@ -2,17 +2,42 @@ import { Settings } from '../../settings/settings.interface';
 import { FreeLine } from './free-line-mode';
 import { StraightLine } from './straight-line-mode';
 
+/**
+ * Represents object that contains minimalistic data on how to draw it onto canvas
+ */
+export interface CompiledObject {
+  /**
+   * Has to be unique, used for storing in map as key
+   */
+  name: string;
+  /**
+   * ID of client who created this object
+   */
+  owner?: number;
+}
+
 export abstract class PaintMode {
+  /**
+   * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
+   */
   protected readonly predictCanvas: CanvasRenderingContext2D;
-  protected readonly mainCanvas: CanvasRenderingContext2D;
-  protected settings: Settings;
-  protected lastPointer: Uint32Array;
 
   /**
-   * Induced at every frame (depended on user's)
-   * @param lastPointer contains pointer location at draw moment
+   * This Canvas should be never cleared by mode, used to draw compiled object
    */
-  abstract OnLazyUpdate(lastPointer: Uint32Array): void;
+  protected readonly mainCanvas: CanvasRenderingContext2D;
+
+  /**
+   * Current settings
+   * @see Settings
+   */
+  protected settings: Settings;
+
+  /**
+   * Induced at every frame (depended on user's device), controlled by StartFrameUpdate() and StopFrameUpdate()
+   * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
+   */
+  abstract OnFrameUpdate(): void;
 
   /**
    * Induced once per move
@@ -26,9 +51,7 @@ export abstract class PaintMode {
    * @param point contains pointer location at move moment
    * @param button contains button id if not available equals 0
    */
-  public OnMoveOccur(point: Uint32Array, button: number): void {
-    this.lastPointer = point;
-  }
+  abstract OnMoveOccur(point: Uint32Array, button: number): void;
 
   /**
    * Induced once per move
@@ -52,14 +75,19 @@ export abstract class PaintMode {
   abstract OnSelected(): void;
 
   /**
-   * Induced every time event and only when mode was selected at event time
-   * Events:
+   * Induced every time event is fired and only when mode was selected at event fire time
+   * Possible events:
    * - user clears screen,
-   * - redraw
-   * - rescale
+   * - redraw,
+   * - rescale,
    */
   abstract MakeReady(): void;
 
+  /**
+   * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
+   * @param mainCanvas This Canvas should be never cleared by mode, used to draw compiled object
+   * @param settings Current settings
+   */
   constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
     this.predictCanvas = predictCanvas;
     this.mainCanvas = mainCanvas;
