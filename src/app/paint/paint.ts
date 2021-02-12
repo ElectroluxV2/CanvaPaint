@@ -1,9 +1,9 @@
 import { EventEmitter, NgZone } from '@angular/core';
-import {CompiledObject, PaintMode} from '../curves/modes/paint-mode';
-import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
+import { CompiledObject, PaintMode } from '../curves/modes/paint-mode';
+import { FreeLineMode } from '../curves/modes/free-line-mode';
 import { SettingsService } from '../settings/settings.service';
 import { Settings } from '../settings/settings.interface';
-import { StraightLine, StraightLineMode } from '../curves/modes/straight-line-mode';
+import { StraightLineMode } from '../curves/modes/straight-line-mode';
 import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-line-mode';
 
 declare global {
@@ -23,7 +23,7 @@ export class Paint {
   /**
    * Contains all compiled objects
    */
-  private compiledObjectStorage: Map<string, CompiledObject> = new Map<string, CompiledObject>();
+  public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
     // Setup canvas, remember to rescale on window resize
@@ -35,27 +35,26 @@ export class Paint {
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
 
-    // Defaults
-    this.mainCanvasCTX.lineJoin = 'round';
-    this.mainCanvasCTX.lineCap = 'round';
+    // Inject clear
     this.mainCanvasCTX.clear = () => {
       this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
     };
 
-    this.predictCanvasCTX.lineJoin = 'round';
-    this.predictCanvasCTX.lineCap = 'round';
     this.predictCanvasCTX.clear = () => {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
+    // Setup modes
     this.currentSettings = this.settingsService.settings.value;
-    this.modes['free-line'] = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
-    this.modes['straight-line'] = new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
-    this.modes['continuous-straight-line'] = new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
+    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
+    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
 
+    // Response to settings change
     settingsService.settings.subscribe(newSettings => {
       this.currentMode.OnSettingsUpdate(newSettings);
 
+      // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
         this.currentSettings = newSettings;
         this.ReDraw();
@@ -66,104 +65,80 @@ export class Paint {
 
     // Events
     this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
-      event.preventDefault();
-    };
-
-    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
-      event.preventDefault();
-    };
-
-    this.predictCanvas.onpointermove = (event: PointerEvent) => {
-      event.preventDefault();
-    };
-
-    this.predictCanvas.onpointerup = (event: PointerEvent) => {
+      // Make right click possible to be caught in pointer down event
       event.preventDefault();
     };
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       event.preventDefault();
+      this.currentMode.OnWheel(event);
     };
 
-    // TODO: Pointer cancel event
+    this.predictCanvas.onpointerover = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerOver(event);
+    };
+
+    this.predictCanvas.onpointerenter = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerEnter(event);
+    };
+
+    this.predictCanvas.onpointerdown = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerDown(event);
+    };
+
+    this.predictCanvas.onpointermove = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerMove(event);
+    };
+
+    this.predictCanvas.onpointerup = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerUp(event);
+    };
+
+    this.predictCanvas.onpointercancel = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerCancel(event);
+    };
+
+    this.predictCanvas.onpointerout = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerOut(event);
+    };
+
+    this.predictCanvas.onpointerleave = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerLeave(event);
+    };
+
+    this.predictCanvas.ongotpointercapture = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerGotCapture(event);
+    };
+
+    this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode.OnPointerLostCapture(event);
+    };
   }
 
-  private static NormalizePoint(event: PointerEvent): Uint32Array {
-    // TODO: multi-touch
-    const point = new Uint32Array([
-      event.offsetX,
-      event.offsetY
-    ]);
-
-    // Make sure the point does not go beyond the screen
-    point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
-    point[0] = point[0] < 0 ? 0 : point[0];
-
-    point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
-    point[1] = point[1] < 0 ? 0 : point[1];
-
-    point[0] *= window.devicePixelRatio;
-    point[1] *= window.devicePixelRatio;
-
-    return point;
-  }
-
-  public OnLazyUpdate(): void {
+  public OnFrameUpdate(): void {
     // Mode has to do same point checking on it's own
     this.currentMode.OnFrameUpdate();
-
-    // Loop animation frame
-    this.ngZone.runOutsideAngular(() => {
-      this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
-    });
-  }
-
-  private MoveBegin(point: Uint32Array, button: number): void {
-    this.modes[this.currentMode].OnMoveBegin(point, button);
-    // Save for frame request processing
-    this.lastPointer = point;
-
-    // Draw and calc only on frame request
-    this.OnLazyUpdate();
-  }
-
-  private MoveOccur(point: Uint32Array, button: number): void {
-    this.modes[this.currentMode].OnMoveOccur(point, button);
-
-    // Save for frame request processing
-    this.lastPointer = point;
-  }
-
-  private MoveComplete(): void {
-    const compiledObject = this.modes[this.currentMode].OnMoveComplete();
-
-    if (compiledObject instanceof FreeLine) {
-      this.freeLines.push(compiledObject);
-    } else if (compiledObject instanceof  StraightLine) {
-      this.straightLines.push(compiledObject);
-    }
-
-    delete this.lastPointer;
-    window.cancelAnimationFrame(this.animFrameGlobID);
-  }
-
-  public SaveCompiledObject(): void {
-
   }
 
   public ChangeMode(mode: string): void {
-    this.currentMode = mode;
-    this.modes[this.currentMode].OnSelected();
+    this.currentMode = this.modes.get(mode);
+    this.currentMode.OnSelected();
   }
 
   public Clear(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
-
-    this.modes[this.currentMode].MakeReady();
-
-    this.freeLines = [];
-    this.straightLines = [];
+    this.currentMode.MakeReady();
   }
 
   public Resize(): void {
@@ -180,15 +155,15 @@ export class Paint {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
 
-    for (const line of this.freeLines) {
+    /*for (const line of this.freeLines) {
         FreeLineMode.Reproduce(this.mainCanvasCTX, line);
     }
 
     for (const line of this.straightLines) {
         StraightLineMode.Reproduce(this.mainCanvasCTX, line);
-    }
+    }*/
 
-    this.modes[this.currentMode].MakeReady();
+    this.currentMode.MakeReady();
   }
 
   public Redo(): void {

@@ -1,6 +1,4 @@
 import { Settings } from '../../settings/settings.interface';
-import { FreeLine } from './free-line-mode';
-import { StraightLine } from './straight-line-mode';
 
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
@@ -40,28 +38,6 @@ export abstract class PaintMode {
   abstract OnFrameUpdate(): void;
 
   /**
-   * Induced once per move
-   * @param point contains pointer location at begin moment
-   * @param button contains button id if not available equals 0
-   */
-  abstract OnMoveBegin(point: Uint32Array, button: number): void;
-
-  /**
-   * Induced every move event
-   * @param point contains pointer location at move moment
-   * @param button contains button id if not available equals 0
-   */
-  abstract OnMoveOccur(point: Uint32Array, button: number): void;
-
-  /**
-   * Induced once per move
-   * @param pointerHasMoved true if pointer has moved from position captured at @OnMoveBegin
-   * @param button contains button id if not available equals 0
-   * @return object
-   */
-  abstract OnMoveComplete(pointerHasMoved: boolean, button: number): FreeLine | StraightLine;
-
-  /**
    * Induced every time settings changed
    * @param settings updated settings
    */
@@ -82,6 +58,66 @@ export abstract class PaintMode {
    * - rescale,
    */
   abstract MakeReady(): void;
+
+  /**
+   * Fired when the user rotates a wheel button on a pointing device (typically a mouse).
+   */
+  abstract OnWheel(event: WheelEvent): void;
+
+  /**
+   * Fired when a pointer is moved into an element's hit test boundaries.
+   */
+  abstract OnPointerOver(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants,
+   * including as a result of a pointerdown event from a device that does not support hover (see pointerdown).
+   */
+  abstract OnPointerEnter(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer becomes active buttons state.
+   */
+  abstract OnPointerDown(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
+   */
+  abstract OnPointerMove(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is no longer active buttons state.
+   */
+  abstract OnPointerUp(event: PointerEvent): void;
+
+  /**
+   * A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactivated).
+   */
+  abstract OnPointerCancel(event: PointerEvent): void;
+
+  /**
+   * Fired for several reasons including: pointer is moved out of the hit test boundaries of an element;
+   * firing the pointerup event for a device that does not support hover (see pointerup);
+   * after firing the pointercancel event (see pointercancel);
+   * when a pen stylus leaves the hover range detectable by the digitizer.
+   */
+  abstract OnPointerOut(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is moved out of the hit test boundaries of an element.
+   * For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.
+   */
+  abstract OnPointerLeave(event: PointerEvent): void;
+
+  /**
+   * Fired when an element receives pointer capture.
+   */
+  abstract OnPointerGotCapture(event: PointerEvent): void;
+
+  /**
+   * Fired after pointer capture is released for a pointer.
+   */
+  abstract OnPointerLostCapture(event: PointerEvent): void;
 
   /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode

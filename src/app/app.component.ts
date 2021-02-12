@@ -1,7 +1,6 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, EventEmitter, OnDestroy, NgZone } from '@angular/core';
-import { Paint } from './paint/paint';
 import { SettingsService } from './settings/settings.service';
-import {PublicApi} from './paint/public-api';
+import { PublicApi } from './paint/public-api';
 
 @Component({
   selector: 'app-root',
@@ -11,8 +10,6 @@ import {PublicApi} from './paint/public-api';
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mainCanvas', { read: ElementRef }) mainCanvas: ElementRef;
   @ViewChild('predictCanvas', { read: ElementRef }) predictCanvas: ElementRef;
-
-  //public paint: Paint;
 
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
