@@ -1,35 +1,67 @@
 import { EventEmitter, NgZone } from '@angular/core';
-import { PaintMode } from '../curves/modes/paint-mode';
-import { FreeLine, FreeLineMode } from '../curves/modes/free-line-mode';
-import { SettingsService } from '../settings/settings.service';
+import { CompiledObject, PaintMode } from '../curves/modes/paint-mode';
+import { FreeLineMode } from '../curves/modes/free-line-mode';
+import { ControlService } from '../settings/control.service';
 import { Settings } from '../settings/settings.interface';
-import { StraightLine, StraightLineMode } from '../curves/modes/straight-line-mode';
+import { StraightLineMode } from '../curves/modes/straight-line-mode';
 import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
+    /**
+     * Clears context
+     */
     clear(): void;
+    /**
+     * Draws dot onto predict canvas
+     * @param position position of dot
+     * @param width width of dot
+     * @param color color of dot
+     */
+    dot(position: Uint32Array, width: number, color: string): void;
   }
 }
 
+export interface PaintManager {
+  /**
+   * Starts animation loop
+   */
+  StartFrameUpdate(): void;
+  /**
+   * Stops animation loop
+   */
+  StopFrameUpdate(): void;
+  /**
+   * Saves compiled object
+   * @param object Object to save
+   */
+  SaveCompiledObject(object: CompiledObject): void;
+  /**
+   * @param point to normalize
+   * @returns Normalized point
+   */
+  NormalizePoint(point: Uint32Array): Uint32Array;
+}
+
 export class Paint {
-  private readonly mainCanvasCTX: CanvasRenderingContext2D;
-  private readonly predictCanvasCTX: CanvasRenderingContext2D;
+  /**
+   * Holds result of requestAnimationFrame
+   */
+  private animationFrameId: number;
+  readonly mainCanvasCTX: CanvasRenderingContext2D;
+  readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
-  private animFrameGlobID;
-  private lastPointer: Uint32Array;
-
-  private currentMode = 'free-line';
-  private modes: PaintMode[] = [];
+  private currentMode: PaintMode;
+  private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
   private currentSettings: Settings;
-  private pointerMoveListening = false;
-  private pointerHasMoved = false;
+  private manager: PaintManager = {} as PaintManager;
 
-  private freeLines: FreeLine[] = [];
-  private straightLines: StraightLine[] = [];
+  /**
+   * Contains all compiled objects
+   */
+  public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
 
-
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: SettingsService) {
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -39,27 +71,97 @@ export class Paint {
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
 
-    // Defaults
-    this.mainCanvasCTX.lineJoin = 'round';
-    this.mainCanvasCTX.lineCap = 'round';
+    // Inject additional methods
     this.mainCanvasCTX.clear = () => {
       this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
     };
 
-    this.predictCanvasCTX.lineJoin = 'round';
-    this.predictCanvasCTX.lineCap = 'round';
     this.predictCanvasCTX.clear = () => {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
-    this.currentSettings = this.settingsService.settings.value;
-    this.modes['free-line'] = new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
-    this.modes['straight-line'] = new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
-    this.modes['continuous-straight-line'] = new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings);
+    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
+      this.mainCanvasCTX.beginPath();
+      this.mainCanvasCTX.arc(
+        position[0],
+        position[1],
+        width / Math.PI,
+        0,
+        2 * Math.PI,
+        false
+      );
+      this.mainCanvasCTX.fillStyle = color;
+      this.mainCanvasCTX.fill();
+    };
 
-    settingsService.settings.subscribe(newSettings => {
-      this.modes[this.currentMode].OnSettingsUpdate(newSettings);
+    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
+      this.predictCanvasCTX.beginPath();
+      this.predictCanvasCTX.arc(
+        position[0],
+        position[1],
+        width / Math.PI,
+        0,
+        2 * Math.PI,
+        false
+      );
+      this.predictCanvasCTX.fillStyle = color;
+      this.predictCanvasCTX.fill();
+    };
 
+    // Setup paint manager
+    this.manager.StartFrameUpdate = () => {
+      // Start new loop, obtain new id
+      this.ngZone.runOutsideAngular(() => {
+        this.currentMode?.OnFrameUpdate?.();
+        this.animationFrameId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
+      });
+    };
+
+    this.manager.StopFrameUpdate = () => {
+      window.cancelAnimationFrame(this.animationFrameId);
+    };
+
+    this.manager.SaveCompiledObject = object => {
+      if (!this.compiledObjectStorage.has(object.name)) {
+        this.compiledObjectStorage.set(object.name, []);
+      }
+
+      this.compiledObjectStorage.get(object.name).push(object);
+    };
+
+    this.manager.NormalizePoint = point => {
+      // Make sure the point does not go beyond the screen
+      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+      point[0] = point[0] < 0 ? 0 : point[0];
+
+      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+      point[1] = point[1] < 0 ? 0 : point[1];
+
+      point[0] *= window.devicePixelRatio;
+      point[1] *= window.devicePixelRatio;
+
+      return point;
+    };
+
+    // Setup modes
+    this.currentSettings = this.controlService.settings.value;
+    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.currentMode = this.modes.get(this.controlService.mode.value);
+    this.controlService.mode.subscribe(mode => {
+      if (!this.modes.has(mode)) {
+        console.warn(`No mode named ${mode}!`);
+        return;
+      }
+      this.currentMode = this.modes.get(mode);
+    });
+
+    // Response to settings change
+    controlService.settings.subscribe(newSettings => {
+      this.currentMode?.OnSettingsUpdate(newSettings);
+
+      // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
         this.currentSettings = newSettings;
         this.ReDraw();
@@ -68,143 +170,73 @@ export class Paint {
       }
     });
 
+    // Response to clear
+    this.controlService.clear.subscribe(() => {
+      this.mainCanvasCTX.clear();
+      this.predictCanvasCTX.clear();
+      this.currentMode?.MakeReady?.();
+    });
+
     // Events
     this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
+      // Make right click possible to be caught in pointer down event
       event.preventDefault();
+    };
+
+    this.predictCanvas.onwheel = (event: WheelEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnWheel?.(event);
+    };
+
+    this.predictCanvas.onpointerover = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerOver?.(event);
+    };
+
+    this.predictCanvas.onpointerenter = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerEnter?.(event);
     };
 
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       event.preventDefault();
-
-      this.pointerHasMoved = false;
-      this.pointerMoveListening = true;
-      this.MoveBegin(Paint.NormalizePoint(event), event.button ?? 0);
+      this.currentMode?.OnPointerDown?.(event);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
       event.preventDefault();
-      this.pointerHasMoved = true;
-
-      if (!this.pointerMoveListening) {
-        return;
-      }
-
-      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
+      this.currentMode?.OnPointerMove?.(event);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
-      if (!this.pointerMoveListening) {
-        return;
-      }
-
       event.preventDefault();
-
-      this.pointerMoveListening = false;
-      this.MoveOccur(Paint.NormalizePoint(event), event.button ?? 0);
-      this.MoveComplete(this.pointerHasMoved, event.button ?? 0);
+      this.currentMode?.OnPointerUp?.(event);
     };
 
-    this.predictCanvas.onwheel = (event: WheelEvent) => {
-      if (event.deltaY < 0) {
-        // Zoom in
-
-      } else {
-        // Zoom out
-      }
-
-      this.modes[this.currentMode].OnSettingsUpdate({
-        darkModeEnabled: this.currentSettings.darkModeEnabled,
-        color: this.currentSettings.color,
-        width: this.currentSettings.width,
-        lazyEnabled: this.currentSettings.lazyEnabled,
-        lazyMultiplier: this.currentSettings.lazyEnabled,
-        tolerance: this.currentSettings.tolerance
-      });
+    this.predictCanvas.onpointercancel = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerCancel?.(event);
     };
 
-    // TODO: Pointer cancel event
-  }
-
-  private static NormalizePoint(event: PointerEvent): Uint32Array {
-    // TODO: multi-touch
-    const point = new Uint32Array([
-      event.offsetX,
-      event.offsetY
-    ]);
-
-    // Make sure the point does not go beyond the screen
-    point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
-    point[0] = point[0] < 0 ? 0 : point[0];
-
-    point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
-    point[1] = point[1] < 0 ? 0 : point[1];
-
-    point[0] *= window.devicePixelRatio;
-    point[1] *= window.devicePixelRatio;
-
-    return point;
-  }
-
-  public OnLazyUpdate(): void {
-
-    const loop = () => {
-      this.ngZone.runOutsideAngular(() => {
-        this.animFrameGlobID = window.requestAnimationFrame(this.OnLazyUpdate.bind(this));
-      });
+    this.predictCanvas.onpointerout = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerOut?.(event);
     };
 
-    if (!this.lastPointer) { return loop(); }
+    this.predictCanvas.onpointerleave = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerLeave?.(event);
+    };
 
-    // Mode has to do same point checking on it's own
-    this.modes[this.currentMode].OnLazyUpdate(this.lastPointer);
+    this.predictCanvas.ongotpointercapture = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerGotCapture?.(event);
+    };
 
-    return loop();
-  }
-
-  private MoveBegin(point: Uint32Array, button: number): void {
-    this.modes[this.currentMode].OnMoveBegin(point, button);
-    // Save for frame request processing
-    this.lastPointer = point;
-
-    // Draw and calc only on frame request
-    this.OnLazyUpdate();
-  }
-
-  private MoveOccur(point: Uint32Array, button: number): void {
-    this.modes[this.currentMode].OnMoveOccur(point, button);
-
-    // Save for frame request processing
-    this.lastPointer = point;
-  }
-
-  private MoveComplete(pointerHasMoved: boolean, button: number): void {
-    const compiledObject = this.modes[this.currentMode].OnMoveComplete(pointerHasMoved, button);
-
-    if (compiledObject instanceof FreeLine) {
-      this.freeLines.push(compiledObject);
-
-    } else if (compiledObject instanceof  StraightLine) {
-      this.straightLines.push(compiledObject);
-
-    }
-
-    delete this.lastPointer;
-    window.cancelAnimationFrame(this.animFrameGlobID);
-  }
-
-  public ChangeMode(mode: string): void {
-    this.currentMode = mode;
-    this.modes[this.currentMode].OnSelected();
-  }
-
-  public Clear(): void {
-    this.mainCanvasCTX.clear();
-    this.predictCanvasCTX.clear();
-
-    this.modes[this.currentMode].MakeReady();
-
-    this.freeLines = [];
-    this.straightLines = [];
+    this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
+      event.preventDefault();
+      this.currentMode?.OnPointerLostCapture?.(event);
+    };
   }
 
   public Resize(): void {
@@ -221,22 +253,14 @@ export class Paint {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
 
-    for (const line of this.freeLines) {
+    /*for (const line of this.freeLines) {
         FreeLineMode.Reproduce(this.mainCanvasCTX, line);
     }
 
     for (const line of this.straightLines) {
         StraightLineMode.Reproduce(this.mainCanvasCTX, line);
-    }
+    }*/
 
-    this.modes[this.currentMode].MakeReady();
-  }
-
-  public Redo(): void {
-
-  }
-
-  public Undo(): void {
-
+    this.currentMode?.MakeReady?.();
   }
 }

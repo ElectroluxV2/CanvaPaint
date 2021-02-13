@@ -1,7 +1,8 @@
 import { SettingsComponent } from '../settings/settings.component';
 import { Component, Output, EventEmitter, Input, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { SettingsService } from '../settings/settings.service';
+import { ControlService } from '../settings/control.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-bar',
@@ -9,13 +10,9 @@ import { SettingsService } from '../settings/settings.service';
   styleUrls: ['./bar.component.scss']
 })
 export class BarComponent implements AfterViewInit, OnDestroy {
-  @Output() changeMode: EventEmitter<string> = new EventEmitter<string>();
-  @Output() undo: EventEmitter<null> = new EventEmitter<null>();
-  @Output() redo: EventEmitter<null> = new EventEmitter<null>();
-  @Output() clear: EventEmitter<null> = new EventEmitter<null>();
   @Input() statusUpdate: EventEmitter<string>;
 
-  constructor(public dialog: MatDialog, public settingsService: SettingsService) { }
+  constructor(public dialog: MatDialog, public controlService: ControlService) { }
 
   public iconColor: string[] = [];
 

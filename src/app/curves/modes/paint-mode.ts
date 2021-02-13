@@ -1,68 +1,152 @@
 import { Settings } from '../../settings/settings.interface';
-import { FreeLine } from './free-line-mode';
-import { StraightLine } from './straight-line-mode';
+import { PaintManager } from '../../paint/paint';
 
-export abstract class PaintMode {
-  protected readonly predictCanvas: CanvasRenderingContext2D;
-  protected readonly mainCanvas: CanvasRenderingContext2D;
-  protected settings: Settings;
-  protected lastPointer: Uint32Array;
+/**
+ * Represents object that contains minimalistic data on how to draw it onto canvas
+ */
+export interface CompiledObject {
+  /**
+   * Has to be unique, used for storing in map as key
+   */
+  name: string;
+  /**
+   * ID of client who created this object
+   */
+  owner?: number;
+}
+
+abstract class PaintModeOptional {
+  /**
+   * Induced every time mode is selected
+   */
+  public OnSelected?(): void;
 
   /**
-   * Induced at every frame (depended on user's)
-   * @param lastPointer contains pointer location at draw moment
+   * Induced every time event is fired and only when mode was selected at event fire time
+   * Possible events:
+   * - user clears screen,
+   * - redraw,
+   * - rescale,
    */
-  abstract OnLazyUpdate(lastPointer: Uint32Array): void;
+  public MakeReady?(): void;
 
   /**
-   * Induced once per move
-   * @param point contains pointer location at begin moment
-   * @param button contains button id if not available equals 0
+   * Fired when the user rotates a wheel button on a pointing device (typically a mouse).
    */
-  abstract OnMoveBegin(point: Uint32Array, button: number): void;
+  public OnWheel?(event: WheelEvent): void;
 
   /**
-   * Induced every move event
-   * @param point contains pointer location at move moment
-   * @param button contains button id if not available equals 0
+   * Fired when a pointer is moved into an element's hit test boundaries.
    */
-  public OnMoveOccur(point: Uint32Array, button: number): void {
-    this.lastPointer = point;
-  }
+  public OnPointerOver?(event: PointerEvent): void;
 
   /**
-   * Induced once per move
-   * @param pointerHasMoved true if pointer has moved from position captured at @OnMoveBegin
-   * @param button contains button id if not available equals 0
-   * @return object
+   * Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants,
+   * including as a result of a pointerdown event from a device that does not support hover (see pointerdown).
    */
-  abstract OnMoveComplete(pointerHasMoved: boolean, button: number): FreeLine | StraightLine;
+  public OnPointerEnter?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer becomes active buttons state.
+   */
+  public OnPointerDown?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
+   */
+  public OnPointerMove?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is no longer active buttons state.
+   */
+  public OnPointerUp?(event: PointerEvent): void;
+
+  /**
+   * A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactivated).
+   */
+  public OnPointerCancel?(event: PointerEvent): void;
+
+  /**
+   * Fired for several reasons including: pointer is moved out of the hit test boundaries of an element;
+   * firing the pointerup event for a device that does not support hover (see pointerup);
+   * after firing the pointercancel event (see pointercancel);
+   * when a pen stylus leaves the hover range detectable by the digitizer.
+   */
+  public OnPointerOut?(event: PointerEvent): void;
+
+  /**
+   * Fired when a pointer is moved out of the hit test boundaries of an element.
+   * For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.
+   */
+  public OnPointerLeave?(event: PointerEvent): void;
+
+  /**
+   * Fired when an element receives pointer capture.
+   */
+  public OnPointerGotCapture?(event: PointerEvent): void;
+
+  /**
+   * Fired after pointer capture is released for a pointer.
+   */
+  public OnPointerLostCapture?(event: PointerEvent): void;
 
   /**
    * Induced every time settings changed
    * @param settings updated settings
    */
-  public OnSettingsUpdate(settings: Settings): void {
+  public OnSettingsUpdate?(settings: Settings): void;
+
+  /**
+   * Induced at every frame (depended on user's device), controlled by StartFrameUpdate() and StopFrameUpdate()
+   * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
+   */
+  public OnFrameUpdate?(): void;
+}
+
+export abstract class PaintMode extends PaintModeOptional {
+  /**
+   * Contains Paint's methods
+   */
+  readonly manager: PaintManager;
+  /**
+   * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
+   */
+  protected readonly predictCanvas: CanvasRenderingContext2D;
+
+  /**
+   * This Canvas should be never cleared by mode, used to draw compiled object
+   */
+  protected readonly mainCanvas: CanvasRenderingContext2D;
+
+  /**
+   * Current settings
+   * @see Settings
+   */
+  protected settings: Settings;
+
+  /**
+   * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
+   * @param mainCanvas This Canvas should be never cleared by mode, used to draw compiled object
+   * @param manager Paint manager
+   * @param settings Current settings
+   */
+  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, manager: PaintManager, settings: Settings) {
+    super();
+    this.predictCanvas = predictCanvas;
+    this.mainCanvas = mainCanvas;
+    this.manager = manager;
     this.settings = settings;
   }
 
   /**
-   * Induced every time mode is selected
+   * Method that reproduces object created by method's object
+   * @param canvas render destination
+   * @param object object to render
    */
-  abstract OnSelected(): void;
+  abstract Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
 
-  /**
-   * Induced every time event and only when mode was selected at event time
-   * Events:
-   * - user clears screen,
-   * - redraw
-   * - rescale
-   */
-  abstract MakeReady(): void;
-
-  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
-    this.predictCanvas = predictCanvas;
-    this.mainCanvas = mainCanvas;
+  // Default
+  public OnSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }
 }
