@@ -127,6 +127,7 @@ export class Paint {
       }
 
       this.compiledObjectStorage.get(object.name).push(object);
+      this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
     };
 
     this.manager.NormalizePoint = point => {
@@ -145,9 +146,9 @@ export class Paint {
 
     // Setup modes
     this.currentSettings = this.controlService.settings.value;
-    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
     this.currentMode = this.modes.get(this.controlService.mode.value);
     this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
@@ -174,6 +175,7 @@ export class Paint {
     this.controlService.clear.subscribe(() => {
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
+      this.compiledObjectStorage.clear();
       this.currentMode?.MakeReady?.();
     });
 
@@ -253,13 +255,11 @@ export class Paint {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
 
-    /*for (const line of this.freeLines) {
-        FreeLineMode.Reproduce(this.mainCanvasCTX, line);
+    for (const [name, objects] of this.compiledObjectStorage) {
+      for (const compiledObject of objects) {
+        this.modes.get(name).Reproduce(this.mainCanvasCTX, compiledObject);
+      }
     }
-
-    for (const line of this.straightLines) {
-        StraightLineMode.Reproduce(this.mainCanvasCTX, line);
-    }*/
 
     this.currentMode?.MakeReady?.();
   }
