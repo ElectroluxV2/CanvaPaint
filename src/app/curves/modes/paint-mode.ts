@@ -1,4 +1,5 @@
 import { Settings } from '../../settings/settings.interface';
+import { PaintManager } from '../../paint/paint';
 
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
@@ -104,6 +105,10 @@ abstract class PaintModeOptional {
 
 export abstract class PaintMode extends PaintModeOptional {
   /**
+   * Contains Paint's methods
+   */
+  readonly manager: PaintManager;
+  /**
    * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    */
   protected readonly predictCanvas: CanvasRenderingContext2D;
@@ -122,12 +127,14 @@ export abstract class PaintMode extends PaintModeOptional {
   /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    * @param mainCanvas This Canvas should be never cleared by mode, used to draw compiled object
+   * @param manager Paint manager
    * @param settings Current settings
    */
-  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, settings: Settings) {
+  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, manager: PaintManager, settings: Settings) {
     super();
     this.predictCanvas = predictCanvas;
     this.mainCanvas = mainCanvas;
+    this.manager = manager;
     this.settings = settings;
   }
 
