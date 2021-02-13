@@ -8,17 +8,54 @@ import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-
 
 declare global {
   interface CanvasRenderingContext2D {
+    /**
+     * Clears context
+     */
     clear(): void;
+    /**
+     * Draws dot onto predict canvas
+     * @param position position of dot
+     * @param width width of dot
+     * @param color color of dot
+     */
+    dot(position: Uint32Array, width: number, color: string): void;
+
+    /**
+     * @param point to normalize
+     * @returns Normalized point
+     */
+    normalizePoint(point: Uint32Array): Uint32Array;
   }
 }
 
+export interface PaintManager {
+  /**
+   * Starts animation loop
+   */
+  StartFrameUpdate(): void;
+  /**
+   * Stops animation loop
+   */
+  StopFrameUpdate(): void;
+  /**
+   * Saves compiled object
+   * @param object Object to save
+   */
+  SaveCompiledObject(object: CompiledObject): void;
+}
+
 export class Paint {
+  /**
+   * Holds result of requestAnimationFrame
+   */
+  private animationFrameId: number;
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
   private currentMode: PaintMode;
   private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
   private currentSettings: Settings;
+  private manager: PaintManager = {} as PaintManager;
 
   /**
    * Contains all compiled objects
@@ -35,7 +72,7 @@ export class Paint {
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
 
-    // Inject clear
+    // Inject additional methods
     this.mainCanvasCTX.clear = () => {
       this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
     };
@@ -44,11 +81,74 @@ export class Paint {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
+    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
+      this.mainCanvasCTX.beginPath();
+      this.mainCanvasCTX.arc(
+        position[0],
+        position[1],
+        width / Math.PI,
+        0,
+        2 * Math.PI,
+        false
+      );
+      this.mainCanvasCTX.fillStyle = color;
+      this.mainCanvasCTX.fill();
+    };
+
+    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
+      this.predictCanvasCTX.beginPath();
+      this.predictCanvasCTX.arc(
+        position[0],
+        position[1],
+        width / Math.PI,
+        0,
+        2 * Math.PI,
+        false
+      );
+      this.predictCanvasCTX.fillStyle = color;
+      this.predictCanvasCTX.fill();
+    };
+
+    this.predictCanvasCTX.normalizePoint = this.mainCanvasCTX.normalizePoint = point => {
+      // Make sure the point does not go beyond the screen
+      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+      point[0] = point[0] < 0 ? 0 : point[0];
+
+      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+      point[1] = point[1] < 0 ? 0 : point[1];
+
+      point[0] *= window.devicePixelRatio;
+      point[1] *= window.devicePixelRatio;
+
+      return point;
+    };
+
+    // Setup paint manager
+    this.manager.StartFrameUpdate = () => {
+      // Start new loop, obtain new id
+      this.ngZone.runOutsideAngular(() => {
+        this.currentMode?.OnFrameUpdate?.();
+        this.animationFrameId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
+      });
+    };
+
+    this.manager.StopFrameUpdate = () => {
+      window.cancelAnimationFrame(this.animationFrameId);
+    };
+
+    this.manager.SaveCompiledObject = object => {
+      if (!this.compiledObjectStorage.has(object.name)) {
+        this.compiledObjectStorage.set(object.name, []);
+      }
+
+      this.compiledObjectStorage.get(object.name).push(object);
+    };
+
     // Setup modes
     this.currentSettings = this.controlService.settings.value;
-    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
-    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
-    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
+    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.manager, this.currentSettings));
     this.currentMode = this.modes.get(this.controlService.mode.value);
     this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
@@ -138,11 +238,6 @@ export class Paint {
       event.preventDefault();
       this.currentMode?.OnPointerLostCapture?.(event);
     };
-  }
-
-  public OnFrameUpdate(): void {
-    // Mode has to do same point checking on it's own
-    this.currentMode?.OnFrameUpdate?.();
   }
 
   public Resize(): void {
