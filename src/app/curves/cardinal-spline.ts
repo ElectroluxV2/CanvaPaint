@@ -1,17 +1,17 @@
 import { Simplify } from './simplify';
+import { FreeLineMode } from './modes/free-line-mode';
 
 export class CardinalSpline {
-  private readonly main: CanvasRenderingContext2D;
-  private readonly predict: CanvasRenderingContext2D;
+  private predict: CanvasRenderingContext2D;
   private tolerance: number;
   private width: number;
   private color: string;
 
   private points: Uint32Array[] = [];
-  private optimized: Uint32Array[] = [];
+  public optimized: Uint32Array[] = [];
 
-  constructor(main: CanvasRenderingContext2D, predict: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
-    this.main = main;
+  constructor(); // Make apply possible
+  constructor(predict?: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
     this.predict = predict;
     this.tolerance = tolerance;
     this.width = width;
@@ -54,7 +54,18 @@ export class CardinalSpline {
   public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Uint32Array[]): void {
     canvas.strokeStyle = color;
     canvas.lineWidth = width;
-    CardinalSpline.QuadraticCurve(canvas, points, color, width, points.length === 1);
+    CardinalSpline.QuadraticCurve(canvas, points, color, width, points?.length < 2);
+  }
+
+  /**
+   * Alternative to constructor
+   */
+  public Apply(mode: FreeLineMode): CardinalSpline {
+    this.predict = mode.predictCanvas;
+    this.tolerance = mode.settings.tolerance;
+    this.width = mode.settings.width;
+    this.color = mode.settings.color;
+    return this;
   }
 
   public set Color(value: string) {
@@ -73,7 +84,7 @@ export class CardinalSpline {
     return this.points.length === 0;
   }
 
-  public AddPoint(point: Uint32Array): Uint32Array[] {
+  public AddPoint(point: Uint32Array): void {
     // Same point prevention
     if (this.points.length) {
       const toCheck = this.points[this.points.length - 1];
@@ -84,8 +95,7 @@ export class CardinalSpline {
 
     // Deep copy
     this.points.push(new Uint32Array([...point]));
-
-    const toReturn: Uint32Array[] = [];
+    this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
     // TODO: better way of doing it
     // At some point there is no point in optimizing such a big line, so split it
@@ -103,38 +113,5 @@ export class CardinalSpline {
       this.points = [last];
       this.optimized = [];
     }*/
-
-    if (this.points.length < 2) { return [new Uint32Array([...point])]; }
-
-    this.optimized = Simplify.Simplify(this.points, this.tolerance);
-
-    toReturn.push(...this.optimized);
-
-    this.predict.strokeStyle = this.color;
-    this.predict.lineWidth = this.width;
-
-    this.predict.clear();
-    CardinalSpline.QuadraticCurve(this.predict, this.optimized, this.color, this.width);
-
-    return toReturn;
-  }
-
-  public Finish(color: string = this.color, width: number = this.width, points: Uint32Array[] = []): Uint32Array[] {
-    this.main.strokeStyle = color;
-    this.main.lineWidth = width;
-
-    // Clear predict
-    this.predict.clear();
-
-    if (points.length === 0) {
-      this.optimized = Simplify.Simplify(this.points, this.tolerance);
-      points = this.optimized;
-    }
-
-    // Dot or line
-    CardinalSpline.QuadraticCurve(this.main, points, color, width, points.length === 1);
-
-    delete this.points;
-    return this.optimized;
   }
 }
