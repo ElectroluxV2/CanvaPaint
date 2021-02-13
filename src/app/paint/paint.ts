@@ -19,12 +19,6 @@ declare global {
      * @param color color of dot
      */
     dot(position: Uint32Array, width: number, color: string): void;
-
-    /**
-     * @param point to normalize
-     * @returns Normalized point
-     */
-    normalizePoint(point: Uint32Array): Uint32Array;
   }
 }
 
@@ -42,6 +36,11 @@ export interface PaintManager {
    * @param object Object to save
    */
   SaveCompiledObject(object: CompiledObject): void;
+  /**
+   * @param point to normalize
+   * @returns Normalized point
+   */
+  NormalizePoint(point: Uint32Array): Uint32Array;
 }
 
 export class Paint {
@@ -109,20 +108,6 @@ export class Paint {
       this.predictCanvasCTX.fill();
     };
 
-    this.predictCanvasCTX.normalizePoint = this.mainCanvasCTX.normalizePoint = point => {
-      // Make sure the point does not go beyond the screen
-      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
-      point[0] = point[0] < 0 ? 0 : point[0];
-
-      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
-      point[1] = point[1] < 0 ? 0 : point[1];
-
-      point[0] *= window.devicePixelRatio;
-      point[1] *= window.devicePixelRatio;
-
-      return point;
-    };
-
     // Setup paint manager
     this.manager.StartFrameUpdate = () => {
       // Start new loop, obtain new id
@@ -142,6 +127,20 @@ export class Paint {
       }
 
       this.compiledObjectStorage.get(object.name).push(object);
+    };
+
+    this.manager.NormalizePoint = point => {
+      // Make sure the point does not go beyond the screen
+      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+      point[0] = point[0] < 0 ? 0 : point[0];
+
+      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+      point[1] = point[1] < 0 ? 0 : point[1];
+
+      point[0] *= window.devicePixelRatio;
+      point[1] *= window.devicePixelRatio;
+
+      return point;
     };
 
     // Setup modes

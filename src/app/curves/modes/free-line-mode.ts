@@ -29,7 +29,7 @@ export class FreeLineMode extends PaintMode {
 
   public OnPointerMove(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
-    this.lastPointer = this.mainCanvas.normalizePoint(point);
+    this.lastPointer = this.manager.NormalizePoint(point);
   }
 
   public OnFrameUpdate() {
