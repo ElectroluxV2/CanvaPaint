@@ -67,7 +67,7 @@ export class PublicApi {
    * @param point to normalize
    * @returns Normalized point
    */
-  private static NormalizePoint(point: Uint32Array): Uint32Array {
+  public static NormalizePoint(point: Uint32Array): Uint32Array {
     // Make sure the point does not go beyond the screen
     point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
     point[0] = point[0] < 0 ? 0 : point[0];
