@@ -25,7 +25,7 @@ export class Paint {
    */
   public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private settingsService: ControlService) {
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -45,12 +45,12 @@ export class Paint {
     };
 
     // Setup modes
-    this.currentSettings = this.settingsService.settings.value;
+    this.currentSettings = this.controlService.settings.value;
     this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
     this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
     this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.mainCanvasCTX, this.currentSettings));
-    this.currentMode = this.modes.get(this.settingsService.mode.value);
-    this.settingsService.mode.subscribe(mode => {
+    this.currentMode = this.modes.get(this.controlService.mode.value);
+    this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
         console.warn(`No mode named ${mode}!`);
         return;
@@ -59,7 +59,7 @@ export class Paint {
     });
 
     // Response to settings change
-    settingsService.settings.subscribe(newSettings => {
+    controlService.settings.subscribe(newSettings => {
       this.currentMode?.OnSettingsUpdate(newSettings);
 
       // When color scheme has changed we need to redraw with different palette colour
@@ -72,7 +72,7 @@ export class Paint {
     });
 
     // Response to clear
-    this.settingsService.clear.subscribe(() => {
+    this.controlService.clear.subscribe(() => {
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
       this.currentMode?.MakeReady?.();
