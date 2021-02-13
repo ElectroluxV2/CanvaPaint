@@ -19,7 +19,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.settingsService);
 
-    this.paint.statusEmitter.subscribe((value) => {
+    this.paint.statusEmitter.subscribe(value => {
       this.statusEmitter.emit(value);
     });
   }

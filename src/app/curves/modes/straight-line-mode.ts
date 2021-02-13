@@ -30,4 +30,9 @@ export class StraightLineMode extends PaintMode {
   Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void {
 
   }
+
+  OnPointerMove(event: PointerEvent) {
+    console.log(event.pointerType);
+  }
+
 }

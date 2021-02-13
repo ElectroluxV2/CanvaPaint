@@ -6,7 +6,7 @@ import { PaintManager } from '../../paint/paint';
  */
 export interface CompiledObject {
   /**
-   * Has to be unique, used for storing in map as key
+   * Has to be unique, used for storing in map as key, must match mode name
    */
   name: string;
   /**
@@ -53,6 +53,8 @@ abstract class PaintModeOptional {
 
   /**
    * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
+   * In Chrome, pointermove is actually supposed to align/throttle to requestAnimationFrame automatically,
+   * but there is a bug where it behaves differently with Dev Tools open.
    */
   public OnPointerMove?(event: PointerEvent): void;
 
@@ -111,29 +113,22 @@ export abstract class PaintMode extends PaintModeOptional {
   /**
    * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    */
-  protected readonly predictCanvas: CanvasRenderingContext2D;
-
-  /**
-   * This Canvas should be never cleared by mode, used to draw compiled object
-   */
-  protected readonly mainCanvas: CanvasRenderingContext2D;
+  readonly predictCanvas: CanvasRenderingContext2D;
 
   /**
    * Current settings
    * @see Settings
    */
-  protected settings: Settings;
+  settings: Settings;
 
   /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
-   * @param mainCanvas This Canvas should be never cleared by mode, used to draw compiled object
    * @param manager Paint manager
    * @param settings Current settings
    */
-  constructor(predictCanvas: CanvasRenderingContext2D, mainCanvas: CanvasRenderingContext2D, manager: PaintManager, settings: Settings) {
+  constructor(predictCanvas: CanvasRenderingContext2D, manager: PaintManager, settings: Settings) {
     super();
     this.predictCanvas = predictCanvas;
-    this.mainCanvas = mainCanvas;
     this.manager = manager;
     this.settings = settings;
   }
