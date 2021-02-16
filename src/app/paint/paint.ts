@@ -38,9 +38,10 @@ export interface PaintManager {
   SaveCompiledObject(object: CompiledObject): void;
   /**
    * @param point to normalize
+   * @param enhance whenever to multiply by device dpi
    * @returns Normalized point
    */
-  NormalizePoint(point: Uint32Array): Uint32Array;
+  NormalizePoint(point: Uint32Array, enhance?: boolean): Uint32Array;
 }
 
 export class Paint {
@@ -130,13 +131,17 @@ export class Paint {
       this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
     };
 
-    this.manager.NormalizePoint = point => {
+    this.manager.NormalizePoint = (point, enhance= false) => {
       // Make sure the point does not go beyond the screen
       point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
       point[0] = point[0] < 0 ? 0 : point[0];
 
       point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
       point[1] = point[1] < 0 ? 0 : point[1];
+
+      if (!enhance) {
+        return point;
+      }
 
       point[0] *= window.devicePixelRatio;
       point[1] *= window.devicePixelRatio;
@@ -156,6 +161,7 @@ export class Paint {
         return;
       }
       this.currentMode = this.modes.get(mode);
+      this.currentMode?.OnSelected();
     });
 
     // Response to settings change
