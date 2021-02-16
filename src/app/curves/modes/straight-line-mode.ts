@@ -27,12 +27,44 @@ export class StraightLine implements CompiledObject {
 }
 
 export class StraightLineMode extends PaintMode {
+  private lastPointer: Uint32Array;
   Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void {
 
   }
 
-  OnPointerMove(event: PointerEvent) {
-    console.log(event.pointerType);
+  OnSelected() {
+    this.manager.StartFrameUpdate();
   }
 
+  OnPointerEnter(event: PointerEvent) {
+    this.predictCanvas.canvas.style.cursor = 'none';
+  }
+
+  OnPointerLeave(event: PointerEvent) {
+    this.predictCanvas.canvas.style.cursor = 'crosshair';
+  }
+
+  public OnPointerMove(event: PointerEvent): void {
+    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const normalizedPoint = this.manager.NormalizePoint(point);
+    this.lastPointer = normalizedPoint;
+  }
+
+  public OnFrameUpdate() {
+    this.predictCanvas.clear();
+    if (!this.lastPointer) {
+      return;
+    }
+    this.predictCanvas.dot(this.lastPointer, 15, 'orange');
+  }
+
+  public OnWheel(event: WheelEvent) {
+    if (event.deltaX !== 0) {
+      this.lastPointer[0] += event.deltaX;
+    } else if (event.deltaY) {
+      this.lastPointer[1] += event.deltaY;
+    }
+
+    this.lastPointer = this.manager.NormalizePoint(this.lastPointer);
+  }
 }
