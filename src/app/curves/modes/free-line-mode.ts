@@ -23,12 +23,12 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public OnPointerDown(event: PointerEvent) {
+  public OnPointerDown(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const normalizedPoint = this.manager.NormalizePoint(point);
     // Start new spline
     this.currentSpline = new CardinalSpline().Apply(this);
     // Add starting point
-    const normalizedPoint = this.manager.NormalizePoint(point);
     this.currentSpline.AddPoint(normalizedPoint);
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
@@ -52,7 +52,7 @@ export class FreeLineMode extends PaintMode {
     }
   }
 
-  public OnFrameUpdate() {
+  public OnFrameUpdate(): void {
 
     // Changes to line are done here because of nature of lazy brush, brush is always trying to catch pointer,
     // so where pointer stops moving lazy brush must be updated continuously
@@ -67,7 +67,7 @@ export class FreeLineMode extends PaintMode {
       console.warn('Missing line (this should not be possible)');
   }
 
-  public OnPointerUp(event: PointerEvent) {
+  public OnPointerUp(event: PointerEvent): void {
     // End spline
     const compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized);
 
@@ -81,10 +81,14 @@ export class FreeLineMode extends PaintMode {
     delete this?.currentSpline;
   }
 
-  public OnPointerCancel(event: PointerEvent) {
+  public OnPointerCancel(event: PointerEvent): void {
     // End spline and delete result
     this.predictCanvas.clear();
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
+  }
+
+  public OnSelected(): void {
+    this.manager.StopFrameUpdate();
   }
 }
