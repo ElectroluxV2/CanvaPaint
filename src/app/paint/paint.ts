@@ -161,7 +161,7 @@ export class Paint {
         return;
       }
       this.currentMode = this.modes.get(mode);
-      this.currentMode?.OnSelected();
+      this.currentMode?.OnSelected?.();
     });
 
     // Response to settings change
