@@ -41,6 +41,10 @@ export class StraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
+  public OnSelected(): void {
+    delete this.currentControlPoint;
+  }
+
   public OnPointerDown(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
     const normalized = this.manager.NormalizePoint(point);
@@ -83,16 +87,18 @@ export class StraightLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
-    this.manager.StopFrameUpdate();
     if (event.pointerType === 'mouse') {
       this.movingControlPoint = false;
       if (event.button === 0) {
         this.manager.SaveCompiledObject(this.currentStraightLine);
+        // Set control point
+        this.currentControlPoint = this.currentStraightLine.start;
       }
     } else {
       this.manager.SaveCompiledObject(this.currentStraightLine);
     }
 
+    //this.manager.StopFrameUpdate();
     delete this.currentStraightLine;
   }
 
