@@ -1,5 +1,5 @@
-import { CompiledObject, PaintMode } from './paint-mode';
-import { Settings } from '../../settings/settings.interface';
+import {CompiledObject, PaintMode} from './paint-mode';
+import {Settings} from '../../settings/settings.interface';
 
 export class StraightLine implements CompiledObject {
   name = 'straight-line';
@@ -27,44 +27,44 @@ export class StraightLine implements CompiledObject {
 }
 
 export class StraightLineMode extends PaintMode {
-  private lastPointer: Uint32Array;
-  Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void {
+  private currentStraightLine: StraightLine;
 
+  public Reproduce(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+    canvas.beginPath();
+    canvas.moveTo(object.start[0], object.start[1]);
+    canvas.lineTo(object.stop[0], object.stop[1]);
+    canvas.lineCap = 'round';
+    canvas.lineWidth = this.settings.width;
+    canvas.strokeStyle = this.settings.color;
+    canvas.stroke();
   }
 
-  OnSelected() {
+  public OnPointerDown(event: PointerEvent): void {
+    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const normalized = this.manager.NormalizePoint(point);
+    this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
+
     this.manager.StartFrameUpdate();
   }
 
-  OnPointerEnter(event: PointerEvent) {
-    this.predictCanvas.canvas.style.cursor = 'none';
-  }
+  public OnPointerUp(event: PointerEvent): void {
+    this.manager.StopFrameUpdate();
+    this.manager.SaveCompiledObject(this.currentStraightLine);
 
-  OnPointerLeave(event: PointerEvent) {
-    this.predictCanvas.canvas.style.cursor = 'crosshair';
+    delete this.currentStraightLine;
   }
 
   public OnPointerMove(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
-    const normalizedPoint = this.manager.NormalizePoint(point);
-    this.lastPointer = normalizedPoint;
+    if (!this.currentStraightLine) { return; }
+
+    this.currentStraightLine.stop = this.manager.NormalizePoint(point);
   }
 
-  public OnFrameUpdate() {
+  public OnFrameUpdate(): void {
     this.predictCanvas.clear();
-    if (!this.lastPointer) {
-      return;
-    }
-    this.predictCanvas.dot(this.lastPointer, 15, 'orange');
-  }
+    if (!this.currentStraightLine) { return; }
 
-  public OnWheel(event: WheelEvent) {
-    if (event.deltaX !== 0) {
-      this.lastPointer[0] += event.deltaX;
-    } else if (event.deltaY) {
-      this.lastPointer[1] += event.deltaY;
-    }
-
-    this.lastPointer = this.manager.NormalizePoint(this.lastPointer);
+    this.Reproduce(this.predictCanvas, this.currentStraightLine);
   }
 }
