@@ -93,12 +93,13 @@ export class StraightLineMode extends PaintMode {
         this.manager.SaveCompiledObject(this.currentStraightLine);
         // Set control point
         this.currentControlPoint = this.currentStraightLine.start;
+        this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }
     } else {
       this.manager.SaveCompiledObject(this.currentStraightLine);
     }
 
-    //this.manager.StopFrameUpdate();
+    this.manager.StopFrameUpdate();
     delete this.currentStraightLine;
   }
 
@@ -112,5 +113,15 @@ export class StraightLineMode extends PaintMode {
     if (!!this.currentControlPoint) {
       this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
     }
+  }
+
+  public MakeReady(): void {
+    if (!!this.currentControlPoint) {
+      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+    }
+  }
+
+  public OnUnSelected(): void {
+    this.predictCanvas.clear();
   }
 }
