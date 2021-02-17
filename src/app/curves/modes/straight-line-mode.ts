@@ -28,6 +28,8 @@ export class StraightLine implements CompiledObject {
 
 export class StraightLineMode extends PaintMode {
   private currentStraightLine: StraightLine;
+  private currentControlPoint: Uint32Array;
+  private movingControlPoint = false;
 
   public Reproduce(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
@@ -42,29 +44,67 @@ export class StraightLineMode extends PaintMode {
   public OnPointerDown(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
     const normalized = this.manager.NormalizePoint(point);
-    this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
-
     this.manager.StartFrameUpdate();
-  }
 
-  public OnPointerUp(event: PointerEvent): void {
-    this.manager.StopFrameUpdate();
-    this.manager.SaveCompiledObject(this.currentStraightLine);
-
-    delete this.currentStraightLine;
+    // PC only
+    if (event.pointerType === 'mouse') {
+      // Control point move on right click
+      if (event.button === 2) {
+        this.currentControlPoint = normalized;
+        this.movingControlPoint = true;
+      } else if (event.button === 0) {
+        // Line from pointer location or to pointer location
+        if (!!this.currentControlPoint) {
+          this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, this.currentControlPoint, normalized);
+        } else {
+          this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
+        }
+      }
+    } else {
+      // Others
+      this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
+    }
   }
 
   public OnPointerMove(event: PointerEvent): void {
     const point = new Uint32Array([event.offsetX, event.offsetY]);
-    if (!this.currentStraightLine) { return; }
+    const normalized = this.manager.NormalizePoint(point);
 
-    this.currentStraightLine.stop = this.manager.NormalizePoint(point);
+    if (event.pointerType === 'mouse') {
+      if (this.movingControlPoint) {
+        this.currentControlPoint = normalized;
+      } else if (!!this.currentStraightLine){
+        this.currentStraightLine.stop = normalized;
+      }
+    } else {
+      if (!this.currentStraightLine) { return; }
+      this.currentStraightLine.stop = normalized;
+    }
+  }
+
+  public OnPointerUp(event: PointerEvent): void {
+    this.manager.StopFrameUpdate();
+    if (event.pointerType === 'mouse') {
+      this.movingControlPoint = false;
+      if (event.button === 0) {
+        this.manager.SaveCompiledObject(this.currentStraightLine);
+      }
+    } else {
+      this.manager.SaveCompiledObject(this.currentStraightLine);
+    }
+
+    delete this.currentStraightLine;
   }
 
   public OnFrameUpdate(): void {
     this.predictCanvas.clear();
-    if (!this.currentStraightLine) { return; }
 
-    this.Reproduce(this.predictCanvas, this.currentStraightLine);
+    if (!!this.currentStraightLine) {
+      this.Reproduce(this.predictCanvas, this.currentStraightLine);
+    }
+
+    if (!!this.currentControlPoint) {
+      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+    }
   }
 }
