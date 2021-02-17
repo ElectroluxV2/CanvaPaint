@@ -160,6 +160,7 @@ export class Paint {
         console.warn(`No mode named ${mode}!`);
         return;
       }
+      this.currentMode?.OnUnSelected?.();
       this.currentMode = this.modes.get(mode);
       this.currentMode?.OnSelected?.();
     });
