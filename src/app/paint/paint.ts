@@ -81,9 +81,9 @@ export class Paint {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
     };
 
-    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
-      this.mainCanvasCTX.beginPath();
-      this.mainCanvasCTX.arc(
+    const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
+      canvas.beginPath();
+      canvas.arc(
         position[0],
         position[1],
         width / Math.PI,
@@ -91,23 +91,12 @@ export class Paint {
         2 * Math.PI,
         false
       );
-      this.mainCanvasCTX.fillStyle = color;
-      this.mainCanvasCTX.fill();
+      canvas.fillStyle = color;
+      canvas.fill();
     };
 
-    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => {
-      this.predictCanvasCTX.beginPath();
-      this.predictCanvasCTX.arc(
-        position[0],
-        position[1],
-        width / Math.PI,
-        0,
-        2 * Math.PI,
-        false
-      );
-      this.predictCanvasCTX.fillStyle = color;
-      this.predictCanvasCTX.fill();
-    };
+    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
+    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
 
     // Setup paint manager
     this.manager.StartFrameUpdate = () => {
