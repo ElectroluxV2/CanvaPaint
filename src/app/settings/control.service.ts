@@ -72,7 +72,7 @@ export class ControlService {
     // Choose settings based on device
     this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
     this.settingsData.lazyEnabled = !platform.ANDROID && !platform.IOS;
-    this.settingsData.tolerance = !platform.ANDROID && !platform.IOS ? 3 : 1;
+    this.settingsData.tolerance = 1;
     this.settingsData.lazyMultiplier = 0.2 * window.devicePixelRatio;
 
     // Preselected options
