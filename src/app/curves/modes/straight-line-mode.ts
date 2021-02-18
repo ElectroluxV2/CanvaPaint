@@ -1,5 +1,5 @@
-import { CompiledObject, PaintMode } from './paint-mode';
-import { Settings } from '../../settings/settings.interface';
+import {CompiledObject, PaintMode} from './paint-mode';
+import {Settings} from '../../settings/settings.interface';
 
 export class StraightLine implements CompiledObject {
   name = 'straight-line';
@@ -27,12 +27,101 @@ export class StraightLine implements CompiledObject {
 }
 
 export class StraightLineMode extends PaintMode {
-  Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void {
+  private currentStraightLine: StraightLine;
+  private currentControlPoint: Uint32Array;
+  private movingControlPoint = false;
 
+  public Reproduce(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+    canvas.beginPath();
+    canvas.moveTo(object.start[0], object.start[1]);
+    canvas.lineTo(object.stop[0], object.stop[1]);
+    canvas.lineCap = 'round';
+    canvas.lineWidth = this.settings.width;
+    canvas.strokeStyle = this.settings.color;
+    canvas.stroke();
   }
 
-  OnPointerMove(event: PointerEvent) {
-    console.log(event.pointerType);
+  public OnSelected(): void {
+    delete this.currentControlPoint;
   }
 
+  public OnPointerDown(event: PointerEvent): void {
+    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const normalized = this.manager.NormalizePoint(point);
+    this.manager.StartFrameUpdate();
+
+    // PC only
+    if (event.pointerType === 'mouse') {
+      // Control point move on right click
+      if (event.button === 2) {
+        this.currentControlPoint = normalized;
+        this.movingControlPoint = true;
+      } else if (event.button === 0) {
+        // Line from pointer location or to pointer location
+        if (!!this.currentControlPoint) {
+          this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, this.currentControlPoint, normalized);
+        } else {
+          this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
+        }
+      }
+    } else {
+      // Others
+      this.currentStraightLine = new StraightLine(this.settings.color, this.settings.width, normalized, normalized);
+    }
+  }
+
+  public OnPointerMove(event: PointerEvent): void {
+    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const normalized = this.manager.NormalizePoint(point);
+
+    if (event.pointerType === 'mouse') {
+      if (this.movingControlPoint) {
+        this.currentControlPoint = normalized;
+      } else if (!!this.currentStraightLine){
+        this.currentStraightLine.stop = normalized;
+      }
+    } else {
+      if (!this.currentStraightLine) { return; }
+      this.currentStraightLine.stop = normalized;
+    }
+  }
+
+  public OnPointerUp(event: PointerEvent): void {
+    if (event.pointerType === 'mouse') {
+      this.movingControlPoint = false;
+      if (event.button === 0) {
+        this.manager.SaveCompiledObject(this.currentStraightLine);
+        // Set control point
+        this.currentControlPoint = this.currentStraightLine.start;
+        this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+      }
+    } else {
+      this.manager.SaveCompiledObject(this.currentStraightLine);
+    }
+
+    this.manager.StopFrameUpdate();
+    delete this.currentStraightLine;
+  }
+
+  public OnFrameUpdate(): void {
+    this.predictCanvas.clear();
+
+    if (!!this.currentStraightLine) {
+      this.Reproduce(this.predictCanvas, this.currentStraightLine);
+    }
+
+    if (!!this.currentControlPoint) {
+      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+    }
+  }
+
+  public MakeReady(): void {
+    if (!!this.currentControlPoint) {
+      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+    }
+  }
+
+  public OnUnSelected(): void {
+    this.predictCanvas.clear();
+  }
 }

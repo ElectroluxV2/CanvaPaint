@@ -22,6 +22,11 @@ abstract class PaintModeOptional {
   public OnSelected?(): void;
 
   /**
+   * Induced every time mode is unselected
+   */
+  public OnUnSelected?(): void;
+
+  /**
    * Induced every time event is fired and only when mode was selected at event fire time
    * Possible events:
    * - user clears screen,
