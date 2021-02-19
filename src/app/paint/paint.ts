@@ -33,9 +33,17 @@ export interface PaintManager {
   StopFrameUpdate(): void;
   /**
    * Saves compiled object
+   * Draws compiled object
+   * Sends compiled object to server
    * @param object Object to save
    */
   SaveCompiledObject(object: CompiledObject): void;
+
+  /**
+   * Used to share (transport) object between clients
+   * @param object Object to share
+   */
+  ShareCompiledObject(object: CompiledObject): void;
   /**
    * @param point to normalize
    * @param enhance whenever to multiply by device dpi
@@ -56,6 +64,10 @@ export class Paint {
   private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
   private currentSettings: Settings;
   private manager: PaintManager = {} as PaintManager;
+  /**
+   * Holds socket connection to server
+   */
+  private connection: WebSocket;
 
   /**
    * Contains all compiled objects
@@ -118,6 +130,10 @@ export class Paint {
 
       this.compiledObjectStorage.get(object.name).push(object);
       this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
+    };
+
+    this.manager.ShareCompiledObject = object => {
+      this.connection.send(JSON.stringify(object));
     };
 
     this.manager.NormalizePoint = (point, enhance= false) => {
@@ -234,6 +250,38 @@ export class Paint {
     this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
       event.preventDefault();
       this.currentMode?.OnPointerLostCapture?.(event);
+    };
+
+    // Setup connection
+
+    this.connection = new WebSocket('ws://localhost:3000');
+    this.connection.onopen = event => {
+      setInterval(() => {
+        this.connection.send('{}');
+      });
+    };
+
+    this.connection.onclose = event => {
+      console.warn(event);
+    };
+
+    this.connection.onerror = event => {
+      console.warn(event);
+    };
+
+    this.connection.onmessage = event => {
+      let parsed;
+
+      try {
+        parsed = JSON.parse(event.data);
+      } catch (error) {
+        // Ignore bad packet
+        return;
+      }
+
+      this.modes.get(parsed.name).Reproduce(this.mainCanvasCTX, parsed);
+
+      console.log(parsed);
     };
   }
 
