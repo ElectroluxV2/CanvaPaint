@@ -36,8 +36,8 @@ export class StraightLineMode extends PaintMode {
     canvas.moveTo(object.start[0], object.start[1]);
     canvas.lineTo(object.stop[0], object.stop[1]);
     canvas.lineCap = 'round';
-    canvas.lineWidth = this.settings.width;
-    canvas.strokeStyle = this.settings.color;
+    canvas.lineWidth = object.width;
+    canvas.strokeStyle = object.color;
     canvas.stroke();
   }
 
