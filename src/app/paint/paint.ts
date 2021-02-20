@@ -84,113 +84,20 @@ export class Paint {
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
 
-    // Inject additional methods
-    this.mainCanvasCTX.clear = () => {
-      this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
-    };
+    this.InjectCanvas();
 
-    this.predictCanvasCTX.clear = () => {
-      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
-    };
+    this.PrepareManager();
 
-    const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
-      canvas.beginPath();
-      canvas.arc(
-        position[0],
-        position[1],
-        width / Math.PI,
-        0,
-        2 * Math.PI,
-        false
-      );
-      canvas.fillStyle = color;
-      canvas.fill();
-    };
+    this.HandleModes();
 
-    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
-    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
+    this.ResponseToControlService();
 
-    // Setup paint manager
-    this.manager.StartFrameUpdate = () => {
-      // Start new loop, obtain new id
-      this.ngZone.runOutsideAngular(() => {
-        this.currentMode?.OnFrameUpdate?.();
-        this.animationFrameId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
-      });
-    };
+    this.HandleEvents();
 
-    this.manager.StopFrameUpdate = () => {
-      window.cancelAnimationFrame(this.animationFrameId);
-    };
+    this.HandleConnection();
+  }
 
-    this.manager.SaveCompiledObject = object => {
-      if (!this.compiledObjectStorage.has(object.name)) {
-        this.compiledObjectStorage.set(object.name, []);
-      }
-
-      this.compiledObjectStorage.get(object.name).push(object);
-      this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
-    };
-
-    this.manager.ShareCompiledObject = object => {
-      this.connection.send(JSON.stringify(object));
-    };
-
-    this.manager.NormalizePoint = (point, enhance= false) => {
-      // Make sure the point does not go beyond the screen
-      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
-      point[0] = point[0] < 0 ? 0 : point[0];
-
-      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
-      point[1] = point[1] < 0 ? 0 : point[1];
-
-      if (!enhance) {
-        return point;
-      }
-
-      point[0] *= window.devicePixelRatio;
-      point[1] *= window.devicePixelRatio;
-
-      return point;
-    };
-
-    // Setup modes
-    this.currentSettings = this.controlService.settings.value;
-    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
-    this.currentMode = this.modes.get(this.controlService.mode.value);
-    this.controlService.mode.subscribe(mode => {
-      if (!this.modes.has(mode)) {
-        console.warn(`No mode named ${mode}!`);
-        return;
-      }
-      this.currentMode?.OnUnSelected?.();
-      this.currentMode = this.modes.get(mode);
-      this.currentMode?.OnSelected?.();
-    });
-
-    // Response to settings change
-    controlService.settings.subscribe(newSettings => {
-      this.currentMode?.OnSettingsUpdate(newSettings);
-
-      // When color scheme has changed we need to redraw with different palette colour
-      if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
-        this.currentSettings = newSettings;
-        this.ReDraw();
-      } else {
-        this.currentSettings = newSettings;
-      }
-    });
-
-    // Response to clear
-    this.controlService.clear.subscribe(() => {
-      this.mainCanvasCTX.clear();
-      this.predictCanvasCTX.clear();
-      this.compiledObjectStorage.clear();
-      this.currentMode?.MakeReady?.();
-    });
-
+  private HandleEvents(): void {
     // Events
     this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
       // Make right click possible to be caught in pointer down event
@@ -251,9 +158,125 @@ export class Paint {
       event.preventDefault();
       this.currentMode?.OnPointerLostCapture?.(event);
     };
+  }
 
+  private InjectCanvas(): void {
+    // Inject additional methods
+    this.mainCanvasCTX.clear = () => {
+      this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
+    };
+
+    this.predictCanvasCTX.clear = () => {
+      this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
+    };
+
+    const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
+      canvas.beginPath();
+      canvas.arc(
+        position[0],
+        position[1],
+        width / Math.PI,
+        0,
+        2 * Math.PI,
+        false
+      );
+      canvas.fillStyle = color;
+      canvas.fill();
+    };
+
+    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
+    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
+  }
+
+  private PrepareManager(): void {
+    // Setup paint manager
+    this.manager.StartFrameUpdate = () => {
+      // Start new loop, obtain new id
+      this.ngZone.runOutsideAngular(() => {
+        this.currentMode?.OnFrameUpdate?.();
+        this.animationFrameId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
+      });
+    };
+
+    this.manager.StopFrameUpdate = () => {
+      window.cancelAnimationFrame(this.animationFrameId);
+    };
+
+    this.manager.SaveCompiledObject = object => {
+      if (!this.compiledObjectStorage.has(object.name)) {
+        this.compiledObjectStorage.set(object.name, []);
+      }
+
+      this.compiledObjectStorage.get(object.name).push(object);
+      this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
+    };
+
+    this.manager.ShareCompiledObject = object => {
+      this.connection.send(JSON.stringify(object));
+    };
+
+    this.manager.NormalizePoint = (point, enhance= false) => {
+      // Make sure the point does not go beyond the screen
+      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
+      point[0] = point[0] < 0 ? 0 : point[0];
+
+      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
+      point[1] = point[1] < 0 ? 0 : point[1];
+
+      if (!enhance) {
+        return point;
+      }
+
+      point[0] *= window.devicePixelRatio;
+      point[1] *= window.devicePixelRatio;
+
+      return point;
+    };
+  }
+
+  private HandleModes(): void {
+    // Setup modes
+    this.currentSettings = this.controlService.settings.value;
+    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+    this.currentMode = this.modes.get(this.controlService.mode.value);
+    this.controlService.mode.subscribe(mode => {
+      if (!this.modes.has(mode)) {
+        console.warn(`No mode named ${mode}!`);
+        return;
+      }
+      this.currentMode?.OnUnSelected?.();
+      this.currentMode = this.modes.get(mode);
+      this.currentMode?.OnSelected?.();
+    });
+  }
+
+  private ResponseToControlService(): void {
+    // Response to settings change
+    this.controlService.settings.subscribe(newSettings => {
+      this.currentMode?.OnSettingsUpdate(newSettings);
+
+      // When color scheme has changed we need to redraw with different palette colour
+      if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
+        this.currentSettings = newSettings;
+        this.ReDraw();
+      } else {
+        this.currentSettings = newSettings;
+      }
+    });
+
+    // Response to clear
+    this.controlService.clear.subscribe(() => {
+      this.mainCanvasCTX.clear();
+      this.predictCanvasCTX.clear();
+      this.compiledObjectStorage.clear();
+      this.currentMode?.MakeReady?.();
+    });
+  }
+
+  private HandleConnection(): void {
     // Setup connection
-
     this.connection = new WebSocket('ws://localhost:3000');
     this.connection.onopen = event => {
       setInterval(() => {
