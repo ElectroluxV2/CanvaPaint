@@ -42,8 +42,9 @@ export interface PaintManager {
   /**
    * Used to share (transport) object between clients
    * @param object Object to share
+   * @param finished Informs if object has been finished and there won't be any updates to it
    */
-  ShareCompiledObject(object: CompiledObject): void;
+  ShareCompiledObject(object: CompiledObject, finished: boolean): void;
   /**
    * @param point to normalize
    * @param enhance whenever to multiply by device dpi
@@ -211,7 +212,7 @@ export class Paint {
       this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
     };
 
-    this.manager.ShareCompiledObject = object => {
+    this.manager.ShareCompiledObject = (object, finished = false) => {
       this.connection.send(JSON.stringify(object));
     };
 

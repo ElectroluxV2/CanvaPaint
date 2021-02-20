@@ -18,6 +18,7 @@ export class FreeLine implements CompiledObject {
 export class FreeLineMode extends PaintMode {
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
+  private compiled: CompiledObject;
 
   public Reproduce(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
@@ -60,6 +61,10 @@ export class FreeLineMode extends PaintMode {
       this.currentSpline.AddPoint(this.currentLazyBrush.Get());
     }
 
+    // Send to others
+    this.compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized);
+    this.manager.ShareCompiledObject(this.compiled, false);
+
     // Draw predicted line
     this.predictCanvas.clear();
     this.currentSpline.optimized?.length ?
@@ -68,12 +73,10 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
-    // End spline
-    const compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized);
-
     // End spline with saving, this method will draw itself
     this.predictCanvas.clear();
-    this.manager.SaveCompiledObject(compiled);
+    this.manager.SaveCompiledObject(this.compiled);
+    this.manager.ShareCompiledObject(this.compiled, true);
 
     // Cleanup
     this.manager.StopFrameUpdate();
