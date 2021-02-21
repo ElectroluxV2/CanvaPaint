@@ -277,20 +277,27 @@ export class Paint {
   }
 
   private HandleConnection(): void {
-    // Setup connection
-    this.connection = new WebSocket('ws://localhost:3000');
-    this.connection.onopen = event => {
-      setInterval(() => {
-        this.connection.send('{}');
-      });
+
+    const connect = () => {
+      console.log('a');
+      this.connection = new WebSocket('ws://localhost:3000');
     };
 
+    connect();
+
     this.connection.onclose = event => {
-      console.warn(event);
+      console.warn(`Connection unexpectedly closed: ${event.reason}`);
+      // Reconnect
+      setTimeout(connect, 1000);
+    };
+
+    this.connection.onopen = event => {
+
     };
 
     this.connection.onerror = event => {
-      console.warn(event);
+      console.warn(`An error occurred in socket: ${event.type}`);
+      event.preventDefault();
     };
 
     this.connection.onmessage = event => {
