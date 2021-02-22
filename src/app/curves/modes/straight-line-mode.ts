@@ -27,11 +27,12 @@ export class StraightLine implements CompiledObject {
 }
 
 export class StraightLineMode extends PaintMode {
+  readonly name = 'straight-line';
   private currentStraightLine: StraightLine;
   private currentControlPoint: Uint32Array;
   private movingControlPoint = false;
 
-  public Reproduce(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+  public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(object.start[0], object.start[1]);
     canvas.lineTo(object.stop[0], object.stop[1]);
@@ -39,6 +40,14 @@ export class StraightLineMode extends PaintMode {
     canvas.lineWidth = object.width;
     canvas.strokeStyle = object.color;
     canvas.stroke();
+  }
+
+  public SerializeObject(object: CompiledObject): string {
+    return '';
+  }
+
+  public ReadObject(object: CompiledObject): boolean {
+    return false;
   }
 
   public OnSelected(): void {
@@ -107,7 +116,7 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (!!this.currentStraightLine) {
-      this.Reproduce(this.predictCanvas, this.currentStraightLine);
+      this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
     }
 
     if (!!this.currentControlPoint) {
