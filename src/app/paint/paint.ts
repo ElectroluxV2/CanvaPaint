@@ -209,10 +209,16 @@ export class Paint {
       }
 
       this.compiledObjectStorage.get(object.name).push(object);
-      this.modes.get(object.name).Reproduce(this.mainCanvasCTX, object);
+      this.modes.get(object.name).ReproduceObject(this.mainCanvasCTX, object);
     };
 
     this.manager.ShareCompiledObject = (object, finished = false) => {
+
+
+
+      // onsole.log(object);
+
+      // console.log(JSON.stringify(object).length);
       this.connection.send(JSON.stringify(object));
     };
 
@@ -238,9 +244,30 @@ export class Paint {
   private HandleModes(): void {
     // Setup modes
     this.currentSettings = this.controlService.settings.value;
-    this.modes.set('free-line', new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('straight-line', new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
-    this.modes.set('continuous-straight-line', new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings));
+
+    const modesArray = [
+      new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings),
+      new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings),
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings)
+    ];
+
+    const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');
+
+    for (const mode of modesArray) {
+
+      if (!('name' in mode)) {
+        console.warn(`Cannot add mode without name!`);
+        continue;
+      }
+
+      if (nameRegex.test(mode.name)) {
+        console.warn(`Mode with name "${mode.name}" doesn't match name regex!`);
+        continue;
+      }
+
+      this.modes.set(mode.name, mode);
+    }
+
     this.currentMode = this.modes.get(this.controlService.mode.value);
     this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
@@ -310,7 +337,7 @@ export class Paint {
         return;
       }
 
-      this.modes.get(parsed.name).Reproduce(this.mainCanvasCTX, parsed);
+      this.modes.get(parsed.name).ReproduceObject(this.mainCanvasCTX, parsed);
 
       console.log(parsed);
     };
@@ -332,7 +359,7 @@ export class Paint {
 
     for (const [name, objects] of this.compiledObjectStorage) {
       for (const compiledObject of objects) {
-        this.modes.get(name).Reproduce(this.mainCanvasCTX, compiledObject);
+        this.modes.get(name).ReproduceObject(this.mainCanvasCTX, compiledObject);
       }
     }
 

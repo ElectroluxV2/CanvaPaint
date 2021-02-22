@@ -16,12 +16,22 @@ export class FreeLine implements CompiledObject {
 }
 
 export class FreeLineMode extends PaintMode {
+  readonly name = 'free-line';
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
   private compiled: CompiledObject;
 
-  public Reproduce(canvas: CanvasRenderingContext2D, object: FreeLine): void {
+  public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
+  }
+
+  public SerializeObject(object: CompiledObject): string {
+    return '';
+  }
+
+  public ReadObject(object: CompiledObject): boolean {
+
+    return true;
   }
 
   public OnPointerDown(event: PointerEvent): void {

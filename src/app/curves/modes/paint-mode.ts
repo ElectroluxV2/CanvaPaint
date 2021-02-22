@@ -7,6 +7,7 @@ import { PaintManager } from '../../paint/paint';
 export interface CompiledObject {
   /**
    * Has to be unique, used for storing in map as key, must match mode name
+   * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
    */
   name: string;
   /**
@@ -112,6 +113,11 @@ abstract class PaintModeOptional {
 
 export abstract class PaintMode extends PaintModeOptional {
   /**
+   * Has to be unique, used for storing in map as key, must match exported object name
+   * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
+   */
+  readonly name: string;
+  /**
    * Contains Paint's methods
    */
   readonly manager: PaintManager;
@@ -143,7 +149,19 @@ export abstract class PaintMode extends PaintModeOptional {
    * @param canvas render destination
    * @param object object to render
    */
-  abstract Reproduce(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+  abstract ReproduceObject(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+
+  /**
+   * Metod used in transportation
+   * Should return string readable by read method
+   */
+  abstract SerializeObject(object: CompiledObject): string;
+
+  /**
+   * Metod used in transportation
+   * Should return true if object was successfully read
+   */
+  abstract ReadObject(object: CompiledObject): boolean;
 
   // Default
   public OnSettingsUpdate(settings: Settings): void {
