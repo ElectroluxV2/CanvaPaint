@@ -161,7 +161,7 @@ export abstract class PaintMode extends PaintModeOptional {
    * Metod used in transportation
    * Should return true if object was successfully read
    */
-  abstract ReadObject(object: CompiledObject): boolean;
+  abstract ReadObject(data: string): boolean;
 
   // Default
   public OnSettingsUpdate(settings: Settings): void {

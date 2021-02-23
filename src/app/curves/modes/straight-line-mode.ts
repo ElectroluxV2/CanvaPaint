@@ -46,7 +46,7 @@ export class StraightLineMode extends PaintMode {
     return '';
   }
 
-  public ReadObject(object: CompiledObject): boolean {
+  public ReadObject(data: string): boolean {
     return false;
   }
 
