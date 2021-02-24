@@ -214,12 +214,12 @@ export class Paint {
 
     this.manager.ShareCompiledObject = (object, finished = false) => {
 
-
-
-      // onsole.log(object);
-
-      // console.log(JSON.stringify(object).length);
-      this.connection.send(JSON.stringify(object));
+      const serialized = this.modes.get(object.name)?.SerializeObject(object);
+      if (serialized.length) {
+        this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
+      } else {
+        console.warn(`Empty object from ${object.name}!`);
+      }
     };
 
     this.manager.NormalizePoint = (point, enhance= false) => {
@@ -306,7 +306,6 @@ export class Paint {
   private HandleConnection(): void {
 
     const connect = () => {
-      console.log('a');
       this.connection = new WebSocket('ws://localhost:3000');
     };
 
@@ -328,18 +327,57 @@ export class Paint {
     };
 
     this.connection.onmessage = event => {
-      let parsed;
 
-      try {
-        parsed = JSON.parse(event.data);
-      } catch (error) {
-        // Ignore bad packet
+      let data = event.data;
+
+      if (data[0] !== 't') {
+        console.warn('Bad data');
         return;
       }
 
-      this.modes.get(parsed.name).ReproduceObject(this.mainCanvasCTX, parsed);
+      if (data[2] !== 'o') {
+        console.warn(`Unsupported packet type: "${data[2]}"`);
+        return;
+      }
 
-      console.log(parsed);
+      if (data[4] !== 'f') {
+        console.warn(`Missing finished flag, found: "${data[4]}"`);
+        return;
+      }
+
+      // Read finished flag
+      const finished = data[6] === 't';
+
+      // Remove headers
+      data = data.substring(10);
+
+      let name = '';
+      // Read object name
+      for (const c of data) {
+        if (c === ',') { break; }
+        name += c;
+      }
+
+      // Remove name
+      data = data.substring(name.length + 1);
+
+      // Unsupported
+      if (!this.modes.has(name)) {
+        console.warn(`Unsupported object type: "${name}"`);
+        return;
+      }
+
+      // Read whole object
+      const object = this.modes.get(name).ReadObject(data);
+      if (!object) {
+        console.warn(`Mode "${name}" failed to read network object`);
+        return;
+      }
+
+      this.manager.SaveCompiledObject(object as CompiledObject);
+
+      console.log(object);
+
     };
   }
 

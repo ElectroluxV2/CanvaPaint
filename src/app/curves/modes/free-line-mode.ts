@@ -6,9 +6,9 @@ export class FreeLine implements CompiledObject {
   name = 'free-line';
   color: string;
   width: number;
-  points: Uint32Array[];
+  points: Int16Array[];
 
-  constructor(color?: string, width?: number, points?: Uint32Array[]) {
+  constructor(color?: string, width?: number, points?: Int16Array[]) {
     this.color = color;
     this.width = width;
     this.points = points;
@@ -25,14 +25,121 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public SerializeObject(object: CompiledObject): string {
-    return '';
+  public SerializeObject(object: FreeLine): string {
+    // String builder
+    const sb = [];
+
+    sb.push(`n:${object.name}`);
+    sb.push(`c:${object.color}`);
+    sb.push(`w:${object.width}`);
+
+    const ps = [];
+
+    for (const point of object.points) {
+      ps.push(`${point[0]};${point[1]}`);
+    }
+
+    sb.push(`p:${ps.join('^')}`);
+
+    return sb.join(',');
   }
 
-  public ReadObject(data: string): boolean {
+  public ReadObject(data: string): FreeLine | boolean {
 
+    const freeLine = new FreeLine();
+    let i = 0;
 
-    return true;
+    // Read color
+    let color = '';
+    for (i += 'c:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      color += c;
+    }
+
+    // Try color
+    const s = new Option().style;
+    s.color = color;
+    if (s.color === '') {
+      console.warn(`"${color}" is not valid color!`);
+      return false;
+    }
+
+    // Assign
+    freeLine.color = color;
+
+    // Read width
+    let width = '';
+    for (i += ',w:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      width += c;
+    }
+
+    // Check width
+    if (Number.isNaN(width)) {
+      console.warn(`"${width}" is not valid number!`);
+      return false;
+    }
+
+    // Assign
+    freeLine.width = Number.parseInt(width, 10);
+
+    // Read points
+    freeLine.points = [];
+    for (i += ',p:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      // Single point
+      const point = new Int16Array(2);
+      let n1 = '', n2 = '';
+
+      // Before ; is n1
+      for (; i < data.length; i++) {
+        const c1 = data[i];
+
+        if (c1 === ';') { break; }
+
+        n1 += c1;
+      }
+
+      // Check n1
+      if (Number.isNaN(n1)) {
+        console.warn(`"${n1}" is not valid number!`);
+        return false;
+      }
+
+      // Assign
+      point[0] = Number.parseInt(n1, 10);
+
+      // After ; is n2
+      for (i += ';'.length; i < data.length; i++) {
+
+        const c1 = data[i];
+
+        if (c1 === '^') { break; }
+
+        n2 += c1;
+      }
+
+      // Check n2
+      if (Number.isNaN(n2)) {
+        console.warn(`"${n2}" is not valid number!`);
+        return false;
+      }
+
+      // Assign
+      point[1] = Number.parseInt(n2, 10);
+      freeLine.points.push(point);
+    }
+
+    return freeLine;
   }
 
   public OnPointerDown(event: PointerEvent): void {
