@@ -57,7 +57,8 @@ export class Paint {
   /**
    * Holds result of requestAnimationFrame
    */
-  private animationFrameId: number;
+  private animationFrameForModesId: number;
+  private animationFrameForSocketsId: number;
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
@@ -195,12 +196,12 @@ export class Paint {
       // Start new loop, obtain new id
       this.ngZone.runOutsideAngular(() => {
         this.currentMode?.OnFrameUpdate?.();
-        this.animationFrameId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
+        this.animationFrameForModesId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
       });
     };
 
     this.manager.StopFrameUpdate = () => {
-      window.cancelAnimationFrame(this.animationFrameId);
+      window.cancelAnimationFrame(this.animationFrameForModesId);
     };
 
     this.manager.SaveCompiledObject = object => {
@@ -374,7 +375,9 @@ export class Paint {
         return;
       }
 
-      this.manager.SaveCompiledObject(object as CompiledObject);
+      if (finished) {
+        this.manager.SaveCompiledObject(object as CompiledObject);
+      }
 
       console.log(object);
 

@@ -7,12 +7,14 @@ export class StraightLine implements CompiledObject {
   width: number;
   start: Uint32Array;
   stop: Uint32Array;
+  id: string;
 
-  constructor(color: string, width: number, start?: Uint32Array, stop?: Uint32Array) {
+  constructor(color: string, width: number, start?: Uint32Array, stop?: Uint32Array, id?: string) {
     this.color = color;
     this.width = width;
     this.start = start ?? new Uint32Array(2);
     this.stop = stop ?? new Uint32Array(2);
+    this.id = id;
   }
 
   public Duplicate(): StraightLine {

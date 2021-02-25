@@ -11,9 +11,9 @@ export interface CompiledObject {
    */
   name: string;
   /**
-   * ID of client who created this object
+   * Unique identifier
    */
-  owner?: number;
+  id: string;
 }
 
 abstract class PaintModeOptional {

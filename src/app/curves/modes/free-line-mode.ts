@@ -7,11 +7,13 @@ export class FreeLine implements CompiledObject {
   color: string;
   width: number;
   points: Int16Array[];
+  id: string;
 
-  constructor(color?: string, width?: number, points?: Int16Array[]) {
+  constructor(color?: string, width?: number, points?: Int16Array[], id?: string) {
     this.color = color;
     this.width = width;
     this.points = points;
+    this.id = id;
   }
 }
 
@@ -20,6 +22,7 @@ export class FreeLineMode extends PaintMode {
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
   private compiled: CompiledObject;
+  private currentGUID: string;
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
@@ -153,6 +156,8 @@ export class FreeLineMode extends PaintMode {
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Enable rendering
     this.manager.StartFrameUpdate();
+    // Generate GUID
+    this.currentGUID = Math.random().toString(36).substring(2, 15);
   }
 
   public OnPointerMove(event: PointerEvent): void {
@@ -180,7 +185,7 @@ export class FreeLineMode extends PaintMode {
     }
 
     // Send to others
-    this.compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized);
+    this.compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized, this.currentGUID);
     this.manager.ShareCompiledObject(this.compiled, false);
 
     // Draw predicted line
@@ -200,6 +205,7 @@ export class FreeLineMode extends PaintMode {
     this.manager.StopFrameUpdate();
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
+    delete this?.currentGUID;
   }
 
   public OnPointerCancel(event: PointerEvent): void {
