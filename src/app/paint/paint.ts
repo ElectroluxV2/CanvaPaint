@@ -75,6 +75,10 @@ export class Paint {
    * Contains all compiled objects
    */
   public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
+  /**
+   * Temporary location for object before they will be drawn
+   */
+  private compiledObjectStash: Map<string, CompiledObject> = new Map<string, CompiledObject>();
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
@@ -304,7 +308,21 @@ export class Paint {
     });
   }
 
+  private ConnectionDrawLoop(): void {
+    // Here we will iterate through objects transferred from sockets
+    for (const [id, object] of this.compiledObjectStash) {
+      console.log(id);
+    }
+
+
+    // Start new loop, obtain new id
+    this.ngZone.runOutsideAngular(() => {
+      this.animationFrameForSocketsId = window.requestAnimationFrame(this.ConnectionDrawLoop.bind(this));
+    });
+  }
+
   private HandleConnection(): void {
+    this.ConnectionDrawLoop();
 
     const connect = () => {
       this.connection = new WebSocket('ws://localhost:3000');
