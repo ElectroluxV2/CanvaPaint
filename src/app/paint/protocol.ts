@@ -57,7 +57,7 @@ export class Protocol {
 
     return {
       value,
-      position: Number.isNaN(value) ? position : position + 3
+      position: value === null ? position : position + 3
     };
   }
 }
