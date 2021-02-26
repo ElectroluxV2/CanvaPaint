@@ -7,12 +7,14 @@ export class StraightLine implements CompiledObject {
   width: number;
   start: Uint32Array;
   stop: Uint32Array;
+  id: string;
 
-  constructor(color: string, width: number, start?: Uint32Array, stop?: Uint32Array) {
+  constructor(color: string, width: number, start?: Uint32Array, stop?: Uint32Array, id?: string) {
     this.color = color;
     this.width = width;
     this.start = start ?? new Uint32Array(2);
     this.stop = stop ?? new Uint32Array(2);
+    this.id = id;
   }
 
   public Duplicate(): StraightLine {
@@ -27,18 +29,27 @@ export class StraightLine implements CompiledObject {
 }
 
 export class StraightLineMode extends PaintMode {
+  readonly name = 'straight-line';
   private currentStraightLine: StraightLine;
   private currentControlPoint: Uint32Array;
   private movingControlPoint = false;
 
-  public Reproduce(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+  public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(object.start[0], object.start[1]);
     canvas.lineTo(object.stop[0], object.stop[1]);
     canvas.lineCap = 'round';
-    canvas.lineWidth = this.settings.width;
-    canvas.strokeStyle = this.settings.color;
+    canvas.lineWidth = object.width;
+    canvas.strokeStyle = object.color;
     canvas.stroke();
+  }
+
+  public SerializeObject(object: CompiledObject): string {
+    return '';
+  }
+
+  public ReadObject(data: string): boolean {
+    return false;
   }
 
   public OnSelected(): void {
@@ -107,7 +118,7 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (!!this.currentStraightLine) {
-      this.Reproduce(this.predictCanvas, this.currentStraightLine);
+      this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
     }
 
     if (!!this.currentControlPoint) {

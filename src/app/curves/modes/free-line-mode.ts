@@ -6,21 +6,143 @@ export class FreeLine implements CompiledObject {
   name = 'free-line';
   color: string;
   width: number;
-  points: Uint32Array[];
+  points: Int16Array[];
+  id: string;
 
-  constructor(color?: string, width?: number, points?: Uint32Array[]) {
+  constructor(color?: string, width?: number, points?: Int16Array[], id?: string) {
     this.color = color;
     this.width = width;
     this.points = points;
+    this.id = id;
   }
 }
 
 export class FreeLineMode extends PaintMode {
+  readonly name = 'free-line';
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
+  private compiled: CompiledObject;
+  private currentGUID: string;
 
-  public Reproduce(canvas: CanvasRenderingContext2D, object: FreeLine): void {
+  public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
+  }
+
+  public SerializeObject(object: FreeLine): string {
+    // String builder
+    const sb = [];
+
+    sb.push(`n:${object.name}`);
+    sb.push(`c:${object.color}`);
+    sb.push(`w:${object.width}`);
+
+    const ps = [];
+
+    for (const point of object.points) {
+      ps.push(`${point[0]};${point[1]}`);
+    }
+
+    sb.push(`p:${ps.join('^')}`);
+
+    return sb.join(',');
+  }
+
+  public ReadObject(data: string): FreeLine | boolean {
+
+    const freeLine = new FreeLine();
+    let i = 0;
+
+    // Read color
+    let color = '';
+    for (i += 'c:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      color += c;
+    }
+
+    // Try color
+    const s = new Option().style;
+    s.color = color;
+    if (s.color === '') {
+      console.warn(`"${color}" is not valid color!`);
+      return false;
+    }
+
+    // Assign
+    freeLine.color = color;
+
+    // Read width
+    let width = '';
+    for (i += ',w:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      width += c;
+    }
+
+    // Check width
+    if (Number.isNaN(width)) {
+      console.warn(`"${width}" is not valid number!`);
+      return false;
+    }
+
+    // Assign
+    freeLine.width = Number.parseInt(width, 10);
+
+    // Read points
+    freeLine.points = [];
+    for (i += ',p:'.length; i < data.length; i++) {
+      const c = data[i];
+
+      if (c === ',') { break; }
+
+      // Single point
+      const point = new Int16Array(2);
+      let n1 = '', n2 = '';
+
+      // Before ; is n1
+      for (; i < data.length; i++) {
+        const c1 = data[i];
+
+        if (c1 === ';') { break; }
+
+        n1 += c1;
+      }
+
+      // Check n1
+      if (Number.isNaN(n1)) {
+        console.warn(`"${n1}" is not valid number!`);
+        return false;
+      }
+
+      // Assign
+      point[0] = Number.parseInt(n1, 10);
+
+      // After ; is n2
+      for (i += ';'.length; i < data.length; i++) {
+
+        const c1 = data[i];
+
+        if (c1 === '^') { break; }
+
+        n2 += c1;
+      }
+
+      // Check n2
+      if (Number.isNaN(n2)) {
+        console.warn(`"${n2}" is not valid number!`);
+        return false;
+      }
+
+      // Assign
+      point[1] = Number.parseInt(n2, 10);
+      freeLine.points.push(point);
+    }
+
+    return freeLine;
   }
 
   public OnPointerDown(event: PointerEvent): void {
@@ -34,6 +156,8 @@ export class FreeLineMode extends PaintMode {
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Enable rendering
     this.manager.StartFrameUpdate();
+    // Generate GUID
+    this.currentGUID = Math.random().toString(36).substring(2, 15);
   }
 
   public OnPointerMove(event: PointerEvent): void {
@@ -60,6 +184,10 @@ export class FreeLineMode extends PaintMode {
       this.currentSpline.AddPoint(this.currentLazyBrush.Get());
     }
 
+    // Send to others
+    this.compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized, this.currentGUID);
+    this.manager.ShareCompiledObject(this.compiled, false);
+
     // Draw predicted line
     this.predictCanvas.clear();
     this.currentSpline.optimized?.length ?
@@ -68,17 +196,16 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
-    // End spline
-    const compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized);
-
     // End spline with saving, this method will draw itself
     this.predictCanvas.clear();
-    this.manager.SaveCompiledObject(compiled);
+    this.manager.SaveCompiledObject(this.compiled);
+    this.manager.ShareCompiledObject(this.compiled, true);
 
     // Cleanup
     this.manager.StopFrameUpdate();
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
+    delete this?.currentGUID;
   }
 
   public OnPointerCancel(event: PointerEvent): void {

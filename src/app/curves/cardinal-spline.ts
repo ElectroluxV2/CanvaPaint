@@ -7,8 +7,8 @@ export class CardinalSpline {
   private width: number;
   private color: string;
 
-  private points: Uint32Array[] = [];
-  public optimized: Uint32Array[] = [];
+  private points: Int16Array[] = [];
+  public optimized: Int16Array[] = [];
 
   constructor(); // Make apply possible
   constructor(predict?: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
@@ -18,7 +18,7 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  static QuadraticCurve(context: CanvasRenderingContext2D, points: Uint32Array[], color: string, width: number, drawDotOnly: boolean = false): void {
+  static QuadraticCurve(context: CanvasRenderingContext2D, points: Int16Array[], color: string, width: number, drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
       context.arc(points[0][0], points[0][1], width * 2 / Math.PI, 0, 2 * Math.PI, false);
@@ -52,7 +52,7 @@ export class CardinalSpline {
     context.stroke();
   }
 
-  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Uint32Array[]): void {
+  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Int16Array[]): void {
     canvas.strokeStyle = color;
     canvas.lineWidth = width;
     CardinalSpline.QuadraticCurve(canvas, points, color, width, points?.length < 2);
@@ -95,7 +95,7 @@ export class CardinalSpline {
     }
 
     // Deep copy
-    this.points.push(new Uint32Array([...point]));
+    this.points.push(new Int16Array([...point]));
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
     // TODO: better way of doing it
