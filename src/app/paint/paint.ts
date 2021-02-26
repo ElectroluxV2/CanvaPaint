@@ -1,10 +1,11 @@
-import { EventEmitter, NgZone } from '@angular/core';
-import { CompiledObject, PaintMode } from '../curves/modes/paint-mode';
-import { FreeLineMode } from '../curves/modes/free-line-mode';
-import { ControlService } from '../settings/control.service';
-import { Settings } from '../settings/settings.interface';
-import { StraightLineMode } from '../curves/modes/straight-line-mode';
-import { ContinuousStraightLineMode } from '../curves/modes/continuous-straight-line-mode';
+import {EventEmitter, NgZone} from '@angular/core';
+import {CompiledObject, PaintMode} from '../curves/modes/paint-mode';
+import {FreeLineMode} from '../curves/modes/free-line-mode';
+import {ControlService} from '../settings/control.service';
+import {Settings} from '../settings/settings.interface';
+import {StraightLineMode} from '../curves/modes/straight-line-mode';
+import {ContinuousStraightLineMode} from '../curves/modes/continuous-straight-line-mode';
+import {PacketType, Protocol} from './protocol';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -349,23 +350,29 @@ export class Paint {
 
       let data = event.data;
 
-      if (data[0] !== 't') {
+      // tslint:disable-next-line:prefer-const
+      let { packetType, position } = Protocol.ReadPacketType(data);
+
+      if (packetType === PacketType.UNKNOWN) {
         console.warn('Bad data');
         return;
       }
 
-      if (data[2] !== 'o') {
-        console.warn(`Unsupported packet type: "${data[2]}"`);
-        return;
-      }
-
-      if (data[4] !== 'f') {
-        console.warn(`Missing finished flag, found: "${data[4]}"`);
+      if (packetType !== PacketType.OBJECT) {
+        console.warn(`Unsupported packet type: "${packetType}"`);
         return;
       }
 
       // Read finished flag
-      const finished = data[6] === 't';
+      // tslint:disable-next-line:no-conditional-assignment
+      let finished; ({ value: finished, position } = Protocol.ReadBoolean(data, 'f', position));
+
+      if (finished === null) {
+        console.warn(`Missing finished flag!`);
+        return;
+      }
+
+      console.log(data);
 
       // Remove headers
       data = data.substring(10);
@@ -397,7 +404,7 @@ export class Paint {
         this.manager.SaveCompiledObject(object as CompiledObject);
       }
 
-      console.log(object);
+      // console.log(object);
 
     };
   }
