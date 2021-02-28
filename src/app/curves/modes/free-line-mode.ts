@@ -1,6 +1,7 @@
 import { CompiledObject, PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
+import {Protocol} from '../../paint/protocol';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
@@ -47,20 +48,24 @@ export class FreeLineMode extends PaintMode {
     return sb.join(',');
   }
 
-  public ReadObject(data: string): FreeLine | boolean {
-
+  public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
     const freeLine = new FreeLine();
-    let i = 0;
 
     // Read color
-    let color = '';
-    for (i += 'c:'.length; i < data.length; i++) {
-      const c = data[i];
+    freeLine.color = Protocol.ReadString(data, 'c', currentPosition);
+    // Read width
+    freeLine.width = Protocol.ReadNumber(data, 'w', currentPosition);
+    // Read points
+    const parser = (d: string): Int16Array => {
+      return new Int16Array(2);
+    };
 
-      if (c === ',') { break; }
+    freeLine.points = Protocol.ReadArray<Array<Int16Array>, Int16Array>(Array, Int16Array, parser, data, 'p', currentPosition);
 
-      color += c;
-    }
+    console.log(freeLine);
+
+    // Not really helpful
+    /*const color = Protocol.ReadString(data, 'c', currentPosition);
 
     // Try color
     const s = new Option().style;
@@ -91,10 +96,12 @@ export class FreeLineMode extends PaintMode {
 
     // Assign
     freeLine.width = Number.parseInt(width, 10);
+    */
+
 
     // Read points
-    freeLine.points = [];
-    for (i += ',p:'.length; i < data.length; i++) {
+    /*freeLine.points = [];
+    for (let i = ',p:'.length; i < data.length; i++) {
       const c = data[i];
 
       if (c === ',') { break; }
@@ -141,7 +148,7 @@ export class FreeLineMode extends PaintMode {
       point[1] = Number.parseInt(n2, 10);
       freeLine.points.push(point);
     }
-
+*/
     return freeLine;
   }
 
