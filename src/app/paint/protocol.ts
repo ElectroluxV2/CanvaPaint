@@ -105,53 +105,68 @@ export class Protocol {
     return null;
   }
 
-  static ReadArray<T1 extends Array<T2>, T2>(arrayType: new() => T1, itemType: new() => T2, itemParser: (stringData: string) => T2, data: string, selector: string, currentPosition: { value: number } = { value: 0 }): T1 {
+  static ReadArray<T1 extends Array<T2>, T2>(arrayType: new() => T1, itemType: new() => T2, itemParser: (itemType: new() => T2, stringData: string, currentPosition: { value: number }) => T2, data: string, selector: string, currentPosition: { value: number } = { value: 0 }): T1 {
     const array = new arrayType();
-
-    /*console.log(itemType);
-
-    for (let i = 0; i < 10; i++) {
-      array.push(new itemType());
-    }
-
-   // console.log(array);*/
 
     do {
 
       const c1 = data[currentPosition.value];
       const c2 = data[currentPosition.value + 1];
 
-      // Find selector:
+      // Find selector
       if (c1 !== selector) { continue; }
       if (c2 !== ':') { continue; }
 
-      let s1 = '';
+      currentPosition.value += 2;
+
+      // Read items
       do {
-        const c3 = data[currentPosition.value + 2];
-        if (c3 === ',') { break; }
-        if (c3 === ';') {
-          currentPosition.value++;
-          break;
-        }
+        array.push(itemParser(itemType, data, currentPosition));
+      } while (currentPosition.value + 1 < data.length && currentPosition.value++);
+    } while (currentPosition.value + 1 < data.length && currentPosition.value++);
 
-        s1 += c3;
-      } while (currentPosition.value + 2 < data.length && currentPosition.value++);
+    return array;
+  }
 
-      let s2 = '';
-      do {
-        const c3 = data[currentPosition.value + 2];
-        if (c3 === ',') { break; }
-        if (c3 === '^') { break; }
+  static ReadPoint<T extends Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array | Float64Array>(pointType: new(elements) => T, data: string, currentPosition: { value: number } = { value: 0 }): T {
 
-        s2 += c3;
-      } while (currentPosition.value + 2 < data.length && currentPosition.value++);
+    const array = new pointType(2);
 
-      console.log(s1);
-      console.log(s2);
+    let s1 = '';
+    do {
+      const c = data[currentPosition.value];
+      if (c === ',') { break; }
+      if (c === ';') {
+        currentPosition.value++;
+        break;
+      }
 
-      break;
-    } while (currentPosition.value + 2 < data.length && currentPosition.value++);
+      s1 += c;
+    } while (currentPosition.value + 1 < data.length && currentPosition.value++);
 
-    return null;
+    let s2 = '';
+    do {
+      const c = data[currentPosition.value];
+      if (c === ',') { break; }
+      if (c === '^') { break; }
+
+      s2 += c;
+    } while (currentPosition.value + 1 < data.length && currentPosition.value++);
+
+    if (pointType.name[0] === 'F') {
+
+      array[0] = Number.parseFloat(s1);
+      array[1] = Number.parseFloat(s2);
+    } else {
+
+      array[0] = Number.parseInt(s1, 10);
+      array[1] = Number.parseInt(s2, 10);
+    }
+
+    return array;
+  }
+
+  static GenerateId(): string {
+    return Math.random().toString(36).substring(2, 15);
   }
 }

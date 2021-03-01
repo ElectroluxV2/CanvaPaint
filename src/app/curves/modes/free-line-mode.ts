@@ -1,7 +1,7 @@
 import { CompiledObject, PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import {Protocol} from '../../paint/protocol';
+import { Protocol } from '../../paint/protocol';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
@@ -10,11 +10,11 @@ export class FreeLine implements CompiledObject {
   points: Int16Array[];
   id: string;
 
-  constructor(color?: string, width?: number, points?: Int16Array[], id?: string) {
+  constructor(id: string, color?: string, width?: number, points?: Int16Array[]) {
+    this.id = id;
     this.color = color;
     this.width = width;
     this.points = points;
-    this.id = id;
   }
 }
 
@@ -34,6 +34,7 @@ export class FreeLineMode extends PaintMode {
     const sb = [];
 
     sb.push(`n:${object.name}`);
+    sb.push(`i:${object.id}`);
     sb.push(`c:${object.color}`);
     sb.push(`w:${object.width}`);
 
@@ -49,106 +50,15 @@ export class FreeLineMode extends PaintMode {
   }
 
   public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
-    const freeLine = new FreeLine();
+    const freeLine = new FreeLine(Protocol.ReadString(data, 'i', currentPosition));
 
     // Read color
     freeLine.color = Protocol.ReadString(data, 'c', currentPosition);
     // Read width
     freeLine.width = Protocol.ReadNumber(data, 'w', currentPosition);
     // Read points
-    const parser = (d: string): Int16Array => {
-      return new Int16Array(2);
-    };
+    freeLine.points = Protocol.ReadArray<Array<Int16Array>, Int16Array>(Array, Int16Array, Protocol.ReadPoint, data, 'p', currentPosition);
 
-    freeLine.points = Protocol.ReadArray<Array<Int16Array>, Int16Array>(Array, Int16Array, parser, data, 'p', currentPosition);
-
-    console.log(freeLine);
-
-    // Not really helpful
-    /*const color = Protocol.ReadString(data, 'c', currentPosition);
-
-    // Try color
-    const s = new Option().style;
-    s.color = color;
-    if (s.color === '') {
-      console.warn(`"${color}" is not valid color!`);
-      return false;
-    }
-
-    // Assign
-    freeLine.color = color;
-
-    // Read width
-    let width = '';
-    for (i += ',w:'.length; i < data.length; i++) {
-      const c = data[i];
-
-      if (c === ',') { break; }
-
-      width += c;
-    }
-
-    // Check width
-    if (Number.isNaN(width)) {
-      console.warn(`"${width}" is not valid number!`);
-      return false;
-    }
-
-    // Assign
-    freeLine.width = Number.parseInt(width, 10);
-    */
-
-
-    // Read points
-    /*freeLine.points = [];
-    for (let i = ',p:'.length; i < data.length; i++) {
-      const c = data[i];
-
-      if (c === ',') { break; }
-
-      // Single point
-      const point = new Int16Array(2);
-      let n1 = '', n2 = '';
-
-      // Before ; is n1
-      for (; i < data.length; i++) {
-        const c1 = data[i];
-
-        if (c1 === ';') { break; }
-
-        n1 += c1;
-      }
-
-      // Check n1
-      if (Number.isNaN(n1)) {
-        console.warn(`"${n1}" is not valid number!`);
-        return false;
-      }
-
-      // Assign
-      point[0] = Number.parseInt(n1, 10);
-
-      // After ; is n2
-      for (i += ';'.length; i < data.length; i++) {
-
-        const c1 = data[i];
-
-        if (c1 === '^') { break; }
-
-        n2 += c1;
-      }
-
-      // Check n2
-      if (Number.isNaN(n2)) {
-        console.warn(`"${n2}" is not valid number!`);
-        return false;
-      }
-
-      // Assign
-      point[1] = Number.parseInt(n2, 10);
-      freeLine.points.push(point);
-    }
-*/
     return freeLine;
   }
 
@@ -164,7 +74,7 @@ export class FreeLineMode extends PaintMode {
     // Enable rendering
     this.manager.StartFrameUpdate();
     // Generate GUID
-    this.currentGUID = Math.random().toString(36).substring(2, 15);
+    this.currentGUID = Protocol.GenerateId();
   }
 
   public OnPointerMove(event: PointerEvent): void {
@@ -192,7 +102,7 @@ export class FreeLineMode extends PaintMode {
     }
 
     // Send to others
-    this.compiled = new FreeLine(this.settings.color, this.settings.width, this.currentSpline.optimized, this.currentGUID);
+    this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
     this.manager.ShareCompiledObject(this.compiled, false);
 
     // Draw predicted line

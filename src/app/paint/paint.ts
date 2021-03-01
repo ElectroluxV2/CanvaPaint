@@ -35,7 +35,6 @@ export interface PaintManager {
   /**
    * Saves compiled object
    * Draws compiled object
-   * Sends compiled object to server
    * @param object Object to save
    */
   SaveCompiledObject(object: CompiledObject): void;
@@ -221,7 +220,7 @@ export class Paint {
     this.manager.ShareCompiledObject = (object, finished = false) => {
 
       const serialized = this.modes.get(object.name)?.SerializeObject(object);
-      if (serialized.length) {
+      if (serialized) {
         this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
       } else {
         console.warn(`Empty object from ${object.name}!`);
@@ -385,6 +384,8 @@ export class Paint {
         console.warn(`Mode "${name}" failed to read network object`);
         return;
       }
+
+      console.log(object);
 
       if (finished) {
         this.manager.SaveCompiledObject(object as CompiledObject);
