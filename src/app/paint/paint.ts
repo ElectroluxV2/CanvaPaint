@@ -35,7 +35,6 @@ export interface PaintManager {
   /**
    * Saves compiled object
    * Draws compiled object
-   * Sends compiled object to server
    * @param object Object to save
    */
   SaveCompiledObject(object: CompiledObject): void;
@@ -221,7 +220,7 @@ export class Paint {
     this.manager.ShareCompiledObject = (object, finished = false) => {
 
       const serialized = this.modes.get(object.name)?.SerializeObject(object);
-      if (serialized.length) {
+      if (serialized) {
         this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
       } else {
         console.warn(`Empty object from ${object.name}!`);
@@ -346,12 +345,10 @@ export class Paint {
       event.preventDefault();
     };
 
-    this.connection.onmessage = event => {
-
-      let data = event.data;
-
-      // tslint:disable-next-line:prefer-const
-      let { packetType, position } = Protocol.ReadPacketType(data);
+    this.connection.onmessage = ({ data }) => {
+      // Pass by reference
+      const currentPosition = { value: 0 };
+      const packetType = Protocol.ReadPacketType(data, currentPosition);
 
       if (packetType === PacketType.UNKNOWN) {
         console.warn('Bad data');
@@ -365,27 +362,15 @@ export class Paint {
 
       // Read finished flag
       // tslint:disable-next-line:no-conditional-assignment
-      let finished; ({ value: finished, position } = Protocol.ReadBoolean(data, 'f', position));
+      const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
 
       if (finished === null) {
         console.warn(`Missing finished flag!`);
         return;
       }
 
-      console.log(data);
-
-      // Remove headers
-      data = data.substring(10);
-
-      let name = '';
       // Read object name
-      for (const c of data) {
-        if (c === ',') { break; }
-        name += c;
-      }
-
-      // Remove name
-      data = data.substring(name.length + 1);
+      const name = Protocol.ReadString(data, 'n', currentPosition);
 
       // Unsupported
       if (!this.modes.has(name)) {
@@ -394,11 +379,13 @@ export class Paint {
       }
 
       // Read whole object
-      const object = this.modes.get(name).ReadObject(data);
+      const object = this.modes.get(name).ReadObject(data, currentPosition);
       if (!object) {
         console.warn(`Mode "${name}" failed to read network object`);
         return;
       }
+
+      // console.log(object);
 
       if (finished) {
         this.manager.SaveCompiledObject(object as CompiledObject);

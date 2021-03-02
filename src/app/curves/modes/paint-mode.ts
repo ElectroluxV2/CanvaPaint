@@ -161,7 +161,7 @@ export abstract class PaintMode extends PaintModeOptional {
    * Metod used in transportation
    * Should return compiled object instance if not possible should return false
    */
-  abstract ReadObject(data: string): CompiledObject | boolean;
+  abstract ReadObject(data: string, currentPosition: { value: number }): CompiledObject | boolean;
 
   // Default
   public OnSettingsUpdate(settings: Settings): void {
