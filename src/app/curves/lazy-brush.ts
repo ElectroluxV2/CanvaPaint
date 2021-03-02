@@ -34,6 +34,10 @@ export class LazyBrush {
       lazyDistance = this.distance * this.percentOfDivide * 4;
     }
 
+    if (lazyDistance < 0.01) {
+      return false;
+    }
+
     this.brush.MoveByAngle(this.angle, lazyDistance);
     this.hasMoved = true;
 

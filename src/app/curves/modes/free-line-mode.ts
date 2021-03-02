@@ -25,6 +25,7 @@ export class FreeLineMode extends PaintMode {
   private compiled: CompiledObject;
   private currentGUID: string;
   private lineChanged: boolean;
+  private lastPointer: Uint32Array;
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
@@ -88,13 +89,8 @@ export class FreeLineMode extends PaintMode {
 
     // When lazy is enabled changes to line should be done on frame update
     if (this.settings.lazyEnabled) {
-      // Update lazy brush
-      this.currentLazyBrush.Update(normalizedPoint);
-
-      // Requires resending
-      if (this.currentLazyBrush.HasMoved) {
-        this.lineChanged = true;
-      }
+      // Save for lazy update
+      this.lastPointer = normalizedPoint;
     } else {
       // Add point
       this.currentSpline.AddPoint(normalizedPoint);
@@ -107,16 +103,22 @@ export class FreeLineMode extends PaintMode {
   public OnFrameUpdate(): void {
     // Changes to line are done here because of nature of lazy brush, brush is always trying to catch pointer,
     // so where pointer stops moving lazy brush must be updated continuously
-    if (this.settings.lazyEnabled) {
-      this.currentSpline.AddPoint(this.currentLazyBrush.Get());
-      this.lineChanged = true;
+    if (this.settings.lazyEnabled && !!this.lastPointer) {
+
+      // Update lazy brush
+      this.currentLazyBrush.Update(this.lastPointer);
+
+      // Requires resending
+      if (this.currentLazyBrush.HasMoved) {
+        this.lineChanged = true;
+        this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+      }
     }
 
     if (!this.lineChanged) { return; }
     this.lineChanged = false;
 
     // Send to others
-    console.log(this.currentGUID);
     this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
     this.manager.ShareCompiledObject(this.compiled, false);
 
@@ -135,6 +137,7 @@ export class FreeLineMode extends PaintMode {
 
     // Cleanup
     this.manager.StopFrameUpdate();
+    delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
     delete this?.currentGUID;
@@ -143,8 +146,10 @@ export class FreeLineMode extends PaintMode {
   public OnPointerCancel(event: PointerEvent): void {
     // End spline and delete result
     this.predictCanvas.clear();
+    delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
+    delete this?.currentGUID;
   }
 
   public OnSelected(): void {
