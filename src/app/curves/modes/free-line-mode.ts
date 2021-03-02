@@ -71,10 +71,10 @@ export class FreeLineMode extends PaintMode {
     this.currentSpline.AddPoint(normalizedPoint);
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
-    // Enable rendering
-    this.manager.StartFrameUpdate();
     // Generate GUID
     this.currentGUID = Protocol.GenerateId();
+    // Enable rendering
+    this.manager.StartFrameUpdate();
   }
 
   public OnPointerMove(event: PointerEvent): void {
@@ -94,7 +94,6 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnFrameUpdate(): void {
-
     // Changes to line are done here because of nature of lazy brush, brush is always trying to catch pointer,
     // so where pointer stops moving lazy brush must be updated continuously
     if (this.settings.lazyEnabled) {
@@ -102,6 +101,7 @@ export class FreeLineMode extends PaintMode {
     }
 
     // Send to others
+    console.log(this.currentGUID);
     this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
     this.manager.ShareCompiledObject(this.compiled, false);
 

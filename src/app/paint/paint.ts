@@ -385,7 +385,7 @@ export class Paint {
         return;
       }
 
-      console.log(object);
+      // console.log(object);
 
       if (finished) {
         this.manager.SaveCompiledObject(object as CompiledObject);
