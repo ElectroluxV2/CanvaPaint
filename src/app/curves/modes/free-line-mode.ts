@@ -24,6 +24,7 @@ export class FreeLineMode extends PaintMode {
   private currentLazyBrush: LazyBrush;
   private compiled: CompiledObject;
   private currentGUID: string;
+  private lineChanged: boolean;
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
@@ -73,6 +74,8 @@ export class FreeLineMode extends PaintMode {
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Generate GUID
     this.currentGUID = Protocol.GenerateId();
+    // Requires resending
+    this.lineChanged = true;
     // Enable rendering
     this.manager.StartFrameUpdate();
   }
@@ -87,9 +90,17 @@ export class FreeLineMode extends PaintMode {
     if (this.settings.lazyEnabled) {
       // Update lazy brush
       this.currentLazyBrush.Update(normalizedPoint);
+
+      // Requires resending
+      if (this.currentLazyBrush.HasMoved) {
+        this.lineChanged = true;
+      }
     } else {
       // Add point
       this.currentSpline.AddPoint(normalizedPoint);
+
+      // Requires resending
+      this.lineChanged = true;
     }
   }
 
@@ -98,7 +109,11 @@ export class FreeLineMode extends PaintMode {
     // so where pointer stops moving lazy brush must be updated continuously
     if (this.settings.lazyEnabled) {
       this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+      this.lineChanged = true;
     }
+
+    if (!this.lineChanged) { return; }
+    this.lineChanged = false;
 
     // Send to others
     console.log(this.currentGUID);
