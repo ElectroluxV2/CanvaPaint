@@ -80,6 +80,10 @@ export class Paint {
    * Temporary location for object before they will be drawn
    */
   private compiledObjectStash: Map<string, CompiledObject> = new Map<string, CompiledObject>();
+  /**
+   * Controls if stash needs redraw
+   */
+  private compiledObjectStashNeedRedraw = false;
 
   constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
@@ -318,18 +322,23 @@ export class Paint {
   }
 
   private ConnectionDrawLoop(): void {
-    // Clear predict from network
-    this.predictCanvasNetworkCTX.clear();
 
-    // Here we will iterate through objects transferred from sockets
-    for (const [id, object] of this.compiledObjectStash) {
-      if (!this.modes.has(object.name)) {
-        console.warn(`Missing mode: ${object.name}`);
-        continue;
+    if (this.compiledObjectStashNeedRedraw) {
+      // Clear predict from network
+      this.predictCanvasNetworkCTX.clear();
+
+      // TODO: Object can stuck her forever
+      // Here we will iterate through objects transferred from sockets
+      for (const [id, object] of this.compiledObjectStash) {
+        if (!this.modes.has(object.name)) {
+          console.warn(`Missing mode: ${object.name}`);
+          continue;
+        }
+
+        this.modes.get(object.name).ReproduceObject(this.predictCanvasNetworkCTX, object);
       }
 
-      // TODO: Do not redraw when it's not necessary
-      this.modes.get(object.name).ReproduceObject(this.predictCanvasNetworkCTX, object);
+      this.compiledObjectStashNeedRedraw = false;
     }
 
     // Start new loop, obtain new id
@@ -354,7 +363,6 @@ export class Paint {
     }
 
     // Read finished flag
-    // tslint:disable-next-line:no-conditional-assignment
     const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
 
     if (finished === null) {
@@ -378,13 +386,12 @@ export class Paint {
       return;
     }
 
-    // console.log(object);
-
     if (finished) {
       // TODO: Fix ordering
       this.manager.SaveCompiledObject(object);
 
       if (this.compiledObjectStash.has(object.id)) {
+        this.compiledObjectStashNeedRedraw = true;
         this.compiledObjectStash.delete(object.id);
       }
 
