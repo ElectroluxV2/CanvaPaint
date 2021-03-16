@@ -61,6 +61,7 @@ export class Paint {
   private animationFrameForSocketsId: number;
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
+  readonly predictCanvasNetworkCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
   private currentMode: PaintMode;
   private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
@@ -79,8 +80,12 @@ export class Paint {
    * Temporary location for object before they will be drawn
    */
   private compiledObjectStash: Map<string, CompiledObject> = new Map<string, CompiledObject>();
+  /**
+   * Controls if stash needs redraw
+   */
+  private compiledObjectStashNeedRedraw = false;
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private controlService: ControlService) {
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -89,6 +94,10 @@ export class Paint {
     predictCanvas.height = mainCanvas.height;
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
+
+    predictCanvasNetwork.height = mainCanvas.height;
+    predictCanvasNetwork.width = mainCanvas.width;
+    this.predictCanvasNetworkCTX = predictCanvasNetwork.getContext('2d');
 
     this.InjectCanvas();
 
@@ -174,6 +183,10 @@ export class Paint {
 
     this.predictCanvasCTX.clear = () => {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
+    };
+
+    this.predictCanvasNetworkCTX.clear = () => {
+      this.predictCanvasNetworkCTX.clearRect(0, 0, this.predictCanvasNetworkCTX.canvas.width, this.predictCanvasNetworkCTX.canvas.height);
     };
 
     const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
@@ -309,11 +322,24 @@ export class Paint {
   }
 
   private ConnectionDrawLoop(): void {
-    // Here we will iterate through objects transferred from sockets
-    for (const [id, object] of this.compiledObjectStash) {
-      console.log(id);
-    }
 
+    if (this.compiledObjectStashNeedRedraw) {
+      // Clear predict from network
+      this.predictCanvasNetworkCTX.clear();
+
+      // TODO: Object can stuck her forever
+      // Here we will iterate through objects transferred from sockets
+      for (const [id, object] of this.compiledObjectStash) {
+        if (!this.modes.has(object.name)) {
+          console.warn(`Missing mode: ${object.name}`);
+          continue;
+        }
+
+        this.modes.get(object.name).ReproduceObject(this.predictCanvasNetworkCTX, object);
+      }
+
+      this.compiledObjectStashNeedRedraw = false;
+    }
 
     // Start new loop, obtain new id
     this.ngZone.runOutsideAngular(() => {
@@ -321,78 +347,81 @@ export class Paint {
     });
   }
 
+  private OnConnectionMessage(data: string): void {
+    // Pass by reference
+    const currentPosition = {value: 0};
+    const packetType = Protocol.ReadPacketType(data, currentPosition);
+
+    if (packetType === PacketType.UNKNOWN) {
+      console.warn('Bad data');
+      return;
+    }
+
+    if (packetType !== PacketType.OBJECT) {
+      console.warn(`Unsupported packet type: "${packetType}"`);
+      return;
+    }
+
+    // Read finished flag
+    const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
+
+    if (finished === null) {
+      console.warn(`Missing finished flag!`);
+      return;
+    }
+
+    // Read object name
+    const name = Protocol.ReadString(data, 'n', currentPosition);
+
+    // Unsupported
+    if (!this.modes.has(name)) {
+      console.warn(`Unsupported object type: "${name}"`);
+      return;
+    }
+
+    // Read whole object
+    const object = this.modes.get(name).ReadObject(data, currentPosition) as CompiledObject;
+    if (!object) {
+      console.warn(`Mode "${name}" failed to read network object`);
+      return;
+    }
+
+    if (finished) {
+      // TODO: Fix ordering
+      this.manager.SaveCompiledObject(object);
+
+      if (this.compiledObjectStash.has(object.id)) {
+        this.compiledObjectStashNeedRedraw = true;
+        this.compiledObjectStash.delete(object.id);
+      }
+
+    } else {
+      this.compiledObjectStashNeedRedraw = true;
+      this.compiledObjectStash.set(object.id, object);
+    }
+  }
+
   private HandleConnection(): void {
     this.ConnectionDrawLoop();
 
-    const connect = () => {
-      this.connection = new WebSocket('ws://localhost:3000');
+    this.connection = new WebSocket('ws://localhost:3000');
+    this.connection.onopen = () => {
+      console.info('Connected to server');
     };
 
-    connect();
+    this.connection.onmessage = ({data}) => {
+      this.OnConnectionMessage(data);
+    };
 
     this.connection.onclose = event => {
-      console.warn(`Connection unexpectedly closed: ${event.reason}`);
+      console.warn(`Connection unexpectedly closed: #${event.code} ${event.reason.length !== 0 ? ', reason: ' + event.reason : ''}. Reconnecting in 1 second.`);
       // Reconnect
-      setTimeout(connect, 1000);
-    };
-
-    this.connection.onopen = event => {
-
+      setTimeout(this.HandleConnection.bind(this), 1000);
     };
 
     this.connection.onerror = event => {
-      console.warn(`An error occurred in socket: ${event.type}`);
-      event.preventDefault();
-    };
-
-    this.connection.onmessage = ({ data }) => {
-      // Pass by reference
-      const currentPosition = { value: 0 };
-      const packetType = Protocol.ReadPacketType(data, currentPosition);
-
-      if (packetType === PacketType.UNKNOWN) {
-        console.warn('Bad data');
-        return;
-      }
-
-      if (packetType !== PacketType.OBJECT) {
-        console.warn(`Unsupported packet type: "${packetType}"`);
-        return;
-      }
-
-      // Read finished flag
-      // tslint:disable-next-line:no-conditional-assignment
-      const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
-
-      if (finished === null) {
-        console.warn(`Missing finished flag!`);
-        return;
-      }
-
-      // Read object name
-      const name = Protocol.ReadString(data, 'n', currentPosition);
-
-      // Unsupported
-      if (!this.modes.has(name)) {
-        console.warn(`Unsupported object type: "${name}"`);
-        return;
-      }
-
-      // Read whole object
-      const object = this.modes.get(name).ReadObject(data, currentPosition);
-      if (!object) {
-        console.warn(`Mode "${name}" failed to read network object`);
-        return;
-      }
-
-      // console.log(object);
-
-      if (finished) {
-        this.manager.SaveCompiledObject(object as CompiledObject);
-      }
-
-      // console.log(object);
-
+      console.warn(`An error occurred in socket!`);
+      event.stopImmediatePropagation();
     };
   }
 
@@ -402,6 +431,9 @@ export class Paint {
 
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
+
+    this.predictCanvasNetwork.height = this.mainCanvas.height;
+    this.predictCanvasNetwork.width = this.mainCanvas.width;
 
     this.ReDraw();
   }
