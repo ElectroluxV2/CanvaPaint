@@ -338,83 +338,83 @@ export class Paint {
     });
   }
 
+  private OnConnectionMessage(data: string): void {
+    // Pass by reference
+    const currentPosition = {value: 0};
+    const packetType = Protocol.ReadPacketType(data, currentPosition);
+
+    if (packetType === PacketType.UNKNOWN) {
+      console.warn('Bad data');
+      return;
+    }
+
+    if (packetType !== PacketType.OBJECT) {
+      console.warn(`Unsupported packet type: "${packetType}"`);
+      return;
+    }
+
+    // Read finished flag
+    // tslint:disable-next-line:no-conditional-assignment
+    const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
+
+    if (finished === null) {
+      console.warn(`Missing finished flag!`);
+      return;
+    }
+
+    // Read object name
+    const name = Protocol.ReadString(data, 'n', currentPosition);
+
+    // Unsupported
+    if (!this.modes.has(name)) {
+      console.warn(`Unsupported object type: "${name}"`);
+      return;
+    }
+
+    // Read whole object
+    const object = this.modes.get(name).ReadObject(data, currentPosition) as CompiledObject;
+    if (!object) {
+      console.warn(`Mode "${name}" failed to read network object`);
+      return;
+    }
+
+    // console.log(object);
+
+    if (finished) {
+      // TODO: Fix ordering
+      this.manager.SaveCompiledObject(object);
+
+      if (this.compiledObjectStash.has(object.id)) {
+        this.compiledObjectStash.delete(object.id);
+      }
+
+    } else {
+      this.compiledObjectStashNeedRedraw = true;
+      this.compiledObjectStash.set(object.id, object);
+    }
+  }
+
   private HandleConnection(): void {
     this.ConnectionDrawLoop();
 
-    const connect = () => {
-      this.connection = new WebSocket('ws://localhost:3000');
+    this.connection = new WebSocket('ws://localhost:3000');
+    this.connection.onopen = () => {
+      console.info('Connected to server');
     };
 
-    connect();
+    this.connection.onmessage = ({data}) => {
+      this.OnConnectionMessage(data);
+    };
 
     this.connection.onclose = event => {
-      console.warn(`Connection unexpectedly closed: ${event.reason}`);
+      console.warn(`Connection unexpectedly closed: #${event.code} ${event.reason.length !== 0 ? ', reason: ' + event.reason : ''}. Reconnecting in 1 second.`);
       // Reconnect
-      setTimeout(connect, 1000);
-    };
-
-    this.connection.onopen = event => {
-
+      setTimeout(this.HandleConnection.bind(this), 1000);
     };
 
     this.connection.onerror = event => {
-      console.warn(`An error occurred in socket: ${event.type}`);
-      event.preventDefault();
-    };
-
-    this.connection.onmessage = ({ data }) => {
-      // Pass by reference
-      const currentPosition = { value: 0 };
-      const packetType = Protocol.ReadPacketType(data, currentPosition);
-
-      if (packetType === PacketType.UNKNOWN) {
-        console.warn('Bad data');
-        return;
-      }
-
-      if (packetType !== PacketType.OBJECT) {
-        console.warn(`Unsupported packet type: "${packetType}"`);
-        return;
-      }
-
-      // Read finished flag
-      // tslint:disable-next-line:no-conditional-assignment
-      const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
-
-      if (finished === null) {
-        console.warn(`Missing finished flag!`);
-        return;
-      }
-
-      // Read object name
-      const name = Protocol.ReadString(data, 'n', currentPosition);
-
-      // Unsupported
-      if (!this.modes.has(name)) {
-        console.warn(`Unsupported object type: "${name}"`);
-        return;
-      }
-
-      // Read whole object
-      const object = this.modes.get(name).ReadObject(data, currentPosition) as CompiledObject;
-      if (!object) {
-        console.warn(`Mode "${name}" failed to read network object`);
-        return;
-      }
-
-      // console.log(object);
-
-      if (finished) {
-        // TODO: Fix ordering
-        this.manager.SaveCompiledObject(object);
-
-        if (this.compiledObjectStash.has(object.id)) {
-          this.compiledObjectStash.delete(object.id);
-        }
-
-      } else {
-        this.compiledObjectStash.set(object.id, object);
-      }
+      console.warn(`An error occurred in socket!`);
+      event.stopImmediatePropagation();
     };
   }
 
