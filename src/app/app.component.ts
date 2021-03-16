@@ -10,6 +10,7 @@ import { Paint } from './paint/paint';
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mainCanvas', { read: ElementRef }) mainCanvas: ElementRef;
   @ViewChild('predictCanvas', { read: ElementRef }) predictCanvas: ElementRef;
+  @ViewChild('predictCanvasNetwork', { read: ElementRef }) predictCanvasNetwork: ElementRef;
 
   public paint: Paint;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
@@ -17,7 +18,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   constructor(private ngZone: NgZone, private settingsService: ControlService) { }
 
   ngAfterViewInit(): void {
-    this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.settingsService);
+    this.paint = new Paint(this.ngZone, this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.predictCanvasNetwork.nativeElement, this.settingsService);
 
     this.paint.statusEmitter.subscribe(value => {
       this.statusEmitter.emit(value);

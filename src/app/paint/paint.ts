@@ -61,6 +61,7 @@ export class Paint {
   private animationFrameForSocketsId: number;
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
+  readonly predictCanvasNetworkCTX: CanvasRenderingContext2D;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
   private currentMode: PaintMode;
   private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
@@ -80,7 +81,7 @@ export class Paint {
    */
   private compiledObjectStash: Map<string, CompiledObject> = new Map<string, CompiledObject>();
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private controlService: ControlService) {
+  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -89,6 +90,10 @@ export class Paint {
     predictCanvas.height = mainCanvas.height;
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
+
+    predictCanvasNetwork.height = mainCanvas.height;
+    predictCanvasNetwork.width = mainCanvas.width;
+    this.predictCanvasNetworkCTX = predictCanvasNetwork.getContext('2d');
 
     this.InjectCanvas();
 
@@ -174,6 +179,10 @@ export class Paint {
 
     this.predictCanvasCTX.clear = () => {
       this.predictCanvasCTX.clearRect(0, 0, this.predictCanvasCTX.canvas.width, this.predictCanvasCTX.canvas.height);
+    };
+
+    this.predictCanvasNetworkCTX.clear = () => {
+      this.predictCanvasNetworkCTX.clearRect(0, 0, this.predictCanvasNetworkCTX.canvas.width, this.predictCanvasNetworkCTX.canvas.height);
     };
 
     const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
@@ -309,11 +318,19 @@ export class Paint {
   }
 
   private ConnectionDrawLoop(): void {
+    // Clear predict from network
+    this.predictCanvasNetworkCTX.clear();
+
     // Here we will iterate through objects transferred from sockets
     for (const [id, object] of this.compiledObjectStash) {
-      console.log(id);
-    }
+      if (!this.modes.has(object.name)) {
+        console.warn(`Missing mode: ${object.name}`);
+        continue;
+      }
 
+      // TODO: Do not redraw when it's not necessary
+      this.modes.get(object.name).ReproduceObject(this.predictCanvasNetworkCTX, object);
+    }
 
     // Start new loop, obtain new id
     this.ngZone.runOutsideAngular(() => {
@@ -379,7 +396,7 @@ export class Paint {
       }
 
       // Read whole object
-      const object = this.modes.get(name).ReadObject(data, currentPosition);
+      const object = this.modes.get(name).ReadObject(data, currentPosition) as CompiledObject;
       if (!object) {
         console.warn(`Mode "${name}" failed to read network object`);
         return;
@@ -388,11 +405,16 @@ export class Paint {
       // console.log(object);
 
       if (finished) {
-        this.manager.SaveCompiledObject(object as CompiledObject);
+        // TODO: Fix ordering
+        this.manager.SaveCompiledObject(object);
+
+        if (this.compiledObjectStash.has(object.id)) {
+          this.compiledObjectStash.delete(object.id);
+        }
+
+      } else {
+        this.compiledObjectStash.set(object.id, object);
       }
-
-      // console.log(object);
-
     };
   }
 
