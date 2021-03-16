@@ -425,6 +425,9 @@ export class Paint {
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
 
+    this.predictCanvasNetwork.height = this.mainCanvas.height;
+    this.predictCanvasNetwork.width = this.mainCanvas.width;
+
     this.ReDraw();
   }
 
