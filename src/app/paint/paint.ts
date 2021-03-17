@@ -32,6 +32,12 @@ export interface PaintManager {
    * Stops animation loop
    */
   StopFrameUpdate(): void;
+
+  /**
+   * Requests single frame update
+   * Does not impact animation loop
+   */
+  SingleFrameUpdate(): void;
   /**
    * Saves compiled object
    * Draws compiled object
@@ -219,6 +225,14 @@ export class Paint {
 
     this.manager.StopFrameUpdate = () => {
       window.cancelAnimationFrame(this.animationFrameForModesId);
+    };
+
+    this.manager.SingleFrameUpdate = () => {
+      this.ngZone.runOutsideAngular(() => {
+        window.requestAnimationFrame(() => {
+          this.currentMode?.OnFrameUpdate();
+        });
+      });
     };
 
     this.manager.SaveCompiledObject = object => {
