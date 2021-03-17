@@ -56,7 +56,7 @@ export interface PaintManager {
    * @param enhance whenever to multiply by device dpi
    * @returns Normalized point
    */
-  NormalizePoint(point: Uint32Array, enhance?: boolean): Uint32Array;
+  NormalizePoint(point: Int16Array, enhance?: boolean): Int16Array;
 }
 
 export class Paint {
