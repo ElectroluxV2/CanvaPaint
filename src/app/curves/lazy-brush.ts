@@ -1,3 +1,5 @@
+import {Point} from '../paint/protocol';
+
 export class LazyBrush {
 
   private readonly percentOfDivide: number;
@@ -7,7 +9,7 @@ export class LazyBrush {
   private distance = 0;
   private hasMoved = false;
 
-  constructor(percentOfDivide: number, startPoint: Uint32Array) {
+  constructor(percentOfDivide: number, startPoint: Point) {
     this.percentOfDivide = percentOfDivide;
 
     this.pointer = new LazyPoint(startPoint);
@@ -19,15 +21,15 @@ export class LazyBrush {
    * @param newPointerPoint Array of cords
    * @returns Whether any of the two points changed
    */
-  public Update(newPointerPoint: Uint32Array): boolean {
+  public Update(newPointerPoint: Point): boolean {
     this.hasMoved = false;
 
-    this.distance = this.pointer.GetDistanceTo(this.brush.ToArray());
+    this.distance = this.pointer.GetDistanceTo(this.brush.Get());
     let lazyDistance;
 
     if (!this.pointer.EqualsTo(newPointerPoint)) {
       this.pointer.Update(newPointerPoint);
-      this.angle = this.pointer.GetAngleTo(this.brush.ToArray());
+      this.angle = this.pointer.GetAngleTo(this.brush.Get());
 
       lazyDistance = this.distance * this.percentOfDivide;
     } else {
@@ -48,11 +50,11 @@ export class LazyBrush {
     return this.hasMoved;
   }
 
-  public Get(): Uint32Array {
-    return this.brush.ToUintArray();
+  public Get(): Point {
+    return this.brush.Get();
   }
 
-  public ForceBrush(lastPointer: Uint32Array) {
+  public ForceBrush(lastPointer: Point) {
     this.brush.Update(lastPointer);
     this.pointer.Update(lastPointer);
     this.hasMoved = true;
@@ -60,48 +62,44 @@ export class LazyBrush {
 }
 
 class LazyPoint {
-  private coords: Float32Array = new Float32Array(2);
+  private coords: Point = new Point();
 
-  constructor(startPoint: Uint32Array) {
-    this.coords[0] = startPoint[0];
-    this.coords[1] = startPoint[1];
+  constructor(startPoint: Point) {
+    this.coords.x = startPoint.x;
+    this.coords.y = startPoint.y;
   }
 
-  public EqualsTo(another: Uint32Array): boolean {
-    return this.coords[0] === another[0] && this.coords[1] === another[1];
+  public EqualsTo(another: Point): boolean {
+    return this.coords.x === another.x && this.coords.y === another.y;
   }
 
-  public Update(newPointerPoint: Uint32Array): void {
-    this.coords[0] = newPointerPoint[0];
-    this.coords[1] = newPointerPoint[1];
+  public Update(newPointerPoint: Point): void {
+    this.coords.x = newPointerPoint.x;
+    this.coords.y = newPointerPoint.y;
   }
 
-  public GetDistanceTo(another: Float32Array): number {
+  public Get(): Point {
+    return this.coords;
+  }
+
+  public GetDistanceTo(another: Point): number {
     const diff = this.GetDifferenceTo(another);
-    return Math.sqrt(Math.pow(diff[0], 2) + Math.pow(diff[1], 2));
+    return Math.sqrt(Math.pow(diff.x, 2) + Math.pow(diff.y, 2));
   }
 
-  public GetAngleTo(another: Float32Array): number {
+  public GetAngleTo(another: Point): number {
     const diff = this.GetDifferenceTo(another);
-    return Math.atan2(diff[1], diff[0]);
+    return Math.atan2(diff.y, diff.x);
   }
 
   public MoveByAngle(angle: number, distance: number): void {
     // Rotate the angle based on the browser coordinate system ([0,0] in the top left)
     const angleRotated = angle + (Math.PI / 2);
-    this.coords[0] = this.coords[0] + (Math.sin(angleRotated) * distance);
-    this.coords[1] = this.coords[1] - (Math.cos(angleRotated) * distance);
+    this.coords.x = this.coords.x + (Math.sin(angleRotated) * distance);
+    this.coords.y = this.coords.y - (Math.cos(angleRotated) * distance);
   }
 
-  public ToArray(): Float32Array {
-    return this.coords;
-  }
-
-  public ToUintArray(): Uint32Array {
-    return Uint32Array.from(this.coords);
-  }
-
-  private GetDifferenceTo(another: Float32Array) {
-    return new Float32Array([this.coords[0] - another[0], this.coords[1] - another[1]]);
+  private GetDifferenceTo(another: Point) {
+    return new Point(this.coords.x - another.x, this.coords.y - another.y);
   }
 }

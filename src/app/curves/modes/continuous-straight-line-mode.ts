@@ -1,17 +1,17 @@
 import {PaintMode} from './paint-mode';
 import {StraightLine} from './straight-line-mode';
-import {Protocol} from '../../paint/protocol';
+import {Point, Protocol} from '../../paint/protocol';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';
   private currentStraightLine: StraightLine;
-  private currentControlPoint: Uint32Array;
+  private currentControlPoint: Point;
   private movingControlPoint = false;
 
   public OnPointerDown(event: PointerEvent): void {
     this.manager.StartFrameUpdate();
 
-    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
     if (event.button === 2) {
@@ -28,7 +28,7 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public OnPointerMove(event: PointerEvent) {
-    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
     if (this.movingControlPoint) {
@@ -54,7 +54,7 @@ export class ContinuousStraightLineMode extends PaintMode {
 
   public OnPointerUp(event: PointerEvent): void {
     this.manager.StopFrameUpdate();
-    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
     if (event.button === 2) {
@@ -92,8 +92,8 @@ export class ContinuousStraightLineMode extends PaintMode {
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
-    canvas.moveTo(object.begin[0], object.begin[1]);
-    canvas.lineTo(object.end[0], object.end[1]);
+    canvas.moveTo(object.begin.x, object.begin.y);
+    canvas.lineTo(object.end.x, object.end.y);
     canvas.lineCap = 'round';
     canvas.lineWidth = object.width;
     canvas.strokeStyle = object.color;

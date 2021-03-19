@@ -1,3 +1,31 @@
+/**
+ * Represents object that contains minimalistic data on how to draw it onto canvas
+ */
+export interface CompiledObject {
+  /**
+   * Has to be unique, used for storing in map as key, must match mode name
+   * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
+   */
+  name: string;
+  /**
+   * Unique identifier
+   */
+  id: string;
+}
+
+export class Point {
+  x: number; // Float
+  y: number; // Float
+
+  constructor(x?: number, y?: number) {
+    this.x = x ?? 0;
+    this.y = y ?? 0;
+  }
+
+  public Duplicate(): Point {
+    return new Point(this.x, this.y);
+  }
+}
 
 export enum PacketType {
   OBJECT,
@@ -105,8 +133,8 @@ export class Protocol {
     return null;
   }
 
-  static ReadArray<T1 extends Array<T2>, T2>(arrayType: new() => T1, itemType: new() => T2, itemParser: (itemType: new() => T2, stringData: string, currentPosition: { value: number }) => T2, data: string, selector: string, currentPosition: { value: number } = { value: 0 }): T1 {
-    const array = new arrayType();
+  static ReadArray<T>(itemParser: (stringData: string, currentPosition: { value: number }) => T, data: string, selector: string, currentPosition: { value: number } = { value: 0 }): T[] {
+    const array = [];
 
     do {
 
@@ -121,16 +149,14 @@ export class Protocol {
 
       // Read items
       do {
-        array.push(itemParser(itemType, data, currentPosition));
+        array.push(itemParser(data, currentPosition));
       } while (currentPosition.value + 1 < data.length && currentPosition.value++);
     } while (currentPosition.value + 1 < data.length && currentPosition.value++);
 
     return array;
   }
 
-  static ReadPoint<T extends Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array | Float64Array>(pointType: new(elements) => T, data: string, currentPosition: { value: number } = { value: 0 }): T {
-
-    const array = new pointType(2);
+  static ReadPoint(data: string, currentPosition: { value: number } = { value: 0 }): Point {
 
     let s1 = '';
     do {
@@ -153,17 +179,10 @@ export class Protocol {
       s2 += c;
     } while (currentPosition.value + 1 < data.length && currentPosition.value++);
 
-    if (pointType.name[0] === 'F') {
+    const x = Number.parseFloat(s1);
+    const y = Number.parseFloat(s2);
 
-      array[0] = Number.parseFloat(s1);
-      array[1] = Number.parseFloat(s2);
-    } else {
-
-      array[0] = Number.parseInt(s1, 10);
-      array[1] = Number.parseInt(s2, 10);
-    }
-
-    return array;
+    return new Point(x, y);
   }
 
   static GenerateId(): string {

@@ -1,5 +1,6 @@
 import { Simplify } from './simplify';
 import { FreeLineMode } from './modes/free-line-mode';
+import {Point} from '../paint/protocol';
 
 export class CardinalSpline {
   private predict: CanvasRenderingContext2D;
@@ -7,8 +8,8 @@ export class CardinalSpline {
   private width: number;
   private color: string;
 
-  private points: Int16Array[] = [];
-  public optimized: Int16Array[] = [];
+  private points: Point[] = [];
+  public optimized: Point[] = [];
 
   constructor(); // Make apply possible
   constructor(predict?: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
@@ -18,10 +19,10 @@ export class CardinalSpline {
     this.color = color;
   }
 
-  static QuadraticCurve(context: CanvasRenderingContext2D, points: Int16Array[], color: string, width: number, drawDotOnly: boolean = false): void {
+  static QuadraticCurve(context: CanvasRenderingContext2D, points: Point[], color: string, width: number, drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
-      context.arc(points[0][0], points[0][1], width * 2 / Math.PI, 0, 2 * Math.PI, false);
+      context.arc(points[0].x, points[0].y, width * 2 / Math.PI, 0, 2 * Math.PI, false);
       context.fillStyle = color;
       context.fill();
       return;
@@ -30,21 +31,21 @@ export class CardinalSpline {
     // Points must be optimized at this point
     context.lineCap = 'round';
     context.beginPath();
-    context.moveTo(points[0][0], points[0][1]);
+    context.moveTo(points[0].x, points[0].y);
 
     for (let i = 1; i < points.length - 2; i ++) {
-      const xc = (points[i][0] + points[i + 1][0]) / 2;
-      const yc = (points[i][1] + points[i + 1][1]) / 2;
+      const xc = (points[i].x + points[i + 1].x) / 2;
+      const yc = (points[i].y + points[i + 1].y) / 2;
 
-      context.quadraticCurveTo(points[i][0], points[i][1], xc, yc);
+      context.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
     }
 
     // Curve through the last two points
     context.quadraticCurveTo(
-      points[points.length - 2][0],
-      points[points.length - 2][1],
-      points[points.length - 1][0],
-      points[points.length - 1][1]
+      points[points.length - 2].x,
+      points[points.length - 2].y,
+      points[points.length - 1].x,
+      points[points.length - 1].y
     );
 
     context.strokeStyle = color;
@@ -52,7 +53,7 @@ export class CardinalSpline {
     context.stroke();
   }
 
-  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Int16Array[]): void {
+  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Point[]): void {
     canvas.strokeStyle = color;
     canvas.lineWidth = width;
     CardinalSpline.QuadraticCurve(canvas, points, color, width, points?.length < 2);
@@ -85,17 +86,17 @@ export class CardinalSpline {
     return this.points.length === 0;
   }
 
-  public AddPoint(point: Uint32Array): void {
+  public AddPoint(point: Point): void {
     // Same point prevention
     if (this.points.length) {
       const toCheck = this.points[this.points.length - 1];
-      if (point[0] === toCheck[0] && point[1] === toCheck[1]) {
+      if (point.x === toCheck.x && point.y === toCheck.y) {
         return;
       }
     }
 
     // Deep copy
-    this.points.push(new Int16Array([...point]));
+    this.points.push(point.Duplicate());
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
     // TODO: better way of doing it
