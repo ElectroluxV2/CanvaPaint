@@ -1,16 +1,16 @@
-import { CompiledObject, PaintMode } from './paint-mode';
+import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import { Protocol } from '../../paint/protocol';
+import {CompiledObject, Point, Protocol} from '../../paint/protocol';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
   color: string;
   width: number;
-  points: Int16Array[];
+  points: Point[];
   id: string;
 
-  constructor(id: string, color?: string, width?: number, points?: Int16Array[]) {
+  constructor(id: string, color?: string, width?: number, points?: Point[]) {
     this.id = id;
     this.color = color;
     this.width = width;
@@ -25,7 +25,7 @@ export class FreeLineMode extends PaintMode {
   private compiled: CompiledObject;
   private currentGUID: string;
   private lineChanged: boolean;
-  private lastPointer: Uint32Array;
+  private lastPointer: Point;
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
@@ -43,7 +43,7 @@ export class FreeLineMode extends PaintMode {
     const ps = [];
 
     for (const point of object.points) {
-      ps.push(`${point[0]};${point[1]}`);
+      ps.push(`${point.x.toFixed(2)};${point.y.toFixed(2)}`);
     }
 
     sb.push(`p:${ps.join('^')}`);
@@ -59,13 +59,13 @@ export class FreeLineMode extends PaintMode {
     // Read width
     freeLine.width = Protocol.ReadNumber(data, 'w', currentPosition);
     // Read points
-    freeLine.points = Protocol.ReadArray<Array<Int16Array>, Int16Array>(Array, Int16Array, Protocol.ReadPoint, data, 'p', currentPosition);
+    freeLine.points = Protocol.ReadArray(Protocol.ReadPoint, data, 'p', currentPosition);
 
     return freeLine;
   }
 
   public OnPointerDown(event: PointerEvent): void {
-    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.manager.NormalizePoint(point);
     // Start new spline
     this.currentSpline = new CardinalSpline().Apply(this);
@@ -84,7 +84,7 @@ export class FreeLineMode extends PaintMode {
   public OnPointerMove(event: PointerEvent): void {
     if (!this.currentSpline) { return; }
 
-    const point = new Uint32Array([event.offsetX, event.offsetY]);
+    const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.manager.NormalizePoint(point);
 
     // When lazy is enabled changes to line should be done on frame update

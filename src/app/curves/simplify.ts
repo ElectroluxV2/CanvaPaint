@@ -1,25 +1,27 @@
+import {Point} from '../paint/protocol';
+
 export class Simplify {
 
-  private static GetSqDist(p1: Int16Array, p2: Int16Array): number {
-    const dx = p1[0] - p2[0];
-    const dy = p1[1] - p2[1];
+  private static GetSqDist(p1: Point, p2: Point): number {
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
     return dx * dx + dy * dy;
   }
 
-  private static GetSqSegDist(p: Int16Array, p1: Int16Array, p2: Int16Array): number {
+  private static GetSqSegDist(p: Point, p1: Point, p2: Point): number {
 
-    let x = p1[0];
-    let y = p1[1];
-    let dx = p2[0] - x;
-    let dy = p2[1] - y;
+    let x = p1.x;
+    let y = p1.y;
+    let dx = p2.x - x;
+    let dy = p2.y - y;
 
     if (dx !== 0 || dy !== 0) {
 
-      const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy);
+      const t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy);
 
       if (t > 1) {
-        x = p2[0];
-        y = p2[1];
+        x = p2.x;
+        y = p2.y;
 
       } else if (t > 0) {
         x += dx * t;
@@ -27,13 +29,13 @@ export class Simplify {
       }
     }
 
-    dx = p[0] - x;
-    dy = p[1] - y;
+    dx = p.x - x;
+    dy = p.y - y;
 
     return dx * dx + dy * dy;
   }
 
-  private static SimplifyRadialDist(points: Int16Array[], sqTolerance: number) {
+  private static SimplifyRadialDist(points: Point[], sqTolerance: number) {
 
     let prevPoint = points[0];
     const newPoints = [prevPoint];
@@ -53,7 +55,7 @@ export class Simplify {
     return newPoints;
   }
 
-  private static SimplifyDPStep(points: Int16Array[], first: number, last: number, sqTolerance: number, simplified: Int16Array[]): void {
+  private static SimplifyDPStep(points: Point[], first: number, last: number, sqTolerance: number, simplified: Point[]): void {
     let maxSqDist = sqTolerance;
     let index;
 
@@ -73,7 +75,7 @@ export class Simplify {
     }
   }
 
-  public static SimplifyDouglasPeucker(points: Int16Array[], sqTolerance: number): Int16Array[] {
+  public static SimplifyDouglasPeucker(points: Point[], sqTolerance: number): Point[] {
     const last = points.length - 1;
 
     const simplified = [points[0]];
@@ -83,7 +85,7 @@ export class Simplify {
     return simplified;
   }
 
-  public static Simplify(points: Int16Array[], tolerance: number, highestQuality = false) {
+  public static Simplify(points: Point[], tolerance: number, highestQuality = false) {
 
     if (points.length <= 2) { return points; }
 

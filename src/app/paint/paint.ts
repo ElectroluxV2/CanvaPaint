@@ -1,11 +1,11 @@
 import {EventEmitter, NgZone} from '@angular/core';
-import {CompiledObject, PaintMode} from '../curves/modes/paint-mode';
+import {PaintMode} from '../curves/modes/paint-mode';
 import {FreeLineMode} from '../curves/modes/free-line-mode';
 import {ControlService} from '../settings/control.service';
 import {Settings} from '../settings/settings.interface';
 import {StraightLineMode} from '../curves/modes/straight-line-mode';
 import {ContinuousStraightLineMode} from '../curves/modes/continuous-straight-line-mode';
-import {PacketType, Protocol} from './protocol';
+import {CompiledObject, PacketType, Point, Protocol} from './protocol';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -19,7 +19,7 @@ declare global {
      * @param width width of dot
      * @param color color of dot
      */
-    dot(position: Uint32Array, width: number, color: string): void;
+    dot(position: Point, width: number, color: string): void;
   }
 }
 
@@ -56,7 +56,7 @@ export interface PaintManager {
    * @param enhance whenever to multiply by device dpi
    * @returns Normalized point
    */
-  NormalizePoint(point: Int16Array, enhance?: boolean): Int16Array;
+  NormalizePoint(point: Point, enhance?: boolean): Point;
 }
 
 export class Paint {
@@ -195,11 +195,11 @@ export class Paint {
       this.predictCanvasNetworkCTX.clearRect(0, 0, this.predictCanvasNetworkCTX.canvas.width, this.predictCanvasNetworkCTX.canvas.height);
     };
 
-    const dot = (canvas: CanvasRenderingContext2D, position: Uint32Array, width: number, color: string) => {
+    const dot = (canvas: CanvasRenderingContext2D, position: Point, width: number, color: string) => {
       canvas.beginPath();
       canvas.arc(
-        position[0],
-        position[1],
+        position.x,
+        position.y,
         width / Math.PI,
         0,
         2 * Math.PI,
@@ -209,8 +209,8 @@ export class Paint {
       canvas.fill();
     };
 
-    this.mainCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
-    this.predictCanvasCTX.dot = (position: Uint32Array, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
+    this.mainCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
+    this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
   }
 
   private PrepareManager(): void {
@@ -341,7 +341,7 @@ export class Paint {
       // Clear predict from network
       this.predictCanvasNetworkCTX.clear();
 
-      // TODO: Object can stuck her forever
+      // TODO: Object can stuck here forever
       // Here we will iterate through objects transferred from sockets
       for (const [id, object] of this.compiledObjectStash) {
         if (!this.modes.has(object.name)) {
@@ -363,7 +363,7 @@ export class Paint {
 
   private OnConnectionMessage(data: string): void {
     // Pass by reference
-    const currentPosition = {value: 0};
+    const currentPosition = { value: 0 };
     const packetType = Protocol.ReadPacketType(data, currentPosition);
 
     if (packetType === PacketType.UNKNOWN) {
