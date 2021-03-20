@@ -1,7 +1,10 @@
+// tslint:disable-next-line:no-namespace
+
+
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
  */
-export interface CompiledObject {
+interface CompiledObject {
   /**
    * Has to be unique, used for storing in map as key, must match mode name
    * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
@@ -13,7 +16,10 @@ export interface CompiledObject {
   id: string;
 }
 
-export class Point {
+/**
+ * Represents single point in canvas
+ */
+class Point {
   x: number; // Float
   y: number; // Float
 
@@ -22,23 +28,82 @@ export class Point {
     this.y = y ?? 0;
   }
 
+  /**
+   * Creates deep copy
+   */
   public Duplicate(): Point {
     return new Point(this.x, this.y);
   }
 }
 
-export enum PacketType {
+/**
+ * Holds enums for packets
+ */
+enum PacketType {
   OBJECT,
   CLEAR,
   UNKNOWN
 }
 
-const PACKET_TYPES = new Map([
-  ['o', PacketType.OBJECT],
-  ['c', PacketType.CLEAR],
-]);
 
 export class Protocol {
+  static readonly Builder = class {
+    private type: PacketType = PacketType.UNKNOWN;
+    protected properties: Map<string, string> = new Map<string, string>();
+
+    public SetType(type: PacketType): void {
+      this.type = type;
+    }
+
+    public SetProperty(name: string, value: string | number | Point[]): void {
+      let stringValue;
+
+      if (typeof value === 'number') {
+        stringValue = value.toFixed(2);
+      } else if (Array.isArray(value)) {
+        stringValue = this.EncodeArray<Point>(value, this.EncodePoint);
+      } else {
+        stringValue = value;
+      }
+
+      // @ts-ignore
+      this.properties.set(name, stringValue);
+    }
+
+    private EncodeArray<T>(array: T[], itemEncoder: (item: T) => string): string {
+        const items = [];
+
+        for (const item of array) {
+          items.push(itemEncoder(item));
+        }
+
+        return items.join('^');
+    }
+
+    public EncodePoint(point: Point): string {
+      return `${point.x.toFixed(2)};${point.y.toFixed(2)}`;
+    }
+
+    public ToString(): string {
+      const items = [];
+
+      for (const [name, value] of this.properties) {
+        items.push(this.EncodeProperty(name, value));
+      }
+
+      return items.join(',');
+    }
+
+    private EncodeProperty(name: string, value: string): string {
+      return `${name}:${value}`;
+    }
+  };
+
+  static PACKET_TYPES = new Map([
+    ['o', PacketType.OBJECT],
+    ['c', PacketType.CLEAR],
+  ]);
+
   static ReadPacketType(data: string, currentPosition: { value: number } = { value: 0 }): PacketType {
     let packetType = PacketType.UNKNOWN;
 
@@ -51,8 +116,8 @@ export class Protocol {
       if (c1 !== 't') { continue; }
       if (c2 !== ':') { continue; }
 
-      if (PACKET_TYPES.has(c3)) {
-        packetType = PACKET_TYPES.get(c3);
+      if (Protocol.PACKET_TYPES.has(c3)) {
+        packetType = Protocol.PACKET_TYPES.get(c3);
         // Increment only when found type
         currentPosition.value += 3;
       }

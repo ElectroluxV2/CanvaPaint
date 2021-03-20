@@ -1,7 +1,7 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../cardinal-spline';
 import { LazyBrush } from '../lazy-brush';
-import {CompiledObject, Point, Protocol} from '../../paint/protocol';
+import {CompiledObject, PacketType, Point, Protocol} from '../../paint/protocol';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
@@ -32,26 +32,24 @@ export class FreeLineMode extends PaintMode {
   }
 
   public SerializeObject(object: FreeLine): string {
-    // String builder
-    const sb = [];
+    // Protocol Builder
+    const protocolBuilder = new Protocol.Builder();
 
-    sb.push(`n:${object.name}`);
-    sb.push(`i:${object.id}`);
-    sb.push(`c:${object.color}`);
-    sb.push(`w:${object.width}`);
+    protocolBuilder.SetType(PacketType.OBJECT);
+    protocolBuilder.SetProperty('n', object.name);
+    protocolBuilder.SetProperty('i', object.id);
+    protocolBuilder.SetProperty('c', object.color);
+    protocolBuilder.SetProperty('w', object.width);
+    protocolBuilder.SetProperty('p', object.points);
 
-    const ps = [];
-
-    for (const point of object.points) {
-      ps.push(`${point.x.toFixed(2)};${point.y.toFixed(2)}`);
-    }
-
-    sb.push(`p:${ps.join('^')}`);
-
-    return sb.join(',');
+    return protocolBuilder.ToString();
   }
 
   public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
+
+    const protocolReader = new Protocol.ProtocolReader();
+
+
     const freeLine = new FreeLine(Protocol.ReadString(data, 'i', currentPosition));
 
     // Read color
