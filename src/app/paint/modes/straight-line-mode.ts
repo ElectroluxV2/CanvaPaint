@@ -1,6 +1,9 @@
 import {PaintMode} from './paint-mode';
 import {Settings} from '../../settings/settings.interface';
-import {CompiledObject, Point, Protocol} from '../../paint/protocol';
+import {CompiledObject} from '../protocol/compiled-object';
+import {Point} from '../protocol/point';
+import {Protocol} from '../protocol/protocol';
+import {PacketType} from '../protocol/packet-types';
 
 export class StraightLine implements CompiledObject {
   name = 'straight-line';
@@ -10,7 +13,7 @@ export class StraightLine implements CompiledObject {
   end: Point;
   id: string;
 
-  constructor(id: string, color?: string, width?: number, start?: Point, stop?: Point) {
+  constructor(id?: string, color?: string, width?: number, start?: Point, stop?: Point) {
     this.id = id;
     this.color = color;
     this.width = width;
@@ -45,31 +48,30 @@ export class StraightLineMode extends PaintMode {
   }
 
   public SerializeObject(object: StraightLine): string {
-    // String builder
-    const sb = [];
+    const builder = new Protocol.Builder();
+    builder.SetType(PacketType.OBJECT);
+    builder.SetName('straight-line');
 
-    sb.push(`n:${object.name}`);
-    sb.push(`i:${object.id}`);
-    sb.push(`c:${object.color}`);
-    sb.push(`w:${object.width}`);
-
-    sb.push(`b:${object.begin.x};${object.begin.y}`);
-    sb.push(`e:${object.end.x};${object.end.y}`);
-
-    return sb.join(',');
+    builder.SetProperty('i', object.id);
+    builder.SetProperty('c', object.color);
+    builder.SetProperty('w', object.width);
+    builder.SetProperty('b', object.begin);
+    builder.SetProperty('e', object.end);
+    return builder.ToString();
   }
 
   public ReadObject(data: string, currentPosition = {value: 0}): StraightLine | boolean {
-    const straightLine = new StraightLine(Protocol.ReadString(data, 'i', currentPosition));
+    const straightLine = new StraightLine();
+    const reader = new Protocol.Reader(data, currentPosition);
 
-    // Read color
-    straightLine.color = Protocol.ReadString(data, 'c', currentPosition);
-    // Read width
-    straightLine.width = Protocol.ReadNumber(data, 'w', currentPosition);
-    // Read begin
-    straightLine.begin = Protocol.ReadPoint(data, currentPosition);
-    // Read end
-    straightLine.end = Protocol.ReadPoint(data, currentPosition);
+    reader.AddMapping<string>('i', 'id', straightLine, Protocol.ReadString);
+    reader.AddMapping<string>('c', 'color', straightLine, Protocol.ReadString);
+    reader.AddMapping<number>('w', 'width', straightLine, Protocol.ReadNumber);
+    reader.AddMapping<Point>('b', 'begin', straightLine, Protocol.ReadPoint);
+    reader.AddMapping<Point>('e', 'end', straightLine, Protocol.ReadPoint);
+
+    reader.Read();
+
     return straightLine;
   }
 
@@ -84,7 +86,7 @@ export class StraightLineMode extends PaintMode {
 
     // PC only
     if (event.pointerType === 'mouse') {
-      // Control point move on right click
+      // Control point.ts move on right click
       if (event.button === 2) {
         this.currentControlPoint = normalized;
         this.movingControlPoint = true;
@@ -123,7 +125,7 @@ export class StraightLineMode extends PaintMode {
       this.movingControlPoint = false;
       if (event.button === 0) {
         this.manager.SaveCompiledObject(this.currentStraightLine);
-        // Set control point
+        // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }

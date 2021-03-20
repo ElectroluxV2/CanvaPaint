@@ -1,4 +1,4 @@
-import {Point} from '../paint/protocol';
+import {Point} from '../protocol/point';
 
 export class Simplify {
 

@@ -1,7 +1,10 @@
 import { PaintMode } from './paint-mode';
-import { CardinalSpline } from '../cardinal-spline';
-import { LazyBrush } from '../lazy-brush';
-import {CompiledObject, Point, Protocol} from '../../paint/protocol';
+import { CardinalSpline } from '../curves/cardinal-spline';
+import { LazyBrush } from '../curves/lazy-brush';
+import {Protocol} from '../protocol/protocol';
+import {CompiledObject} from '../protocol/compiled-object';
+import {Point} from '../protocol/point';
+import {PacketType} from '../protocol/packet-types';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
@@ -10,7 +13,7 @@ export class FreeLine implements CompiledObject {
   points: Point[];
   id: string;
 
-  constructor(id: string, color?: string, width?: number, points?: Point[]) {
+  constructor(id?: string, color?: string, width?: number, points?: Point[]) {
     this.id = id;
     this.color = color;
     this.width = width;
@@ -32,34 +35,33 @@ export class FreeLineMode extends PaintMode {
   }
 
   public SerializeObject(object: FreeLine): string {
-    // String builder
-    const sb = [];
+    // Protocol Builder
+    const protocolBuilder = new Protocol.Builder();
 
-    sb.push(`n:${object.name}`);
-    sb.push(`i:${object.id}`);
-    sb.push(`c:${object.color}`);
-    sb.push(`w:${object.width}`);
+    // THE ORDER MATTERS
+    // CORRECT ORDER: t, n and then anything else
+    protocolBuilder.SetType(PacketType.OBJECT);
+    protocolBuilder.SetName(object.name);
 
-    const ps = [];
+    protocolBuilder.SetProperty('i', object.id);
+    protocolBuilder.SetProperty('c', object.color);
+    protocolBuilder.SetProperty('w', object.width);
+    protocolBuilder.SetProperty('p', object.points);
 
-    for (const point of object.points) {
-      ps.push(`${point.x.toFixed(2)};${point.y.toFixed(2)}`);
-    }
-
-    sb.push(`p:${ps.join('^')}`);
-
-    return sb.join(',');
+    return protocolBuilder.ToString();
   }
 
   public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
-    const freeLine = new FreeLine(Protocol.ReadString(data, 'i', currentPosition));
 
-    // Read color
-    freeLine.color = Protocol.ReadString(data, 'c', currentPosition);
-    // Read width
-    freeLine.width = Protocol.ReadNumber(data, 'w', currentPosition);
-    // Read points
-    freeLine.points = Protocol.ReadArray(Protocol.ReadPoint, data, 'p', currentPosition);
+    const freeLine = new FreeLine();
+    const protocolReader = new Protocol.Reader(data, currentPosition);
+
+    protocolReader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
+    protocolReader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
+    protocolReader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
+    protocolReader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
+
+    protocolReader.Read();
 
     return freeLine;
   }
@@ -69,7 +71,7 @@ export class FreeLineMode extends PaintMode {
     const normalizedPoint = this.manager.NormalizePoint(point);
     // Start new spline
     this.currentSpline = new CardinalSpline().Apply(this);
-    // Add starting point
+    // Add starting point.ts
     this.currentSpline.AddPoint(normalizedPoint);
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
@@ -92,7 +94,7 @@ export class FreeLineMode extends PaintMode {
       // Save for lazy update
       this.lastPointer = normalizedPoint;
     } else {
-      // Add point
+      // Add point.ts
       this.currentSpline.AddPoint(normalizedPoint);
 
       // Requires resending

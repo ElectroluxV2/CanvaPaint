@@ -1,11 +1,14 @@
 import {EventEmitter, NgZone} from '@angular/core';
-import {PaintMode} from '../curves/modes/paint-mode';
-import {FreeLineMode} from '../curves/modes/free-line-mode';
+import {PaintMode} from './modes/paint-mode';
+import {FreeLineMode} from './modes/free-line-mode';
 import {ControlService} from '../settings/control.service';
 import {Settings} from '../settings/settings.interface';
-import {StraightLineMode} from '../curves/modes/straight-line-mode';
-import {ContinuousStraightLineMode} from '../curves/modes/continuous-straight-line-mode';
-import {CompiledObject, PacketType, Point, Protocol} from './protocol';
+import {StraightLineMode} from './modes/straight-line-mode';
+import {ContinuousStraightLineMode} from './modes/continuous-straight-line-mode';
+import {Protocol, Reference} from './protocol/protocol';
+import {Point} from './protocol/point';
+import {CompiledObject} from './protocol/compiled-object';
+import {PacketType} from './protocol/packet-types';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -54,7 +57,7 @@ export interface PaintManager {
   /**
    * @param point to normalize
    * @param enhance whenever to multiply by device dpi
-   * @returns Normalized point
+   * @returns Normalized point.ts
    */
   NormalizePoint(point: Point, enhance?: boolean): Point;
 }
@@ -255,7 +258,7 @@ export class Paint {
     };
 
     this.manager.NormalizePoint = (point, enhance= false) => {
-      // Make sure the point does not go beyond the screen
+      // Make sure the point.ts does not go beyond the screen
       point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
       point[0] = point[0] < 0 ? 0 : point[0];
 
@@ -362,45 +365,45 @@ export class Paint {
   }
 
   private OnConnectionMessage(data: string): void {
-    // Pass by reference
-    const currentPosition = { value: 0 };
-    const packetType = Protocol.ReadPacketType(data, currentPosition);
+    const reader = new Protocol.Reader(data);
 
-    if (packetType === PacketType.UNKNOWN) {
+    // Pass by reference
+    const packetType = new Reference<PacketType>();
+    reader.AddMapping<PacketType>('t', 'value', packetType, Protocol.ReadPacketType);
+    reader.Read('t');
+
+    if (packetType.value === PacketType.UNKNOWN) {
       console.warn('Bad data');
       return;
     }
 
-    if (packetType !== PacketType.OBJECT) {
-      console.warn(`Unsupported packet type: "${packetType}"`);
+    if (packetType.value !== PacketType.OBJECT) {
+      console.warn(`Unsupported packet type: "${packetType.value}"`);
       return;
     }
 
     // Read finished flag
-    const finished = Protocol.ReadBoolean(data, 'f', currentPosition);
-
-    if (finished === null) {
-      console.warn(`Missing finished flag!`);
-      return;
-    }
-
+    const finished = new Reference<boolean>();
     // Read object name
-    const name = Protocol.ReadString(data, 'n', currentPosition);
+    const name = new Reference<string>();
+    reader.AddMapping<boolean>('f', 'value', finished, Protocol.ReadBoolean);
+    reader.AddMapping<string>('n', 'value', name, Protocol.ReadString);
+    reader.Read('n');
 
     // Unsupported
-    if (!this.modes.has(name)) {
-      console.warn(`Unsupported object type: "${name}"`);
+    if (!this.modes.has(name.value)) {
+      console.warn(`Unsupported object type: "${name.value}"`);
       return;
     }
 
     // Read whole object
-    const object = this.modes.get(name).ReadObject(data, currentPosition) as CompiledObject;
+    const object = this.modes.get(name.value).ReadObject(data, reader.GetPosition()) as CompiledObject;
     if (!object) {
-      console.warn(`Mode "${name}" failed to read network object`);
+      console.warn(`Mode "${name.value}" failed to read network object`);
       return;
     }
 
-    if (finished) {
+    if (finished.value) {
       // TODO: Fix ordering
       this.manager.SaveCompiledObject(object);
 
