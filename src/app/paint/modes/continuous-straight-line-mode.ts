@@ -1,7 +1,8 @@
 import {PaintMode} from './paint-mode';
 import {StraightLine} from './straight-line-mode';
-import {Protocol} from '../../protocol/protocol';
-import {Point} from '../../protocol/point';
+import {Protocol} from '../protocol/protocol';
+import {Point} from '../protocol/point';
+import {PacketType} from '../protocol/packet-types';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';
@@ -102,7 +103,15 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public SerializeObject(object: StraightLine): string {
-    return '';
+    const builder = new Protocol.Builder();
+    builder.SetType(PacketType.OBJECT);
+    builder.SetName('straight-line');
+    builder.SetProperty('i', object.id);
+    builder.SetProperty('c', object.color);
+    builder.SetProperty('w', object.width);
+    builder.SetProperty('b', object.begin);
+    builder.SetProperty('e', object.end);
+    return builder.ToString();
   }
 
   public ReadObject(data: string): boolean {

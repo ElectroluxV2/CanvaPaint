@@ -1,5 +1,5 @@
 import { Simplify } from './simplify';
-import { FreeLineMode } from './modes/free-line-mode';
+import { FreeLineMode } from '../modes/free-line-mode';
 import {Point} from '../protocol/point';
 
 export class CardinalSpline {

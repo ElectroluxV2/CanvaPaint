@@ -1,7 +1,7 @@
-import { Settings } from '../../../settings/settings.interface';
-import { PaintManager } from '../../paint';
-import {CompiledObject} from '../../protocol/compiled-object';
-import {Reference} from '../../protocol/protocol';
+import { Settings } from '../../settings/settings.interface';
+import { PaintManager } from '../paint';
+import {CompiledObject} from '../protocol/compiled-object';
+import {Reference} from '../protocol/protocol';
 
 abstract class PaintModeOptional {
   /**

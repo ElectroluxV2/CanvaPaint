@@ -38,7 +38,7 @@ export class Protocol {
       this.properties.set('n', name);
     }
 
-    public SetProperty(name: string, value: string | number | Point[]): void {
+    public SetProperty(name: string, value: string | number | Point[] | Point): void {
 
       if (!this.typeProvided) {
         throw new Error('You must provide type first!');
@@ -51,6 +51,8 @@ export class Protocol {
       let stringValue;
       if (typeof value === 'number') {
         stringValue = value.toFixed(2);
+      } else if (value instanceof Point) {
+        stringValue = Protocol.EncodePoint(value);
       } else if (Array.isArray(value)) {
         stringValue = Protocol.EncodeArray<Point>(value, Protocol.EncodePoint);
       } else {

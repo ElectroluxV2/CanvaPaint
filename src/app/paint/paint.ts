@@ -1,10 +1,10 @@
 import {EventEmitter, NgZone} from '@angular/core';
-import {PaintMode} from './curves/modes/paint-mode';
-import {FreeLineMode} from './curves/modes/free-line-mode';
+import {PaintMode} from './modes/paint-mode';
+import {FreeLineMode} from './modes/free-line-mode';
 import {ControlService} from '../settings/control.service';
 import {Settings} from '../settings/settings.interface';
-import {StraightLineMode} from './curves/modes/straight-line-mode';
-import {ContinuousStraightLineMode} from './curves/modes/continuous-straight-line-mode';
+import {StraightLineMode} from './modes/straight-line-mode';
+import {ContinuousStraightLineMode} from './modes/continuous-straight-line-mode';
 import {Protocol, Reference} from './protocol/protocol';
 import {Point} from './protocol/point';
 import {CompiledObject} from './protocol/compiled-object';

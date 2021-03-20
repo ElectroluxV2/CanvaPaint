@@ -1,10 +1,10 @@
 import { PaintMode } from './paint-mode';
-import { CardinalSpline } from '../cardinal-spline';
-import { LazyBrush } from '../lazy-brush';
-import {Protocol} from '../../protocol/protocol';
-import {CompiledObject} from '../../protocol/compiled-object';
-import {Point} from '../../protocol/point';
-import {PacketType} from '../../protocol/packet-types';
+import { CardinalSpline } from '../curves/cardinal-spline';
+import { LazyBrush } from '../curves/lazy-brush';
+import {Protocol} from '../protocol/protocol';
+import {CompiledObject} from '../protocol/compiled-object';
+import {Point} from '../protocol/point';
+import {PacketType} from '../protocol/packet-types';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
