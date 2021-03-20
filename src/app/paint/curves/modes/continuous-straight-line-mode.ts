@@ -1,6 +1,7 @@
 import {PaintMode} from './paint-mode';
 import {StraightLine} from './straight-line-mode';
-import {Point, Protocol} from '../../paint/protocol';
+import {Protocol} from '../../protocol/protocol';
+import {Point} from '../../protocol/point';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';

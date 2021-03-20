@@ -1,6 +1,7 @@
-import { Settings } from '../../settings/settings.interface';
-import { PaintManager } from '../../paint/paint';
-import {CompiledObject} from '../../paint/protocol';
+import { Settings } from '../../../settings/settings.interface';
+import { PaintManager } from '../../paint';
+import {CompiledObject} from '../../protocol/compiled-object';
+import {Reference} from '../../protocol/protocol';
 
 abstract class PaintModeOptional {
   /**
@@ -147,7 +148,7 @@ export abstract class PaintMode extends PaintModeOptional {
    * Metod used in transportation
    * Should return compiled object instance if not possible should return false
    */
-  abstract ReadObject(data: string, currentPosition: { value: number }): CompiledObject | boolean;
+  abstract ReadObject(data: string, currentPosition: Reference<number>): CompiledObject | boolean;
 
   // Default
   public OnSettingsUpdate(settings: Settings): void {

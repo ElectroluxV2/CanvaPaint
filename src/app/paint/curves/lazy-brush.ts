@@ -1,4 +1,4 @@
-import {Point} from '../paint/protocol';
+import {Point} from '../protocol/point';
 
 export class LazyBrush {
 
@@ -17,7 +17,7 @@ export class LazyBrush {
   }
 
   /**
-   * Updates the pointer point and calculates the new brush point.
+   * Updates the pointer point.ts and calculates the new brush point.ts.
    * @param newPointerPoint Array of cords
    * @returns Whether any of the two points changed
    */

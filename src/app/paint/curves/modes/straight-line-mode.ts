@@ -1,6 +1,7 @@
 import {PaintMode} from './paint-mode';
-import {Settings} from '../../settings/settings.interface';
-import {CompiledObject, Point, Protocol} from '../../paint/protocol';
+import {Settings} from '../../../settings/settings.interface';
+import {CompiledObject} from '../../protocol/compiled-object';
+import {Point} from '../../protocol/point';
 
 export class StraightLine implements CompiledObject {
   name = 'straight-line';
@@ -45,7 +46,7 @@ export class StraightLineMode extends PaintMode {
   }
 
   public SerializeObject(object: StraightLine): string {
-    // String builder
+    /*// String builder
     const sb = [];
 
     sb.push(`n:${object.name}`);
@@ -56,11 +57,12 @@ export class StraightLineMode extends PaintMode {
     sb.push(`b:${object.begin.x};${object.begin.y}`);
     sb.push(`e:${object.end.x};${object.end.y}`);
 
-    return sb.join(',');
+    return sb.join(',');*/
+    return '';
   }
 
   public ReadObject(data: string, currentPosition = {value: 0}): StraightLine | boolean {
-    const straightLine = new StraightLine(Protocol.ReadString(data, 'i', currentPosition));
+    /*const straightLine = new StraightLine(Protocol.ReadString(data, 'i', currentPosition));
 
     // Read color
     straightLine.color = Protocol.ReadString(data, 'c', currentPosition);
@@ -70,7 +72,8 @@ export class StraightLineMode extends PaintMode {
     straightLine.begin = Protocol.ReadPoint(data, currentPosition);
     // Read end
     straightLine.end = Protocol.ReadPoint(data, currentPosition);
-    return straightLine;
+    return straightLine;*/
+    return false;
   }
 
   public OnSelected(): void {
@@ -84,7 +87,7 @@ export class StraightLineMode extends PaintMode {
 
     // PC only
     if (event.pointerType === 'mouse') {
-      // Control point move on right click
+      // Control point.ts move on right click
       if (event.button === 2) {
         this.currentControlPoint = normalized;
         this.movingControlPoint = true;
@@ -123,7 +126,7 @@ export class StraightLineMode extends PaintMode {
       this.movingControlPoint = false;
       if (event.button === 0) {
         this.manager.SaveCompiledObject(this.currentStraightLine);
-        // Set control point
+        // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }

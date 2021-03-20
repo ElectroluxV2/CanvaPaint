@@ -1,6 +1,6 @@
 import { Simplify } from './simplify';
 import { FreeLineMode } from './modes/free-line-mode';
-import {Point} from '../paint/protocol';
+import {Point} from '../protocol/point';
 
 export class CardinalSpline {
   private predict: CanvasRenderingContext2D;
@@ -28,7 +28,7 @@ export class CardinalSpline {
       return;
     }
 
-    // Points must be optimized at this point
+    // Points must be optimized at this point.ts
     context.lineCap = 'round';
     context.beginPath();
     context.moveTo(points[0].x, points[0].y);
@@ -87,7 +87,7 @@ export class CardinalSpline {
   }
 
   public AddPoint(point: Point): void {
-    // Same point prevention
+    // Same point.ts prevention
     if (this.points.length) {
       const toCheck = this.points[this.points.length - 1];
       if (point.x === toCheck.x && point.y === toCheck.y) {
@@ -100,11 +100,11 @@ export class CardinalSpline {
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
     // TODO: better way of doing it
-    // At some point there is no point in optimizing such a big line, so split it
+    // At some point.ts there is no point.ts in optimizing such a big line, so split it
     /*if (this.optimized.length > 25) {
-      // TODO: smooth blend point
+      // TODO: smooth blend point.ts
 
-      // Copy last point
+      // Copy last point.ts
       const last = this.points[this.points.length - 1];
       this.points.slice(0, this.points.length - 1);
 
