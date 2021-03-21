@@ -16,16 +16,21 @@ export class ContinuousStraightLineMode extends PaintMode {
     const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
-    if (event.button === 2) {
-      this.currentControlPoint = normalized;
-      this.movingControlPoint = true;
+    // PC only
+    if (event.pointerType === 'mouse') {
+      if (event.button === 2) {
+        this.currentControlPoint = normalized;
+        this.movingControlPoint = true;
 
-    } else if (event.button === 0) {
-      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
+      } else if (event.button === 0) {
+        this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
 
-      if (this.currentControlPoint) {
-        this.currentStraightLine.begin = this.currentControlPoint;
+        if (this.currentControlPoint) {
+          this.currentStraightLine.begin = this.currentControlPoint;
+        }
       }
+    } else {
+      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
     }
   }
 
@@ -59,11 +64,28 @@ export class ContinuousStraightLineMode extends PaintMode {
     const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
-    if (event.button === 2) {
-      this.currentControlPoint = normalized;
-      this.movingControlPoint = false;
+    // PC only
+    if (event.pointerType === 'mouse') {
+      if (event.button === 2) {
+        this.currentControlPoint = normalized;
+        this.movingControlPoint = false;
 
-    } else if (event.button === 0) {
+      } else if (event.button === 0) {
+        if (this.currentControlPoint) {
+          this.currentStraightLine.begin = this.currentControlPoint;
+        }
+
+        this.currentStraightLine.end = normalized;
+        this.currentControlPoint = normalized;
+
+        this.manager.SaveCompiledObject(this.currentStraightLine);
+        this.manager.ShareCompiledObject(this.currentStraightLine, true);
+        this.manager.SingleFrameUpdate();
+
+        delete this.currentStraightLine;
+      }
+    } else {
+
       if (this.currentControlPoint) {
         this.currentStraightLine.begin = this.currentControlPoint;
       }
