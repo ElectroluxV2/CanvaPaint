@@ -29,6 +29,8 @@ export class ContinuousStraightLineMode extends PaintMode {
           this.currentStraightLine.begin = this.currentControlPoint;
         }
       }
+    } else {
+      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
     }
   }
 
@@ -36,13 +38,10 @@ export class ContinuousStraightLineMode extends PaintMode {
     const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.manager.NormalizePoint(point);
 
-    // PC only
-    if (event.pointerType === 'mouse') {
-      if (this.movingControlPoint) {
-        this.currentControlPoint = normalized;
-      } else if (this.currentStraightLine) {
-        this.currentStraightLine.end = normalized;
-      }
+    if (this.movingControlPoint) {
+      this.currentControlPoint = normalized;
+    } else if (this.currentStraightLine) {
+      this.currentStraightLine.end = normalized;
     }
   }
 
@@ -85,6 +84,20 @@ export class ContinuousStraightLineMode extends PaintMode {
 
         delete this.currentStraightLine;
       }
+    } else {
+
+      if (this.currentControlPoint) {
+        this.currentStraightLine.begin = this.currentControlPoint;
+      }
+
+      this.currentStraightLine.end = normalized;
+      this.currentControlPoint = normalized;
+
+      this.manager.SaveCompiledObject(this.currentStraightLine);
+      this.manager.ShareCompiledObject(this.currentStraightLine, true);
+      this.manager.SingleFrameUpdate();
+
+      delete this.currentStraightLine;
     }
   }
 
