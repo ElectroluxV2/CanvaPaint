@@ -93,14 +93,14 @@ export class StraightLineMode extends PaintMode {
       } else if (event.button === 0) {
         // Line from pointer location or to pointer location
         if (!!this.currentControlPoint) {
-          this.currentStraightLine = new StraightLine(null, this.settings.color, this.settings.width, this.currentControlPoint, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, this.currentControlPoint, normalized);
         } else {
-          this.currentStraightLine = new StraightLine(null, this.settings.color, this.settings.width, normalized, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
         }
       }
     } else {
       // Others
-      this.currentStraightLine = new StraightLine(null, this.settings.color, this.settings.width, normalized, normalized);
+      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
     }
   }
 
@@ -125,12 +125,14 @@ export class StraightLineMode extends PaintMode {
       this.movingControlPoint = false;
       if (event.button === 0) {
         this.manager.SaveCompiledObject(this.currentStraightLine);
+        this.manager.ShareCompiledObject(this.currentStraightLine, true);
         // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }
     } else {
       this.manager.SaveCompiledObject(this.currentStraightLine);
+      this.manager.ShareCompiledObject(this.currentStraightLine, true);
     }
 
     this.manager.StopFrameUpdate();
@@ -142,6 +144,7 @@ export class StraightLineMode extends PaintMode {
 
     if (!!this.currentStraightLine) {
       this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
+      this.manager.ShareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
