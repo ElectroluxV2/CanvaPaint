@@ -216,8 +216,10 @@ export class Paint {
     });
 
     // Response to clear
-    this.controlService.clear.subscribe(() => {
-      this.networkManager.SendClear();
+    this.controlService.clear.subscribe(resend => {
+      if (resend) {
+        this.networkManager.SendClear();
+      }
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
       this.paintManager.Clear();

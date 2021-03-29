@@ -87,7 +87,7 @@ export class NetworkManager {
     }
 
     if (packetType.value === PacketType.CLEAR) {
-      return this.controlService.clear.next();
+      return this.controlService.clear.next(false);
     }
 
     if (packetType.value !== PacketType.OBJECT) {

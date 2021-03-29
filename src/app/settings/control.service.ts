@@ -8,7 +8,7 @@ import { Platform } from '@angular/cdk/platform';
 })
 export class ControlService {
 
-  public readonly clear: EventEmitter<null> = new EventEmitter<null>();
+  public readonly clear: EventEmitter<boolean> = new EventEmitter<boolean>();
   public readonly undo: EventEmitter<null> = new EventEmitter<null>();
   public readonly redo: EventEmitter<null> = new EventEmitter<null>();
   public readonly mode: BehaviorSubject<string> = new BehaviorSubject<string>('free-line');
