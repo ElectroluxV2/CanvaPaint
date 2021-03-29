@@ -11,10 +11,10 @@ export class ContinuousStraightLineMode extends PaintMode {
   private movingControlPoint = false;
 
   public OnPointerDown(event: PointerEvent): void {
-    this.manager.StartFrameUpdate();
+    this.paintManager.StartFrameUpdate();
 
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.manager.NormalizePoint(point);
+    const normalized = this.paintManager.NormalizePoint(point);
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -36,7 +36,7 @@ export class ContinuousStraightLineMode extends PaintMode {
 
   public OnPointerMove(event: PointerEvent) {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.manager.NormalizePoint(point);
+    const normalized = this.paintManager.NormalizePoint(point);
 
     if (this.movingControlPoint) {
       this.currentControlPoint = normalized;
@@ -51,7 +51,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     if (this.currentStraightLine) {
       this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
 
-      this.manager.ShareCompiledObject(this.currentStraightLine, false);
+      this.networkManager.ShareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
@@ -60,9 +60,9 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
-    this.manager.StopFrameUpdate();
+    this.paintManager.StopFrameUpdate();
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.manager.NormalizePoint(point);
+    const normalized = this.paintManager.NormalizePoint(point);
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -78,9 +78,9 @@ export class ContinuousStraightLineMode extends PaintMode {
         this.currentStraightLine.end = normalized;
         this.currentControlPoint = normalized;
 
-        this.manager.SaveCompiledObject(this.currentStraightLine);
-        this.manager.ShareCompiledObject(this.currentStraightLine, true);
-        this.manager.SingleFrameUpdate();
+        this.paintManager.SaveCompiledObject(this.currentStraightLine);
+        this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
+        this.paintManager.SingleFrameUpdate();
 
         delete this.currentStraightLine;
       }
@@ -93,9 +93,9 @@ export class ContinuousStraightLineMode extends PaintMode {
       this.currentStraightLine.end = normalized;
       this.currentControlPoint = normalized;
 
-      this.manager.SaveCompiledObject(this.currentStraightLine);
-      this.manager.ShareCompiledObject(this.currentStraightLine, true);
-      this.manager.SingleFrameUpdate();
+      this.paintManager.SaveCompiledObject(this.currentStraightLine);
+      this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
+      this.paintManager.SingleFrameUpdate();
 
       delete this.currentStraightLine;
     }
@@ -111,7 +111,7 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public MakeReady(): void {
-    this.manager.SingleFrameUpdate();
+    this.paintManager.SingleFrameUpdate();
   }
 
   public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {

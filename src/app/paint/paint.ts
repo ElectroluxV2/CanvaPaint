@@ -1,14 +1,14 @@
-import {EventEmitter, NgZone} from '@angular/core';
+import {EventEmitter} from '@angular/core';
 import {PaintMode} from './modes/paint-mode';
 import {FreeLineMode} from './modes/free-line-mode';
 import {ControlService} from '../settings/control.service';
 import {Settings} from '../settings/settings.interface';
 import {StraightLineMode} from './modes/straight-line-mode';
 import {ContinuousStraightLineMode} from './modes/continuous-straight-line-mode';
-import {Protocol, Reference} from './protocol/protocol';
 import {Point} from './protocol/point';
-import {CompiledObject} from './protocol/compiled-object';
-import {PacketType} from './protocol/packet-types';
+import {PaintManager} from './paint-manager';
+import {NetworkManager} from './network-manager';
+import {Reference} from './protocol/protocol';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -26,75 +26,21 @@ declare global {
   }
 }
 
-export interface PaintManager {
-  /**
-   * Starts animation loop
-   */
-  StartFrameUpdate(): void;
-  /**
-   * Stops animation loop
-   */
-  StopFrameUpdate(): void;
-
-  /**
-   * Requests single frame update
-   * Does not impact animation loop
-   */
-  SingleFrameUpdate(): void;
-  /**
-   * Saves compiled object
-   * Draws compiled object
-   * @param object Object to save
-   */
-  SaveCompiledObject(object: CompiledObject): void;
-
-  /**
-   * Used to share (transport) object between clients
-   * @param object Object to share
-   * @param finished Informs if object has been finished and there won't be any updates to it
-   */
-  ShareCompiledObject(object: CompiledObject, finished: boolean): void;
-  /**
-   * @param point to normalize
-   * @param enhance whenever to multiply by device dpi
-   * @returns Normalized point.ts
-   */
-  NormalizePoint(point: Point, enhance?: boolean): Point;
-}
-
 export class Paint {
-  /**
-   * Holds result of requestAnimationFrame
-   */
-  private animationFrameForModesId: number;
-  private animationFrameForSocketsId: number;
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasNetworkCTX: CanvasRenderingContext2D;
+
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
-  private currentMode: PaintMode;
+
+  private currentMode: Reference<PaintMode> = new Reference<PaintMode>();
   private modes: Map<string, PaintMode> = new Map<string, PaintMode>();
   private currentSettings: Settings;
-  private manager: PaintManager = {} as PaintManager;
-  /**
-   * Holds socket connection to server
-   */
-  private connection: WebSocket;
 
-  /**
-   * Contains all compiled objects
-   */
-  public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
-  /**
-   * Temporary location for object before they will be drawn
-   */
-  private compiledObjectStash: Map<string, CompiledObject> = new Map<string, CompiledObject>();
-  /**
-   * Controls if stash needs redraw
-   */
-  private compiledObjectStashNeedRedraw = false;
+  private readonly paintManager: PaintManager;
+  private readonly networkManager: NetworkManager;
 
-  constructor(private ngZone: NgZone, private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
+  constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
@@ -110,15 +56,15 @@ export class Paint {
 
     this.InjectCanvas();
 
-    this.PrepareManager();
+    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX);
+
+    this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager);
 
     this.HandleModes();
 
     this.ResponseToControlService();
 
     this.HandleEvents();
-
-    this.HandleConnection();
   }
 
   private HandleEvents(): void {
@@ -130,57 +76,57 @@ export class Paint {
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       event.preventDefault();
-      this.currentMode?.OnWheel?.(event);
+      this.currentMode.value?.OnWheel?.(event);
     };
 
     this.predictCanvas.onpointerover = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerOver?.(event);
+      this.currentMode.value?.OnPointerOver?.(event);
     };
 
     this.predictCanvas.onpointerenter = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerEnter?.(event);
+      this.currentMode.value?.OnPointerEnter?.(event);
     };
 
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerDown?.(event);
+      this.currentMode.value?.OnPointerDown?.(event);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerMove?.(event);
+      this.currentMode.value?.OnPointerMove?.(event);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerUp?.(event);
+      this.currentMode.value?.OnPointerUp?.(event);
     };
 
     this.predictCanvas.onpointercancel = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerCancel?.(event);
+      this.currentMode.value?.OnPointerCancel?.(event);
     };
 
     this.predictCanvas.onpointerout = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerOut?.(event);
+      this.currentMode.value?.OnPointerOut?.(event);
     };
 
     this.predictCanvas.onpointerleave = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerLeave?.(event);
+      this.currentMode.value?.OnPointerLeave?.(event);
     };
 
     this.predictCanvas.ongotpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerGotCapture?.(event);
+      this.currentMode.value?.OnPointerGotCapture?.(event);
     };
 
     this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode?.OnPointerLostCapture?.(event);
+      this.currentMode.value?.OnPointerLostCapture?.(event);
     };
   }
 
@@ -216,74 +162,14 @@ export class Paint {
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
   }
 
-  private PrepareManager(): void {
-    // Setup paint manager
-    this.manager.StartFrameUpdate = () => {
-      // Start new loop, obtain new id
-      this.ngZone.runOutsideAngular(() => {
-        this.currentMode?.OnFrameUpdate?.();
-        this.animationFrameForModesId = window.requestAnimationFrame(this.manager.StartFrameUpdate.bind(this));
-      });
-    };
-
-    this.manager.StopFrameUpdate = () => {
-      window.cancelAnimationFrame(this.animationFrameForModesId);
-    };
-
-    this.manager.SingleFrameUpdate = () => {
-      this.ngZone.runOutsideAngular(() => {
-        window.requestAnimationFrame(() => {
-          this.currentMode?.OnFrameUpdate();
-        });
-      });
-    };
-
-    this.manager.SaveCompiledObject = object => {
-      if (!this.compiledObjectStorage.has(object.name)) {
-        this.compiledObjectStorage.set(object.name, []);
-      }
-
-      this.compiledObjectStorage.get(object.name).push(object);
-      this.modes.get(object.name).ReproduceObject(this.mainCanvasCTX, object);
-    };
-
-    this.manager.ShareCompiledObject = (object, finished = false) => {
-
-      const serialized = this.modes.get(object.name)?.SerializeObject(object);
-      if (serialized) {
-        this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
-      } else {
-        console.warn(`Empty object from ${object.name}!`);
-      }
-    };
-
-    this.manager.NormalizePoint = (point, enhance= false) => {
-      // Make sure the point.ts does not go beyond the screen
-      point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
-      point[0] = point[0] < 0 ? 0 : point[0];
-
-      point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
-      point[1] = point[1] < 0 ? 0 : point[1];
-
-      if (!enhance) {
-        return point;
-      }
-
-      point[0] *= window.devicePixelRatio;
-      point[1] *= window.devicePixelRatio;
-
-      return point;
-    };
-  }
-
   private HandleModes(): void {
     // Setup modes
     this.currentSettings = this.controlService.settings.value;
 
     const modesArray = [
-      new FreeLineMode(this.predictCanvasCTX, this.manager, this.currentSettings),
-      new StraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings),
-      new ContinuousStraightLineMode(this.predictCanvasCTX, this.manager, this.currentSettings)
+      new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
+      new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
     ];
 
     const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');
@@ -303,22 +189,22 @@ export class Paint {
       this.modes.set(mode.name, mode);
     }
 
-    this.currentMode = this.modes.get(this.controlService.mode.value);
+    this.currentMode.value = this.modes.get(this.controlService.mode.value);
     this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
         console.warn(`No mode named ${mode}!`);
         return;
       }
-      this.currentMode?.OnUnSelected?.();
-      this.currentMode = this.modes.get(mode);
-      this.currentMode?.OnSelected?.();
+      this.currentMode.value?.OnUnSelected?.();
+      this.currentMode.value = this.modes.get(mode);
+      this.currentMode.value?.OnSelected?.();
     });
   }
 
   private ResponseToControlService(): void {
     // Response to settings change
     this.controlService.settings.subscribe(newSettings => {
-      this.currentMode?.OnSettingsUpdate(newSettings);
+      this.currentMode.value?.OnSettingsUpdate(newSettings);
 
       // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
@@ -333,113 +219,9 @@ export class Paint {
     this.controlService.clear.subscribe(() => {
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
-      this.compiledObjectStorage.clear();
-      this.currentMode?.MakeReady?.();
+      this.paintManager.Clear();
+      this.currentMode.value?.MakeReady?.();
     });
-  }
-
-  private ConnectionDrawLoop(): void {
-
-    if (this.compiledObjectStashNeedRedraw) {
-      // Clear predict from network
-      this.predictCanvasNetworkCTX.clear();
-
-      // TODO: Object can stuck here forever
-      // Here we will iterate through objects transferred from sockets
-      for (const [id, object] of this.compiledObjectStash) {
-        if (!this.modes.has(object.name)) {
-          console.warn(`Missing mode: ${object.name}`);
-          continue;
-        }
-
-        this.modes.get(object.name).ReproduceObject(this.predictCanvasNetworkCTX, object);
-      }
-
-      this.compiledObjectStashNeedRedraw = false;
-    }
-
-    // Start new loop, obtain new id
-    this.ngZone.runOutsideAngular(() => {
-      this.animationFrameForSocketsId = window.requestAnimationFrame(this.ConnectionDrawLoop.bind(this));
-    });
-  }
-
-  private OnConnectionMessage(data: string): void {
-    const reader = new Protocol.Reader(data);
-
-    // Pass by reference
-    const packetType = new Reference<PacketType>();
-    reader.AddMapping<PacketType>('t', 'value', packetType, Protocol.ReadPacketType);
-    reader.Read('t');
-
-    if (packetType.value === PacketType.UNKNOWN) {
-      console.warn('Bad data');
-      return;
-    }
-
-    if (packetType.value !== PacketType.OBJECT) {
-      console.warn(`Unsupported packet type: "${packetType.value}"`);
-      return;
-    }
-
-    // Read finished flag
-    const finished = new Reference<boolean>();
-    // Read object name
-    const name = new Reference<string>();
-    reader.AddMapping<boolean>('f', 'value', finished, Protocol.ReadBoolean);
-    reader.AddMapping<string>('n', 'value', name, Protocol.ReadString);
-    reader.Read('n');
-
-    // Unsupported
-    if (!this.modes.has(name.value)) {
-      console.warn(`Unsupported object type: "${name.value}"`);
-      return;
-    }
-
-    // Read whole object
-    const object = this.modes.get(name.value).ReadObject(data, reader.GetPosition()) as CompiledObject;
-    if (!object) {
-      console.warn(`Mode "${name.value}" failed to read network object`);
-      return;
-    }
-
-    if (finished.value) {
-      // TODO: Fix ordering
-      this.manager.SaveCompiledObject(object);
-
-      if (this.compiledObjectStash.has(object.id)) {
-        this.compiledObjectStashNeedRedraw = true;
-        this.compiledObjectStash.delete(object.id);
-      }
-
-    } else {
-      this.compiledObjectStashNeedRedraw = true;
-      this.compiledObjectStash.set(object.id, object);
-    }
-  }
-
-  private HandleConnection(): void {
-    this.ConnectionDrawLoop();
-
-    this.connection = new WebSocket('ws://localhost:3000');
-    this.connection.onopen = () => {
-      console.info('Connected to server');
-    };
-
-    this.connection.onmessage = ({data}) => {
-      this.OnConnectionMessage(data);
-    };
-
-    this.connection.onclose = event => {
-      console.warn(`Connection unexpectedly closed: #${event.code} ${event.reason.length !== 0 ? ', reason: ' + event.reason : ''}. Reconnecting in 1 second.`);
-      // Reconnect
-      setTimeout(this.HandleConnection.bind(this), 1000);
-    };
-
-    this.connection.onerror = event => {
-      console.warn(`An error occurred in socket!`);
-      event.stopImmediatePropagation();
-    };
   }
 
   public Resize(): void {
@@ -458,13 +240,7 @@ export class Paint {
   public ReDraw(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
-
-    for (const [name, objects] of this.compiledObjectStorage) {
-      for (const compiledObject of objects) {
-        this.modes.get(name).ReproduceObject(this.mainCanvasCTX, compiledObject);
-      }
-    }
-
-    this.currentMode?.MakeReady?.();
+    this.paintManager.ReDraw();
+    this.currentMode.value?.MakeReady?.();
   }
 }
