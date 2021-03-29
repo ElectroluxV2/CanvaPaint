@@ -58,7 +58,7 @@ export class Paint {
 
     this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX);
 
-    this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager);
+    this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager, this.controlService);
 
     this.HandleModes();
 
@@ -217,6 +217,7 @@ export class Paint {
 
     // Response to clear
     this.controlService.clear.subscribe(() => {
+      this.networkManager.SendClear();
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
       this.paintManager.Clear();
