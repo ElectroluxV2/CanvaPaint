@@ -81,8 +81,8 @@ export class StraightLineMode extends PaintMode {
 
   public OnPointerDown(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.manager.NormalizePoint(point);
-    this.manager.StartFrameUpdate();
+    const normalized = this.paintManager.NormalizePoint(point);
+    this.paintManager.StartFrameUpdate();
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -106,7 +106,7 @@ export class StraightLineMode extends PaintMode {
 
   public OnPointerMove(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.manager.NormalizePoint(point);
+    const normalized = this.paintManager.NormalizePoint(point);
 
     if (event.pointerType === 'mouse') {
       if (this.movingControlPoint) {
@@ -124,18 +124,18 @@ export class StraightLineMode extends PaintMode {
     if (event.pointerType === 'mouse') {
       this.movingControlPoint = false;
       if (event.button === 0) {
-        this.manager.SaveCompiledObject(this.currentStraightLine);
-        this.manager.ShareCompiledObject(this.currentStraightLine, true);
+        this.paintManager.SaveCompiledObject(this.currentStraightLine);
+        this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
         // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }
     } else {
-      this.manager.SaveCompiledObject(this.currentStraightLine);
-      this.manager.ShareCompiledObject(this.currentStraightLine, true);
+      this.paintManager.SaveCompiledObject(this.currentStraightLine);
+      this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
     }
 
-    this.manager.StopFrameUpdate();
+    this.paintManager.StopFrameUpdate();
     delete this.currentStraightLine;
   }
 
@@ -144,7 +144,7 @@ export class StraightLineMode extends PaintMode {
 
     if (!!this.currentStraightLine) {
       this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
-      this.manager.ShareCompiledObject(this.currentStraightLine, false);
+      this.networkManager.ShareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {

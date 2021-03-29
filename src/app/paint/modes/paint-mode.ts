@@ -1,7 +1,8 @@
 import { Settings } from '../../settings/settings.interface';
-import { PaintManager } from '../paint';
 import {CompiledObject} from '../protocol/compiled-object';
 import {Reference} from '../protocol/protocol';
+import {PaintManager} from '../paint-manager';
+import {NetworkManager} from '../network-manager';
 
 abstract class PaintModeOptional {
   /**
@@ -107,7 +108,11 @@ export abstract class PaintMode extends PaintModeOptional {
   /**
    * Contains Paint's methods
    */
-  readonly manager: PaintManager;
+  readonly paintManager: PaintManager;
+  /**
+   * Contains network methods
+   */
+  readonly networkManager: NetworkManager;
   /**
    * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    */
@@ -121,13 +126,15 @@ export abstract class PaintMode extends PaintModeOptional {
 
   /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
-   * @param manager Paint manager
+   * @param paintManager Paint manager
+   * @param networkManager Network
    * @param settings Current settings
    */
-  constructor(predictCanvas: CanvasRenderingContext2D, manager: PaintManager, settings: Settings) {
+  constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager, settings: Settings) {
     super();
     this.predictCanvas = predictCanvas;
-    this.manager = manager;
+    this.paintManager = paintManager;
+    this.networkManager = networkManager;
     this.settings = settings;
   }
 
