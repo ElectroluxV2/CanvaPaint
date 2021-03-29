@@ -42,17 +42,20 @@ export class Paint {
 
   constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
-    mainCanvas.height = mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
-    mainCanvas.width = mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
+    mainCanvas.height = mainCanvas.parentElement.offsetHeight * devicePixelRatio;
+    mainCanvas.width = mainCanvas.parentElement.offsetWidth * devicePixelRatio;
     this.mainCanvasCTX = mainCanvas.getContext('2d');
+    this.mainCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     predictCanvas.height = mainCanvas.height;
     predictCanvas.width = mainCanvas.width;
     this.predictCanvasCTX = predictCanvas.getContext('2d');
+    this.predictCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     predictCanvasNetwork.height = mainCanvas.height;
     predictCanvasNetwork.width = mainCanvas.width;
     this.predictCanvasNetworkCTX = predictCanvasNetwork.getContext('2d');
+    this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.InjectCanvas();
 
@@ -228,14 +231,20 @@ export class Paint {
   }
 
   public Resize(): void {
-    this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * window.devicePixelRatio;
-    this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * window.devicePixelRatio;
+    this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * devicePixelRatio;
+    this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * devicePixelRatio;
+
+    this.mainCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
 
+    this.predictCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
+
     this.predictCanvasNetwork.height = this.mainCanvas.height;
     this.predictCanvasNetwork.width = this.mainCanvas.width;
+
+    this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.ReDraw();
   }
