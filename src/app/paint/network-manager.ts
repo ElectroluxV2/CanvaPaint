@@ -3,6 +3,7 @@ import {PaintMode} from './modes/paint-mode';
 import {Protocol, Reference} from './protocol/protocol';
 import {PacketType} from './protocol/packet-types';
 import {PaintManager} from './paint-manager';
+import {ControlService} from '../settings/control.service';
 
 export class NetworkManager {
   /**
@@ -25,7 +26,7 @@ export class NetworkManager {
    */
   private connection: WebSocket;
 
-  constructor(private modes: Map<string, PaintMode>, private predictCanvasNetworkCTX: CanvasRenderingContext2D, private paintManager: PaintManager) {
+  constructor(private modes: Map<string, PaintMode>, private predictCanvasNetworkCTX: CanvasRenderingContext2D, private paintManager: PaintManager, private controlService: ControlService) {
     this.HandleConnection();
   }
 
@@ -44,7 +45,9 @@ export class NetworkManager {
     }
   }
 
-  public SendClear(): void {}
+  public SendClear(): void {
+    this.connection.send('t:c');
+  }
 
   private ConnectionDrawLoop(): void {
 
@@ -81,6 +84,10 @@ export class NetworkManager {
     if (packetType.value === PacketType.UNKNOWN) {
       console.warn('Bad data');
       return;
+    }
+
+    if (packetType.value === PacketType.CLEAR) {
+      return this.controlService.clear.next(false);
     }
 
     if (packetType.value !== PacketType.OBJECT) {
@@ -127,7 +134,7 @@ export class NetworkManager {
   private HandleConnection(): void {
     this.ConnectionDrawLoop();
 
-    this.connection = new WebSocket('ws://localhost:3000');
+    this.connection = new WebSocket('ws://ip.budziszm.pl:3000');
     this.connection.onopen = () => {
       console.info('Connected to server');
     };

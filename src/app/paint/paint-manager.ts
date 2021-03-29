@@ -58,23 +58,15 @@ export class PaintManager {
 
   /**
    * @param point to normalize
-   * @param enhance whenever to multiply by device dpi
    * @returns Normalized point.ts
    */
-  public NormalizePoint(point: Point, enhance?: boolean): Point {
+  public NormalizePoint(point: Point): Point {
     // Make sure the point.ts does not go beyond the screen
     point[0] = point[0] > window.innerWidth ? window.innerWidth : point[0];
     point[0] = point[0] < 0 ? 0 : point[0];
 
     point[1] = point[1] > window.innerHeight ? window.innerHeight : point[1];
     point[1] = point[1] < 0 ? 0 : point[1];
-
-    if (!enhance) {
-      return point;
-    }
-
-    point[0] *= window.devicePixelRatio;
-    point[1] *= window.devicePixelRatio;
 
     return point;
   }
