@@ -129,6 +129,10 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
+    if (!this.currentGUID) {
+      return this.paintManager.StopFrameUpdate();
+    }
+
     // End spline with saving, this method will draw itself
     this.predictCanvas.clear();
     this.paintManager.SaveCompiledObject(this.compiled);
@@ -152,6 +156,12 @@ export class FreeLineMode extends PaintMode {
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
     delete this?.currentGUID;
+  }
+
+  public OnPointerOut(event: PointerEvent): void {
+    if (this.currentGUID) {
+      this.OnPointerUp(event);
+    }
   }
 
   public OnSelected(): void {
