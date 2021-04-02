@@ -45,6 +45,10 @@ export class NetworkManager {
     this.connection.send('t:c');
   }
 
+  public SendDelete(id: string): void {
+    this.connection.send(`t:d,i:${id}`);
+  }
+
   private ConnectionDrawLoop(): void {
 
     if (this.compiledObjectStashNeedRedraw) {

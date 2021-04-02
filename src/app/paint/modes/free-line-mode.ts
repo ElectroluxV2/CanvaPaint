@@ -143,6 +143,9 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerCancel(event: PointerEvent): void {
+    // Send delete
+    this.networkManager.SendDelete(this.currentGUID);
+
     // End spline and delete result
     this.predictCanvas.clear();
     delete this?.lastPointer;
