@@ -124,7 +124,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public SerializeObject(object: StraightLine): string {
+  public SerializeObject(object: StraightLine): Protocol.Builder {
     const builder = new Protocol.Builder();
     builder.SetType(PacketType.OBJECT);
     builder.SetName('straight-line');
@@ -133,10 +133,10 @@ export class ContinuousStraightLineMode extends PaintMode {
     builder.SetProperty('w', object.width);
     builder.SetProperty('b', object.begin);
     builder.SetProperty('e', object.end);
-    return builder.ToString();
+    return builder;
   }
 
-  public ReadObject(data: string): boolean {
+  public ReadObject(reader: Protocol.Reader): boolean {
     return false;
   }
 }

@@ -36,13 +36,9 @@ export class NetworkManager {
    * @param finished Informs if object has been finished and there won't be any updates to it
    */
   public ShareCompiledObject(object: CompiledObject, finished: boolean): void {
-
-    const serialized = this.modes.get(object.name)?.SerializeObject(object);
-    if (serialized) {
-      this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
-    } else {
-      console.warn(`Empty object from ${object.name}!`);
-    }
+    const packet = this.modes.get(object.name)?.SerializeObject(object);
+    packet.SetProperty('f', finished ? 't' : 'f');
+    this.connection.send(packet.ToString());
   }
 
   public SendClear(): void {
@@ -95,6 +91,10 @@ export class NetworkManager {
       return;
     }
 
+    this.HandleObjectPacket(reader);
+  }
+
+  private HandleObjectPacket(reader: Protocol.Reader): void {
     // Read finished flag
     const finished = new Reference<boolean>();
     // Read object name
@@ -110,7 +110,7 @@ export class NetworkManager {
     }
 
     // Read whole object
-    const object = this.modes.get(name.value).ReadObject(data, reader.GetPosition()) as CompiledObject;
+    const object = this.modes.get(name.value).ReadObject(reader) as CompiledObject;
     if (!object) {
       console.warn(`Mode "${name.value}" failed to read network object`);
       return;

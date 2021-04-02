@@ -34,12 +34,10 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public SerializeObject(object: FreeLine): string {
+  public SerializeObject(object: FreeLine): Protocol.Builder {
     // Protocol Builder
     const protocolBuilder = new Protocol.Builder();
 
-    // THE ORDER MATTERS
-    // CORRECT ORDER: t, n and then anything else
     protocolBuilder.SetType(PacketType.OBJECT);
     protocolBuilder.SetName(object.name);
 
@@ -48,20 +46,19 @@ export class FreeLineMode extends PaintMode {
     protocolBuilder.SetProperty('w', object.width);
     protocolBuilder.SetProperty('p', object.points);
 
-    return protocolBuilder.ToString();
+    return protocolBuilder;
   }
 
-  public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
+  public ReadObject(reader: Protocol.Reader): FreeLine | boolean {
 
     const freeLine = new FreeLine();
-    const protocolReader = new Protocol.Reader(data, currentPosition);
 
-    protocolReader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
-    protocolReader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
-    protocolReader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
-    protocolReader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
+    reader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
+    reader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
+    reader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
+    reader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
 
-    protocolReader.Read();
+    reader.Read();
 
     return freeLine;
   }
