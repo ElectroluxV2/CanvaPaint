@@ -36,9 +36,13 @@ export class NetworkManager {
    * @param finished Informs if object has been finished and there won't be any updates to it
    */
   public ShareCompiledObject(object: CompiledObject, finished: boolean): void {
-    const packet = this.modes.get(object.name)?.SerializeObject(object);
-    packet.SetProperty('f', finished ? 't' : 'f');
-    this.connection.send(packet.ToString());
+    let builder = new Protocol.Builder();
+    builder.SetType(PacketType.OBJECT);
+    builder.SetName(object.name);
+    builder.SetProperty('f', finished ? 't' : 'f');
+
+    builder = this.modes.get(object.name)?.SerializeObject(object, builder);
+    this.connection.send(builder.ToString());
   }
 
   public SendClear(): void {

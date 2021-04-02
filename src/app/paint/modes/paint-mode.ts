@@ -149,7 +149,7 @@ export abstract class PaintMode extends PaintModeOptional {
    * Metod used in transportation
    * Should return string readable by read method
    */
-  abstract SerializeObject(object: CompiledObject): Protocol.Builder;
+  abstract SerializeObject(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
 
   /**
    * Metod used in transportation

@@ -34,19 +34,13 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public SerializeObject(object: FreeLine): Protocol.Builder {
-    // Protocol Builder
-    const protocolBuilder = new Protocol.Builder();
+  public SerializeObject(object: FreeLine, builder = new Protocol.Builder()): Protocol.Builder {
+    builder.SetProperty('i', object.id);
+    builder.SetProperty('c', object.color);
+    builder.SetProperty('w', object.width);
+    builder.SetProperty('p', object.points);
 
-    protocolBuilder.SetType(PacketType.OBJECT);
-    protocolBuilder.SetName(object.name);
-
-    protocolBuilder.SetProperty('i', object.id);
-    protocolBuilder.SetProperty('c', object.color);
-    protocolBuilder.SetProperty('w', object.width);
-    protocolBuilder.SetProperty('p', object.points);
-
-    return protocolBuilder;
+    return builder;
   }
 
   public ReadObject(reader: Protocol.Reader): FreeLine | boolean {

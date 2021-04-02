@@ -124,9 +124,7 @@ export class ContinuousStraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public SerializeObject(object: StraightLine): Protocol.Builder {
-    const builder = new Protocol.Builder();
-    builder.SetType(PacketType.OBJECT);
+  public SerializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
     builder.SetName('straight-line');
     builder.SetProperty('i', object.id);
     builder.SetProperty('c', object.color);
