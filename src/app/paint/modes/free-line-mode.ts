@@ -159,9 +159,7 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerOut(event: PointerEvent): void {
-    if (this.currentGUID) {
-      this.OnPointerUp(event);
-    }
+    this.OnPointerUp(event);
   }
 
   public OnSelected(): void {
