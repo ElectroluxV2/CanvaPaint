@@ -1,6 +1,6 @@
 import { Settings } from '../../settings/settings.interface';
 import {CompiledObject} from '../protocol/compiled-object';
-import {Reference} from '../protocol/protocol';
+import {Protocol, Reference} from '../protocol/protocol';
 import {PaintManager} from '../paint-manager';
 import {NetworkManager} from '../network-manager';
 
@@ -149,13 +149,13 @@ export abstract class PaintMode extends PaintModeOptional {
    * Metod used in transportation
    * Should return string readable by read method
    */
-  abstract SerializeObject(object: CompiledObject): string;
+  abstract SerializeObject(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
 
   /**
    * Metod used in transportation
    * Should return compiled object instance if not possible should return false
    */
-  abstract ReadObject(data: string, currentPosition: Reference<number>): CompiledObject | boolean;
+  abstract ReadObject(reader: Protocol.Reader): CompiledObject | boolean;
 
   // Default
   public OnSettingsUpdate(settings: Settings): void {

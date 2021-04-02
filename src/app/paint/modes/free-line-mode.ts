@@ -34,34 +34,25 @@ export class FreeLineMode extends PaintMode {
     CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public SerializeObject(object: FreeLine): string {
-    // Protocol Builder
-    const protocolBuilder = new Protocol.Builder();
+  public SerializeObject(object: FreeLine, builder = new Protocol.Builder()): Protocol.Builder {
+    builder.SetProperty('i', object.id);
+    builder.SetProperty('c', object.color);
+    builder.SetProperty('w', object.width);
+    builder.SetProperty('p', object.points);
 
-    // THE ORDER MATTERS
-    // CORRECT ORDER: t, n and then anything else
-    protocolBuilder.SetType(PacketType.OBJECT);
-    protocolBuilder.SetName(object.name);
-
-    protocolBuilder.SetProperty('i', object.id);
-    protocolBuilder.SetProperty('c', object.color);
-    protocolBuilder.SetProperty('w', object.width);
-    protocolBuilder.SetProperty('p', object.points);
-
-    return protocolBuilder.ToString();
+    return builder;
   }
 
-  public ReadObject(data: string, currentPosition = { value: 0 }): FreeLine | boolean {
+  public ReadObject(reader: Protocol.Reader): FreeLine | boolean {
 
     const freeLine = new FreeLine();
-    const protocolReader = new Protocol.Reader(data, currentPosition);
 
-    protocolReader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
-    protocolReader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
-    protocolReader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
-    protocolReader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
+    reader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
+    reader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
+    reader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
+    reader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
 
-    protocolReader.Read();
+    reader.Read();
 
     return freeLine;
   }
@@ -132,6 +123,10 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerUp(event: PointerEvent): void {
+    if (!this.currentGUID) {
+      return this.paintManager.StopFrameUpdate();
+    }
+
     // End spline with saving, this method will draw itself
     this.predictCanvas.clear();
     this.paintManager.SaveCompiledObject(this.compiled);
@@ -146,12 +141,19 @@ export class FreeLineMode extends PaintMode {
   }
 
   public OnPointerCancel(event: PointerEvent): void {
+    // Send delete
+    this.networkManager.SendDelete(this.currentGUID);
+
     // End spline and delete result
     this.predictCanvas.clear();
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
     delete this?.currentGUID;
+  }
+
+  public OnPointerOut(event: PointerEvent): void {
+    this.OnPointerUp(event);
   }
 
   public OnSelected(): void {

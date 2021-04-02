@@ -47,22 +47,17 @@ export class StraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public SerializeObject(object: StraightLine): string {
-    const builder = new Protocol.Builder();
-    builder.SetType(PacketType.OBJECT);
-    builder.SetName('straight-line');
-
+  public SerializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
     builder.SetProperty('i', object.id);
     builder.SetProperty('c', object.color);
     builder.SetProperty('w', object.width);
     builder.SetProperty('b', object.begin);
     builder.SetProperty('e', object.end);
-    return builder.ToString();
+    return builder;
   }
 
-  public ReadObject(data: string, currentPosition = {value: 0}): StraightLine | boolean {
+  public ReadObject(reader: Protocol.Reader): StraightLine | boolean {
     const straightLine = new StraightLine();
-    const reader = new Protocol.Reader(data, currentPosition);
 
     reader.AddMapping<string>('i', 'id', straightLine, Protocol.ReadString);
     reader.AddMapping<string>('c', 'color', straightLine, Protocol.ReadString);

@@ -36,17 +36,21 @@ export class NetworkManager {
    * @param finished Informs if object has been finished and there won't be any updates to it
    */
   public ShareCompiledObject(object: CompiledObject, finished: boolean): void {
+    let builder = new Protocol.Builder();
+    builder.SetType(PacketType.OBJECT);
+    builder.SetName(object.name);
+    builder.SetProperty('f', finished ? 't' : 'f');
 
-    const serialized = this.modes.get(object.name)?.SerializeObject(object);
-    if (serialized) {
-      this.connection.send(`t:o,f:${finished ? 't' : 'f'},${serialized}`);
-    } else {
-      console.warn(`Empty object from ${object.name}!`);
-    }
+    builder = this.modes.get(object.name)?.SerializeObject(object, builder);
+    this.connection.send(builder.ToString());
   }
 
   public SendClear(): void {
     this.connection.send('t:c');
+  }
+
+  public SendDelete(id: string): void {
+    this.connection.send(`t:d,i:${id}`);
   }
 
   private ConnectionDrawLoop(): void {
@@ -90,11 +94,18 @@ export class NetworkManager {
       return this.controlService.clear.next(false);
     }
 
-    if (packetType.value !== PacketType.OBJECT) {
-      console.warn(`Unsupported packet type: "${packetType.value}"`);
-      return;
+    if (packetType.value === PacketType.OBJECT) {
+      return this.HandleObjectPacket(reader);
     }
 
+    if (packetType.value === PacketType.DELETE) {
+      return this.HandleDeletePacket(reader);
+    }
+
+    console.warn(`Unsupported packet type: "${packetType.value}"`);
+  }
+
+  private HandleObjectPacket(reader: Protocol.Reader): void {
     // Read finished flag
     const finished = new Reference<boolean>();
     // Read object name
@@ -110,7 +121,7 @@ export class NetworkManager {
     }
 
     // Read whole object
-    const object = this.modes.get(name.value).ReadObject(data, reader.GetPosition()) as CompiledObject;
+    const object = this.modes.get(name.value).ReadObject(reader) as CompiledObject;
     if (!object) {
       console.warn(`Mode "${name.value}" failed to read network object`);
       return;
@@ -129,6 +140,16 @@ export class NetworkManager {
       this.compiledObjectStashNeedRedraw = true;
       this.compiledObjectStash.set(object.id, object);
     }
+  }
+
+  private HandleDeletePacket(reader: Protocol.Reader): void {
+    const id = new Reference<string>();
+    reader.AddMapping<string>('i', 'value', id, Protocol.ReadString);
+    reader.Read();
+
+    this.paintManager.RemoveCompiledObject(id.value);
+    // Remove from connection draw loop
+    this.compiledObjectStash.delete(id.value);
   }
 
   private HandleConnection(): void {

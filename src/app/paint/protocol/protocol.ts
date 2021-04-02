@@ -15,15 +15,15 @@ export class Reference<T> {
   }
 }
 
-export class Protocol {
-  static readonly Builder = class {
+// tslint:disable-next-line:no-namespace
+export namespace Protocol {
+  export class Builder {
     protected properties: Map<string, string> = new Map<string, string>();
     private typeProvided = false;
     private nameProvided = false;
 
     public SetType(type: PacketType): void {
-      // this.properties.set('t', type);
-      // See manager.ShareCompiledObject
+      this.properties.set('t', type);
 
       this.typeProvided = true;
     }
@@ -52,9 +52,9 @@ export class Protocol {
       if (typeof value === 'number') {
         stringValue = value.toFixed(2);
       } else if (value instanceof Point) {
-        stringValue = Protocol.EncodePoint(value);
+        stringValue = EncodePoint(value);
       } else if (Array.isArray(value)) {
-        stringValue = Protocol.EncodeArray<Point>(value, Protocol.EncodePoint);
+        stringValue = EncodeArray<Point>(value, EncodePoint);
       } else {
         stringValue = value;
       }
@@ -66,14 +66,14 @@ export class Protocol {
       const items = [];
 
       for (const [name, value] of this.properties) {
-        items.push(Protocol.EncodeProperty(name, value));
+        items.push(EncodeProperty(name, value));
       }
 
       return items.join(',');
     }
-  };
+  }
 
-  static readonly Reader = class {
+  export class Reader {
     private readonly data: string;
     private readonly currentPosition: { value: number };
     private readonly mappings = new Map<string, ReaderMapping<any>>();
@@ -119,7 +119,7 @@ export class Protocol {
             this.currentPosition.value += 2;
             // Execute parser
             // https://stackoverflow.com/questions/62428986/how-to-get-generic-parameter-type-of-class-in-typescript
-            mapping.destination[mapping.variable] = Protocol.ReadArray<any>(mapping.parser, this.data, this.currentPosition);
+            mapping.destination[mapping.variable] = ReadArray<any>(mapping.parser, this.data, this.currentPosition);
           }
 
           if (c1 === stopOnSection) { break; }
@@ -131,13 +131,13 @@ export class Protocol {
     public GetPosition(): Reference<number> {
       return this.currentPosition;
     }
-  };
+  }
 
-  static EncodePoint(point: Point): string {
+  export function EncodePoint(point: Point): string {
     return `${point.x.toFixed(2)};${point.y.toFixed(2)}`;
   }
 
-  static EncodeArray<T>(array: T[], itemEncoder: (item: T) => string): string {
+  export function EncodeArray<T>(array: T[], itemEncoder: (item: T) => string): string {
     const items = [];
 
     for (const item of array) {
@@ -147,11 +147,11 @@ export class Protocol {
     return items.join('^');
   }
 
-  static EncodeProperty(name: string, value: string): string {
+  export function EncodeProperty(name: string, value: string): string {
     return `${name}:${value}`;
   }
 
-  static ReadPacketType(data: string, currentPosition: Reference<number>): PacketType {
+  export function ReadPacketType(data: string, currentPosition: Reference<number>): PacketType {
     let packetType = PacketType.UNKNOWN;
 
     const c3 = data[currentPosition.value];
@@ -165,12 +165,12 @@ export class Protocol {
     return packetType;
   }
 
-  static ReadBoolean(data: string, currentPosition: Reference<number>): boolean {
+  export function ReadBoolean(data: string, currentPosition: Reference<number>): boolean {
     const c = data[currentPosition.value++];
     return c === 't' || c === '1';
   }
 
-  static ReadString(data: string, currentPosition: Reference<number>): string {
+  export function ReadString(data: string, currentPosition: Reference<number>): string {
     let value = '';
 
     do {
@@ -183,7 +183,7 @@ export class Protocol {
     return value;
   }
 
-  static ReadNumber(data: string, currentPosition: Reference<number>): number {
+  export function ReadNumber(data: string, currentPosition: Reference<number>): number {
 
     let toParse = '';
     do {
@@ -196,7 +196,7 @@ export class Protocol {
     return null;
   }
 
-  static ReadArray<T>(itemParser: (stringData: string, currentPosition: Reference<number>) => T, data: string, currentPosition: Reference<number>): T[] {
+  export function ReadArray<T>(itemParser: (stringData: string, currentPosition: Reference<number>) => T, data: string, currentPosition: Reference<number>): T[] {
     const array = [];
 
     // Read items
@@ -207,7 +207,7 @@ export class Protocol {
     return array;
   }
 
-  static ReadPoint(data: string, currentPosition: Reference<number>): Point {
+  export function ReadPoint(data: string, currentPosition: Reference<number>): Point {
 
     let s1 = '';
     do {
@@ -236,7 +236,7 @@ export class Protocol {
     return new Point(x, y);
   }
 
-  static GenerateId(): string {
+  export function GenerateId(): string {
     return Math.random().toString(36).substring(2, 15);
   }
 }
