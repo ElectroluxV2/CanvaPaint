@@ -86,12 +86,15 @@ export class NetworkManager {
       return this.controlService.clear.next(false);
     }
 
-    if (packetType.value !== PacketType.OBJECT) {
-      console.warn(`Unsupported packet type: "${packetType.value}"`);
-      return;
+    if (packetType.value === PacketType.OBJECT) {
+      return this.HandleObjectPacket(reader);
     }
 
-    this.HandleObjectPacket(reader);
+    if (packetType.value === PacketType.DELETE) {
+      return this.HandleDeletePacket(reader);
+    }
+
+    console.warn(`Unsupported packet type: "${packetType.value}"`);
   }
 
   private HandleObjectPacket(reader: Protocol.Reader): void {
@@ -129,6 +132,16 @@ export class NetworkManager {
       this.compiledObjectStashNeedRedraw = true;
       this.compiledObjectStash.set(object.id, object);
     }
+  }
+
+  private HandleDeletePacket(reader: Protocol.Reader): void {
+    const id = new Reference<string>();
+    reader.AddMapping<string>('i', 'value', id, Protocol.ReadString);
+    reader.Read();
+
+    this.paintManager.RemoveCompiledObject(id.value);
+    // Remove from connection draw loop
+    this.compiledObjectStash.delete(id.value);
   }
 
   private HandleConnection(): void {

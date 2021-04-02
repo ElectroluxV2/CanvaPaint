@@ -56,6 +56,11 @@ export class PaintManager {
     this.modes.get(object.name).ReproduceObject(this.mainCanvasCTX, object);
   }
 
+  public RemoveCompiledObject(id: string): void {
+    this.compiledObjectStorage.delete(id);
+    this.ReDraw();
+  }
+
   /**
    * @param point to normalize
    * @returns Normalized point.ts
