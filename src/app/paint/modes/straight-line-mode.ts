@@ -1,9 +1,8 @@
-import {PaintMode} from './paint-mode';
-import {Settings} from '../../settings/settings.interface';
-import {CompiledObject} from '../protocol/compiled-object';
-import {Point} from '../protocol/point';
-import {Protocol} from '../protocol/protocol';
-import {PacketType} from '../protocol/packet-types';
+import { PaintMode } from './paint-mode';
+import { Settings } from '../../settings/settings.interface';
+import { CompiledObject } from '../protocol/compiled-object';
+import { Point } from '../protocol/point';
+import { Protocol } from '../protocol/protocol';
 
 export class StraightLine implements CompiledObject {
   name = 'straight-line';
@@ -21,11 +20,11 @@ export class StraightLine implements CompiledObject {
     this.end = stop ?? new Point(2);
   }
 
-  public Duplicate(): StraightLine {
+  public duplicate(): StraightLine {
     return new StraightLine(this.id, this.color, this.width, this.begin, this.end);
   }
 
-  public ApplySettings(settings: Settings): void {
+  public applySettings(settings: Settings): void {
     this.width = settings.width;
     this.color = settings.color;
   }
@@ -37,7 +36,7 @@ export class StraightLineMode extends PaintMode {
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
-  public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(object.begin.x, object.begin.y);
     canvas.lineTo(object.end.x, object.end.y);
@@ -47,37 +46,37 @@ export class StraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public SerializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
-    builder.SetProperty('i', object.id);
-    builder.SetProperty('c', object.color);
-    builder.SetProperty('w', object.width);
-    builder.SetProperty('b', object.begin);
-    builder.SetProperty('e', object.end);
+  public serializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
+    builder.setProperty('i', object.id);
+    builder.setProperty('c', object.color);
+    builder.setProperty('w', object.width);
+    builder.setProperty('b', object.begin);
+    builder.setProperty('e', object.end);
     return builder;
   }
 
-  public ReadObject(reader: Protocol.Reader): StraightLine | boolean {
+  public readObject(reader: Protocol.Reader): StraightLine | boolean {
     const straightLine = new StraightLine();
 
-    reader.AddMapping<string>('i', 'id', straightLine, Protocol.ReadString);
-    reader.AddMapping<string>('c', 'color', straightLine, Protocol.ReadString);
-    reader.AddMapping<number>('w', 'width', straightLine, Protocol.ReadNumber);
-    reader.AddMapping<Point>('b', 'begin', straightLine, Protocol.ReadPoint);
-    reader.AddMapping<Point>('e', 'end', straightLine, Protocol.ReadPoint);
+    reader.addMapping<string>('i', 'id', straightLine, Protocol.readString);
+    reader.addMapping<string>('c', 'color', straightLine, Protocol.readString);
+    reader.addMapping<number>('w', 'width', straightLine, Protocol.readNumber);
+    reader.addMapping<Point>('b', 'begin', straightLine, Protocol.readPoint);
+    reader.addMapping<Point>('e', 'end', straightLine, Protocol.readPoint);
 
-    reader.Read();
+    reader.read();
 
     return straightLine;
   }
 
-  public OnSelected(): void {
+  public onSelected(): void {
     delete this.currentControlPoint;
   }
 
-  public OnPointerDown(event: PointerEvent): void {
+  public onPointerDown(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.paintManager.NormalizePoint(point);
-    this.paintManager.StartFrameUpdate();
+    const normalized = this.paintManager.normalizePoint(point);
+    this.paintManager.startFrameUpdate();
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -88,20 +87,20 @@ export class StraightLineMode extends PaintMode {
       } else if (event.button === 0) {
         // Line from pointer location or to pointer location
         if (!!this.currentControlPoint) {
-          this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, this.currentControlPoint, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, this.currentControlPoint, normalized);
         } else {
-          this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, normalized, normalized);
         }
       }
     } else {
       // Others
-      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
+      this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, normalized, normalized);
     }
   }
 
-  public OnPointerMove(event: PointerEvent): void {
+  public onPointerMove(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.paintManager.NormalizePoint(point);
+    const normalized = this.paintManager.normalizePoint(point);
 
     if (event.pointerType === 'mouse') {
       if (this.movingControlPoint) {
@@ -110,36 +109,38 @@ export class StraightLineMode extends PaintMode {
         this.currentStraightLine.end = normalized;
       }
     } else {
-      if (!this.currentStraightLine) { return; }
+      if (!this.currentStraightLine) {
+        return;
+      }
       this.currentStraightLine.end = normalized;
     }
   }
 
-  public OnPointerUp(event: PointerEvent): void {
+  public onPointerUp(event: PointerEvent): void {
     if (event.pointerType === 'mouse') {
       this.movingControlPoint = false;
       if (event.button === 0) {
-        this.paintManager.SaveCompiledObject(this.currentStraightLine);
-        this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
+        this.paintManager.saveCompiledObject(this.currentStraightLine);
+        this.networkManager.shareCompiledObject(this.currentStraightLine, true);
         // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }
     } else {
-      this.paintManager.SaveCompiledObject(this.currentStraightLine);
-      this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
+      this.paintManager.saveCompiledObject(this.currentStraightLine);
+      this.networkManager.shareCompiledObject(this.currentStraightLine, true);
     }
 
-    this.paintManager.StopFrameUpdate();
+    this.paintManager.stopFrameUpdate();
     delete this.currentStraightLine;
   }
 
-  public OnFrameUpdate(): void {
+  public onFrameUpdate(): void {
     this.predictCanvas.clear();
 
     if (!!this.currentStraightLine) {
-      this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
-      this.networkManager.ShareCompiledObject(this.currentStraightLine, false);
+      this.reproduceObject(this.predictCanvas, this.currentStraightLine);
+      this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
@@ -147,13 +148,13 @@ export class StraightLineMode extends PaintMode {
     }
   }
 
-  public MakeReady(): void {
+  public makeReady(): void {
     if (!!this.currentControlPoint) {
       this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
     }
   }
 
-  public OnUnSelected(): void {
+  public onUnSelected(): void {
     this.predictCanvas.clear();
   }
 }

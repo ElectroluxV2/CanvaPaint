@@ -13,7 +13,7 @@ export class Point {
   /**
    * Creates deep copy
    */
-  public Duplicate(): Point {
+  public duplicate(): Point {
     return new Point(this.x, this.y);
   }
 }

@@ -1,9 +1,10 @@
-import {PACKET_TYPES, PacketType} from './packet-types';
-import {Point} from './point';
+import { PACKET_TYPES, PacketType } from './packet-types';
+import { Point } from './point';
+import {CompiledObject} from './compiled-object';
 
 interface ReaderMapping<T> {
   variable: string;
-  destination: object;
+  destination: Reference<any> | CompiledObject;
   parser: (data: string, currentPosition: Reference<number>) => T;
 }
 
@@ -15,20 +16,20 @@ export class Reference<T> {
   }
 }
 
-// tslint:disable-next-line:no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Protocol {
   export class Builder {
     protected properties: Map<string, string> = new Map<string, string>();
     private typeProvided = false;
     private nameProvided = false;
 
-    public SetType(type: PacketType): void {
+    public setType(type: PacketType): void {
       this.properties.set('t', type);
 
       this.typeProvided = true;
     }
 
-    public SetName(name: string): void {
+    public setName(name: string): void {
       if (!this.typeProvided) {
         throw new Error('You must provide type first!');
       }
@@ -38,8 +39,7 @@ export namespace Protocol {
       this.properties.set('n', name);
     }
 
-    public SetProperty(name: string, value: string | number | Point[] | Point): void {
-
+    public setProperty(name: string, value: string | number | Point[] | Point): void {
       if (!this.typeProvided) {
         throw new Error('You must provide type first!');
       }
@@ -52,9 +52,9 @@ export namespace Protocol {
       if (typeof value === 'number') {
         stringValue = value.toFixed(2);
       } else if (value instanceof Point) {
-        stringValue = EncodePoint(value);
+        stringValue = encodePoint(value);
       } else if (Array.isArray(value)) {
-        stringValue = EncodeArray<Point>(value, EncodePoint);
+        stringValue = encodeArray<Point>(value, encodePoint);
       } else {
         stringValue = value;
       }
@@ -62,11 +62,11 @@ export namespace Protocol {
       this.properties.set(name, stringValue);
     }
 
-    public ToString(): string {
+    public toString(): string {
       const items = [];
 
       for (const [name, value] of this.properties) {
-        items.push(EncodeProperty(name, value));
+        items.push(encodeProperty(name, value));
       }
 
       return items.join(',');
@@ -84,7 +84,7 @@ export namespace Protocol {
       this.currentPosition = currentPosition ?? new Reference<number>(0);
     }
 
-    public AddMapping<T>(selector: string, variable: string, destination: object, parser: (data: string, currentPosition: Reference<number>) => T): void {
+    public addMapping<T>(selector: string, variable: string, destination: Reference<any> | CompiledObject, parser: (data: string, currentPosition: Reference<number>) => T): void {
       this.mappings.set(selector, {
         variable,
         destination,
@@ -92,7 +92,7 @@ export namespace Protocol {
       });
     }
 
-    public AddArrayMapping<T>(selector: string, variable: string, destination: object, parser: (data: string, currentPosition: Reference<number>) => T): void {
+    public addArrayMapping<T>(selector: string, variable: string, destination: Reference<any> | CompiledObject, parser: (data: string, currentPosition: Reference<number>) => T): void {
       this.arrayMappings.set(selector, {
         variable,
         destination,
@@ -100,7 +100,7 @@ export namespace Protocol {
       });
     }
 
-    public Read(stopOnSection?: string): void {
+    public read(stopOnSection?: string): void {
       do {
         const c1 = this.data[this.currentPosition.value];
         const c2 = this.data[this.currentPosition.value + 1];
@@ -119,25 +119,25 @@ export namespace Protocol {
             this.currentPosition.value += 2;
             // Execute parser
             // https://stackoverflow.com/questions/62428986/how-to-get-generic-parameter-type-of-class-in-typescript
-            mapping.destination[mapping.variable] = ReadArray<any>(mapping.parser, this.data, this.currentPosition);
+            mapping.destination[mapping.variable] = readArray<any>(mapping.parser, this.data, this.currentPosition);
           }
 
-          if (c1 === stopOnSection) { break; }
+          if (c1 === stopOnSection) {
+            break;
+          }
         }
 
       } while (this.currentPosition.value + 1 < this.data.length && this.currentPosition.value++);
     }
 
-    public GetPosition(): Reference<number> {
+    public getPosition(): Reference<number> {
       return this.currentPosition;
     }
   }
 
-  export function EncodePoint(point: Point): string {
-    return `${point.x.toFixed(2)};${point.y.toFixed(2)}`;
-  }
+  export const encodePoint = (point: Point): string => `${point.x.toFixed(2)};${point.y.toFixed(2)}`;
 
-  export function EncodeArray<T>(array: T[], itemEncoder: (item: T) => string): string {
+  export const encodeArray = <T>(array: T[], itemEncoder: (item: T) => string): string => {
     const items = [];
 
     for (const item of array) {
@@ -145,13 +145,11 @@ export namespace Protocol {
     }
 
     return items.join('^');
-  }
+  };
 
-  export function EncodeProperty(name: string, value: string): string {
-    return `${name}:${value}`;
-  }
+  export const encodeProperty = (name: string, value: string): string => `${name}:${value}`;
 
-  export function ReadPacketType(data: string, currentPosition: Reference<number>): PacketType {
+  export const readPacketType = (data: string, currentPosition: Reference<number>): PacketType => {
     let packetType = PacketType.UNKNOWN;
 
     const c3 = data[currentPosition.value];
@@ -163,40 +161,43 @@ export namespace Protocol {
     }
 
     return packetType;
-  }
+  };
 
-  export function ReadBoolean(data: string, currentPosition: Reference<number>): boolean {
+  export const readBoolean = (data: string, currentPosition: Reference<number>): boolean => {
     const c = data[currentPosition.value++];
     return c === 't' || c === '1';
-  }
+  };
 
-  export function ReadString(data: string, currentPosition: Reference<number>): string {
+  export const readString = (data: string, currentPosition: Reference<number>): string => {
     let value = '';
 
     do {
       const c = data[currentPosition.value];
-      if (c === ',') { return value; }
+      if (c === ',') {
+        return value;
+      }
 
       value += c;
     } while (currentPosition.value < data.length && currentPosition.value++);
 
     return value;
-  }
+  };
 
-  export function ReadNumber(data: string, currentPosition: Reference<number>): number {
-
+  export const readNumber = (data: string, currentPosition: Reference<number>): number => {
     let toParse = '';
     do {
       const c = data[currentPosition.value];
-      if (c === ',') { return Number.parseInt(toParse, 10); }
+      if (c === ',') {
+        return Number.parseInt(toParse, 10);
+      }
 
       toParse += c;
     } while (currentPosition.value < data.length && currentPosition.value++);
 
     return null;
-  }
+  };
 
-  export function ReadArray<T>(itemParser: (stringData: string, currentPosition: Reference<number>) => T, data: string, currentPosition: Reference<number>): T[] {
+  export const readArray = <T>(itemParser: (stringData: string, currentPosition: Reference<number>) => T, data: string, currentPosition: Reference<number>): T[] => {
     const array = [];
 
     // Read items
@@ -205,14 +206,15 @@ export namespace Protocol {
     } while (currentPosition.value < data.length && currentPosition.value++);
 
     return array;
-  }
+  };
 
-  export function ReadPoint(data: string, currentPosition: Reference<number>): Point {
-
+  export const readPoint = (data: string, currentPosition: Reference<number>): Point => {
     let s1 = '';
     do {
       const c = data[currentPosition.value];
-      if (c === ',') { break; }
+      if (c === ',') {
+        break;
+      }
       if (c === ';') {
         currentPosition.value++;
         break;
@@ -224,8 +226,9 @@ export namespace Protocol {
     let s2 = '';
     do {
       const c = data[currentPosition.value];
-      if (c === ',') { break; }
-      if (c === '^') { break; }
+      if (c === ',' || c === '^') {
+        break;
+      }
 
       s2 += c;
     } while (currentPosition.value < data.length && currentPosition.value++);
@@ -234,9 +237,7 @@ export namespace Protocol {
     const y = Number.parseFloat(s2);
 
     return new Point(x, y);
-  }
+  };
 
-  export function GenerateId(): string {
-    return Math.random().toString(36).substring(2, 15);
-  }
+  export const generateId = (): string => Math.random().toString(36).substring(2, 15);
 }

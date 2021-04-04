@@ -1,8 +1,7 @@
 import { SettingsComponent } from '../settings/settings.component';
-import { Component, Output, EventEmitter, Input, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ControlService } from '../settings/control.service';
-import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-bar',
@@ -11,10 +10,9 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class BarComponent implements AfterViewInit, OnDestroy {
   @Input() statusUpdate: EventEmitter<string>;
+  public iconColor: string[] = [];
 
   constructor(public dialog: MatDialog, public controlService: ControlService) { }
-
-  public iconColor: string[] = [];
 
   public ngAfterViewInit(): void {
     this.statusUpdate.subscribe((value) => {

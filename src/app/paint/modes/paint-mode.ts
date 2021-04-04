@@ -1,19 +1,19 @@
 import { Settings } from '../../settings/settings.interface';
-import {CompiledObject} from '../protocol/compiled-object';
-import {Protocol, Reference} from '../protocol/protocol';
-import {PaintManager} from '../paint-manager';
-import {NetworkManager} from '../network-manager';
+import { CompiledObject } from '../protocol/compiled-object';
+import { Protocol } from '../protocol/protocol';
+import { PaintManager } from '../paint-manager';
+import { NetworkManager } from '../network-manager';
 
 abstract class PaintModeOptional {
   /**
    * Induced every time mode is selected
    */
-  public OnSelected?(): void;
+  public onSelected?(): void;
 
   /**
    * Induced every time mode is unselected
    */
-  public OnUnSelected?(): void;
+  public onUnSelected?(): void;
 
   /**
    * Induced every time event is fired and only when mode was selected at event fire time
@@ -22,45 +22,45 @@ abstract class PaintModeOptional {
    * - redraw,
    * - rescale,
    */
-  public MakeReady?(): void;
+  public makeReady?(): void;
 
   /**
    * Fired when the user rotates a wheel button on a pointing device (typically a mouse).
    */
-  public OnWheel?(event: WheelEvent): void;
+  public onWheel?(event: WheelEvent): void;
 
   /**
    * Fired when a pointer is moved into an element's hit test boundaries.
    */
-  public OnPointerOver?(event: PointerEvent): void;
+  public onPointerOver?(event: PointerEvent): void;
 
   /**
    * Fired when a pointer is moved into the hit test boundaries of an element or one of its descendants,
    * including as a result of a pointerdown event from a device that does not support hover (see pointerdown).
    */
-  public OnPointerEnter?(event: PointerEvent): void;
+  public onPointerEnter?(event: PointerEvent): void;
 
   /**
    * Fired when a pointer becomes active buttons state.
    */
-  public OnPointerDown?(event: PointerEvent): void;
+  public onPointerDown?(event: PointerEvent): void;
 
   /**
    * Fired when a pointer changes coordinates. This event is also used if the change in pointer state can not be reported by other events.
    * In Chrome, pointermove is actually supposed to align/throttle to requestAnimationFrame automatically,
    * but there is a bug where it behaves differently with Dev Tools open.
    */
-  public OnPointerMove?(event: PointerEvent): void;
+  public onPointerMove?(event: PointerEvent): void;
 
   /**
    * Fired when a pointer is no longer active buttons state.
    */
-  public OnPointerUp?(event: PointerEvent): void;
+  public onPointerUp?(event: PointerEvent): void;
 
   /**
    * A browser fires this event if it concludes the pointer will no longer be able to generate events (for example the related device is deactivated).
    */
-  public OnPointerCancel?(event: PointerEvent): void;
+  public onPointerCancel?(event: PointerEvent): void;
 
   /**
    * Fired for several reasons including: pointer is moved out of the hit test boundaries of an element;
@@ -68,35 +68,37 @@ abstract class PaintModeOptional {
    * after firing the pointercancel event (see pointercancel);
    * when a pen stylus leaves the hover range detectable by the digitizer.
    */
-  public OnPointerOut?(event: PointerEvent): void;
+  public onPointerOut?(event: PointerEvent): void;
 
   /**
    * Fired when a pointer is moved out of the hit test boundaries of an element.
    * For pen devices, this event is fired when the stylus leaves the hover range detectable by the digitizer.
    */
-  public OnPointerLeave?(event: PointerEvent): void;
+  public onPointerLeave?(event: PointerEvent): void;
 
   /**
    * Fired when an element receives pointer capture.
    */
-  public OnPointerGotCapture?(event: PointerEvent): void;
+  public onPointerGotCapture?(event: PointerEvent): void;
 
   /**
    * Fired after pointer capture is released for a pointer.
    */
-  public OnPointerLostCapture?(event: PointerEvent): void;
+  public onPointerLostCapture?(event: PointerEvent): void;
 
   /**
    * Induced every time settings changed
+   *
    * @param settings updated settings
    */
-  public OnSettingsUpdate?(settings: Settings): void;
+  public onSettingsUpdate?(settings: Settings): void;
 
   /**
    * Induced at every frame (depended on user's device), controlled by StartFrameUpdate() and StopFrameUpdate()
+   *
    * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
    */
-  public OnFrameUpdate?(): void;
+  public onFrameUpdate?(): void;
 }
 
 export abstract class PaintMode extends PaintModeOptional {
@@ -120,9 +122,10 @@ export abstract class PaintMode extends PaintModeOptional {
 
   /**
    * Current settings
+   *
    * @see Settings
    */
-  settings: Settings;
+  protected settings: Settings;
 
   /**
    * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
@@ -138,27 +141,28 @@ export abstract class PaintMode extends PaintModeOptional {
     this.settings = settings;
   }
 
+  // Default
+  public onSettingsUpdate(settings: Settings): void {
+    this.settings = settings;
+  }
+
   /**
    * Method that reproduces object created by method's object
+   *
    * @param canvas render destination
    * @param object object to render
    */
-  abstract ReproduceObject(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+  public abstract reproduceObject(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
 
   /**
    * Metod used in transportation
    * Should return string readable by read method
    */
-  abstract SerializeObject(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
+  public abstract serializeObject(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
 
   /**
    * Metod used in transportation
    * Should return compiled object instance if not possible should return false
    */
-  abstract ReadObject(reader: Protocol.Reader): CompiledObject | boolean;
-
-  // Default
-  public OnSettingsUpdate(settings: Settings): void {
-    this.settings = settings;
-  }
+  public abstract readObject(reader: Protocol.Reader): CompiledObject | boolean;
 }
