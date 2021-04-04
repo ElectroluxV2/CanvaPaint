@@ -4,6 +4,13 @@
     "plugin:@angular-eslint/recommended"
   ],
   "rules": {
-
+    "no-console": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.object.name='console'][callee.property.name!=/^(warn|error|info|trace)$/]",
+        "message": "Unexpected property on console object was called"
+      }
+    ]
   }
 }
