@@ -15,7 +15,6 @@ export class Reference<T> {
   }
 }
 
-// tslint:disable-next-line:no-namespace
 export namespace Protocol {
   export class Builder {
     protected properties: Map<string, string> = new Map<string, string>();
