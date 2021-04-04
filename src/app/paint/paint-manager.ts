@@ -81,6 +81,7 @@ export class PaintManager {
   }
 
   public redraw(): void {
+    this.mainCanvasCTX.clear();
     for (const [name, objects] of this.compiledObjectStorage) {
       for (const compiledObject of objects) {
         this.modes.get(name).reproduceObject(this.mainCanvasCTX, compiledObject);
