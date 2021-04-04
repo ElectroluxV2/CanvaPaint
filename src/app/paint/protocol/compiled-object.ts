@@ -11,4 +11,8 @@ export interface CompiledObject {
    * Unique identifier
    */
   id: string;
+  /**
+   * Color
+   */
+  color: string;
 }

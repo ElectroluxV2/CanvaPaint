@@ -60,7 +60,7 @@ export class Paint {
 
     this.injectCanvas();
 
-    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX);
+    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX, this.controlService);
 
     this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager, this.controlService);
 

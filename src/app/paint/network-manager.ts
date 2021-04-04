@@ -128,6 +128,9 @@ export class NetworkManager {
       return;
     }
 
+    // Correct color
+    object.color = this.controlService.correctColor(object.color);
+
     if (finished.value) {
       // TODO: Fix ordering
       this.paintManager.saveCompiledObject(object);

@@ -2,6 +2,8 @@ import { CompiledObject } from './protocol/compiled-object';
 import { Point } from './protocol/point';
 import { PaintMode } from './modes/paint-mode';
 import { Reference } from './protocol/protocol';
+import {ControlService} from '../settings/control.service';
+import set = Reflect.set;
 
 export class PaintManager {
   /**
@@ -13,7 +15,28 @@ export class PaintManager {
    */
   private animationFrameId: number;
 
-  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D) { }
+  /**
+   * Used to determinate if there is need to change color scheme and redraw everything
+   */
+  private darkModeEnabled = false;
+
+  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, controlService: ControlService) {
+    controlService.settings.subscribe(settings => {
+      if (this.darkModeEnabled === settings.darkModeEnabled) {
+        return;
+      }
+
+      this.darkModeEnabled = settings.darkModeEnabled;
+      // Need to correct colors and redraw
+      for (const objects of this.compiledObjectStorage.values()) {
+        for (const object of objects) {
+          object.color = controlService.correctColor(object.color);
+        }
+      }
+
+      this.redraw();
+    });
+  }
 
   /**
    * Starts animation loop
