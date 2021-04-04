@@ -9,6 +9,7 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
+import {RemoveObjectMode} from './modes/remove-object-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -199,7 +200,8 @@ export class Paint {
     const modesArray = [
       new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
       new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
+      new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
     ];
 
     const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');
