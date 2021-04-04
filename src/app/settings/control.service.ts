@@ -16,17 +16,6 @@ export class ControlService {
   private settingsData: Settings = {} as Settings;
   private readonly settingsBehaviorSubject: BehaviorSubject<Settings>;
 
-  // @ts-ignore
-  public get settings(): BehaviorSubject<Settings> {
-    return this.settingsBehaviorSubject;
-  }
-
-  // @ts-ignore
-  public set settings(settings: Settings) {
-    this.settingsData = settings;
-    this.settingsBehaviorSubject.next(this.settingsData);
-  }
-
   private readonly colors = {
     light: {
       red: '#f44336',
@@ -46,7 +35,38 @@ export class ControlService {
     }
   };
 
-  public GetColorKey(value: string): string {
+  constructor(public platform: Platform) {
+    // Choose settings based on device
+    this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    this.settingsData.lazyEnabled = !platform.ANDROID && !platform.IOS;
+    this.settingsData.tolerance = 1;
+    this.settingsData.lazyMultiplier = 0.2 * window.devicePixelRatio;
+
+    // Preselected options
+    this.settingsData.color = this.getColor('black');
+    this.settingsData.width = 5;
+
+    this.settingsBehaviorSubject = new BehaviorSubject<Settings>(this.settingsData);
+
+    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
+      this.settingsData.darkModeEnabled = e.matches;
+      this.settingsData.color = this.getColor(this.getColorKey(this.settingsData.color));
+      this.settingsBehaviorSubject.next(this.settingsData);
+    };
+  }
+
+  // @ts-ignore
+  public get settings(): BehaviorSubject<Settings> {
+    return this.settingsBehaviorSubject;
+  }
+
+  // @ts-ignore
+  public set settings(settings: Settings) {
+    this.settingsData = settings;
+    this.settingsBehaviorSubject.next(this.settingsData);
+  }
+
+  public getColorKey(value: string): string {
     for (const index in this.colors) {
       if (!this.colors.hasOwnProperty(index)) {
         continue;
@@ -63,33 +83,13 @@ export class ControlService {
     }
   }
 
-  private GetColor(key: string): string {
+  public setColorByName(value: any): void {
+    this.settingsData.color = this.getColor(value);
+    this.settingsBehaviorSubject.next(this.settingsData);
+  }
+
+  private getColor(key: string): string {
     const index = this.settingsData.darkModeEnabled ? 'dark' : 'light';
     return this.colors[index][key];
-  }
-
-  constructor(public platform: Platform) {
-    // Choose settings based on device
-    this.settingsData.darkModeEnabled = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    this.settingsData.lazyEnabled = !platform.ANDROID && !platform.IOS;
-    this.settingsData.tolerance = 1;
-    this.settingsData.lazyMultiplier = 0.2 * window.devicePixelRatio;
-
-    // Preselected options
-    this.settingsData.color = this.GetColor('black');
-    this.settingsData.width = 5;
-
-    this.settingsBehaviorSubject = new BehaviorSubject<Settings>(this.settingsData);
-
-    window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => {
-      this.settingsData.darkModeEnabled = e.matches;
-      this.settingsData.color = this.GetColor(this.GetColorKey(this.settingsData.color));
-      this.settingsBehaviorSubject.next(this.settingsData);
-    };
-  }
-
-  public SetColorByName(value: any): void {
-    this.settingsData.color = this.GetColor(value);
-    this.settingsBehaviorSubject.next(this.settingsData);
   }
 }

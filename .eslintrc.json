@@ -1,16 +1,93 @@
 {
   "root": true,
-  "extends": [
-    "plugin:@angular-eslint/recommended"
+  "ignorePatterns": [
+    "projects/**/*"
   ],
-  "rules": {
-    "no-console": "off",
-    "no-restricted-syntax": [
-      "error",
-      {
-        "selector": "CallExpression[callee.object.name='console'][callee.property.name!=/^(warn|error|info|trace)$/]",
-        "message": "Unexpected property on console object was called"
+  "overrides": [
+    {
+      "files": [
+        "*.ts"
+      ],
+      "parserOptions": {
+        "project": [
+          "tsconfig.json",
+          "e2e/tsconfig.json"
+        ],
+        "createDefaultProgram": true
+      },
+      "extends": [
+        "plugin:@angular-eslint/ng-cli-compat",
+        "plugin:@angular-eslint/ng-cli-compat--formatting-add-on",
+        "plugin:@angular-eslint/template/process-inline-templates"
+      ],
+      "rules": {
+        "@typescript-eslint/naming-convention": [
+          "error",
+          {
+            "selector": "variable",
+            "format": [
+              "camelCase",
+              "UPPER_CASE"
+            ]
+          }
+        ],
+        "max-len": "off",
+        "brace-style": "off",
+        "@typescript-eslint/brace-style": [
+          "error"
+        ],
+        "keyword-spacing": "off",
+        "@typescript-eslint/keyword-spacing": [
+          "error"
+        ],
+        "no-duplicate-imports": "off",
+        "@typescript-eslint/no-duplicate-imports": [
+          "error"
+        ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.object.name='console'][callee.property.name!=/^(warn|error|info|trace)$/]",
+            "message": "Unexpected property on console object was called"
+          }
+        ],
+        "no-console": [
+          "error",
+          {
+            "allow": [
+              "info",
+              "warn",
+              "error",
+              "trace"
+            ]
+          }
+        ],
+        "@angular-eslint/component-selector": [
+          "error",
+          {
+            "type": "element",
+            "prefix": "app",
+            "style": "kebab-case"
+          }
+        ],
+        "@angular-eslint/directive-selector": [
+          "error",
+          {
+            "type": "attribute",
+            "prefix": "app",
+            "style": "camelCase"
+          }
+        ]
       }
-    ]
-  }
+    },
+    {
+      "files": [
+        "*.html"
+      ],
+      "extends": [
+        "plugin:@angular-eslint/template/recommended"
+      ],
+      "rules": {}
+    }
+  ]
 }

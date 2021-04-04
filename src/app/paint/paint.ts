@@ -1,14 +1,14 @@
-import {EventEmitter} from '@angular/core';
-import {PaintMode} from './modes/paint-mode';
-import {FreeLineMode} from './modes/free-line-mode';
-import {ControlService} from '../settings/control.service';
-import {Settings} from '../settings/settings.interface';
-import {StraightLineMode} from './modes/straight-line-mode';
-import {ContinuousStraightLineMode} from './modes/continuous-straight-line-mode';
-import {Point} from './protocol/point';
-import {PaintManager} from './paint-manager';
-import {NetworkManager} from './network-manager';
-import {Reference} from './protocol/protocol';
+import { EventEmitter } from '@angular/core';
+import { PaintMode } from './modes/paint-mode';
+import { FreeLineMode } from './modes/free-line-mode';
+import { ControlService } from '../settings/control.service';
+import { Settings } from '../settings/settings.interface';
+import { StraightLineMode } from './modes/straight-line-mode';
+import { ContinuousStraightLineMode } from './modes/continuous-straight-line-mode';
+import { Point } from './protocol/point';
+import { PaintManager } from './paint-manager';
+import { NetworkManager } from './network-manager';
+import { Reference } from './protocol/protocol';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -18,6 +18,7 @@ declare global {
     clear(): void;
     /**
      * Draws dot onto predict canvas
+     *
      * @param position position of dot
      * @param width width of dot
      * @param color color of dot
@@ -57,20 +58,46 @@ export class Paint {
     this.predictCanvasNetworkCTX = predictCanvasNetwork.getContext('2d');
     this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
 
-    this.InjectCanvas();
+    this.injectCanvas();
 
     this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX);
 
     this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager, this.controlService);
 
-    this.HandleModes();
+    this.handleModes();
 
-    this.ResponseToControlService();
+    this.responseToControlService();
 
-    this.HandleEvents();
+    this.handleEvents();
   }
 
-  private HandleEvents(): void {
+  public resize(): void {
+    this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * devicePixelRatio;
+    this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * devicePixelRatio;
+
+    this.mainCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
+
+    this.predictCanvas.height = this.mainCanvas.height;
+    this.predictCanvas.width = this.mainCanvas.width;
+
+    this.predictCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
+
+    this.predictCanvasNetwork.height = this.mainCanvas.height;
+    this.predictCanvasNetwork.width = this.mainCanvas.width;
+
+    this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
+
+    this.redraw();
+  }
+
+  public redraw(): void {
+    this.mainCanvasCTX.clear();
+    this.predictCanvasCTX.clear();
+    this.paintManager.redraw();
+    this.currentMode.value?.makeReady?.();
+  }
+
+  private handleEvents(): void {
     // Events
     this.predictCanvas.oncontextmenu = (event: MouseEvent) => {
       // Make right click possible to be caught in pointer down event
@@ -79,61 +106,61 @@ export class Paint {
 
     this.predictCanvas.onwheel = (event: WheelEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnWheel?.(event);
+      this.currentMode.value?.onWheel?.(event);
     };
 
     this.predictCanvas.onpointerover = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerOver?.(event);
+      this.currentMode.value?.onPointerOver?.(event);
     };
 
     this.predictCanvas.onpointerenter = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerEnter?.(event);
+      this.currentMode.value?.onPointerEnter?.(event);
     };
 
     this.predictCanvas.onpointerdown = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerDown?.(event);
+      this.currentMode.value?.onPointerDown?.(event);
     };
 
     this.predictCanvas.onpointermove = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerMove?.(event);
+      this.currentMode.value?.onPointerMove?.(event);
     };
 
     this.predictCanvas.onpointerup = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerUp?.(event);
+      this.currentMode.value?.onPointerUp?.(event);
     };
 
     this.predictCanvas.onpointercancel = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerCancel?.(event);
+      this.currentMode.value?.onPointerCancel?.(event);
     };
 
     this.predictCanvas.onpointerout = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerOut?.(event);
+      this.currentMode.value?.onPointerOut?.(event);
     };
 
     this.predictCanvas.onpointerleave = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerLeave?.(event);
+      this.currentMode.value?.onPointerLeave?.(event);
     };
 
     this.predictCanvas.ongotpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerGotCapture?.(event);
+      this.currentMode.value?.onPointerGotCapture?.(event);
     };
 
     this.predictCanvas.onlostpointercapture = (event: PointerEvent) => {
       event.preventDefault();
-      this.currentMode.value?.OnPointerLostCapture?.(event);
+      this.currentMode.value?.onPointerLostCapture?.(event);
     };
   }
 
-  private InjectCanvas(): void {
+  private injectCanvas(): void {
     // Inject additional methods
     this.mainCanvasCTX.clear = () => {
       this.mainCanvasCTX.clearRect(0, 0, this.mainCanvasCTX.canvas.width, this.mainCanvasCTX.canvas.height);
@@ -165,7 +192,7 @@ export class Paint {
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
   }
 
-  private HandleModes(): void {
+  private handleModes(): void {
     // Setup modes
     this.currentSettings = this.controlService.settings.value;
 
@@ -198,21 +225,21 @@ export class Paint {
         console.warn(`No mode named ${mode}!`);
         return;
       }
-      this.currentMode.value?.OnUnSelected?.();
+      this.currentMode.value?.onUnSelected?.();
       this.currentMode.value = this.modes.get(mode);
-      this.currentMode.value?.OnSelected?.();
+      this.currentMode.value?.onSelected?.();
     });
   }
 
-  private ResponseToControlService(): void {
+  private responseToControlService(): void {
     // Response to settings change
     this.controlService.settings.subscribe(newSettings => {
-      this.currentMode.value?.OnSettingsUpdate(newSettings);
+      this.currentMode.value?.onSettingsUpdate(newSettings);
 
       // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
         this.currentSettings = newSettings;
-        this.ReDraw();
+        this.redraw();
       } else {
         this.currentSettings = newSettings;
       }
@@ -221,38 +248,12 @@ export class Paint {
     // Response to clear
     this.controlService.clear.subscribe(resend => {
       if (resend) {
-        this.networkManager.SendClear();
+        this.networkManager.sendClear();
       }
       this.mainCanvasCTX.clear();
       this.predictCanvasCTX.clear();
-      this.paintManager.Clear();
-      this.currentMode.value?.MakeReady?.();
+      this.paintManager.clear();
+      this.currentMode.value?.makeReady?.();
     });
-  }
-
-  public Resize(): void {
-    this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * devicePixelRatio;
-    this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * devicePixelRatio;
-
-    this.mainCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
-
-    this.predictCanvas.height = this.mainCanvas.height;
-    this.predictCanvas.width = this.mainCanvas.width;
-
-    this.predictCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
-
-    this.predictCanvasNetwork.height = this.mainCanvas.height;
-    this.predictCanvasNetwork.width = this.mainCanvas.width;
-
-    this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
-
-    this.ReDraw();
-  }
-
-  public ReDraw(): void {
-    this.mainCanvasCTX.clear();
-    this.predictCanvasCTX.clear();
-    this.paintManager.ReDraw();
-    this.currentMode.value?.MakeReady?.();
   }
 }

@@ -9,6 +9,6 @@
 <mat-slider [disabled]="!settings.lazyEnabled" thumbLabel tickInterval="auto" step="0.05" min="0.009" max="0.2" [(ngModel)]="settings.lazyMultiplier"></mat-slider>
 
 <div mat-dialog-actions [align]="'end'">
-  <button (click)="Save()" mat-button color="accent" mat-dialog-close>Zapisz</button>
+  <button (click)="save()" mat-button color="accent" mat-dialog-close>Zapisz</button>
 </div>
 

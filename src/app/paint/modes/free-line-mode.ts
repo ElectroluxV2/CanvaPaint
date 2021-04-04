@@ -1,10 +1,9 @@
 import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../curves/cardinal-spline';
 import { LazyBrush } from '../curves/lazy-brush';
-import {Protocol} from '../protocol/protocol';
-import {CompiledObject} from '../protocol/compiled-object';
-import {Point} from '../protocol/point';
-import {PacketType} from '../protocol/packet-types';
+import { Protocol } from '../protocol/protocol';
+import { CompiledObject } from '../protocol/compiled-object';
+import { Point } from '../protocol/point';
 
 export class FreeLine implements CompiledObject {
   name = 'free-line';
@@ -30,55 +29,57 @@ export class FreeLineMode extends PaintMode {
   private lineChanged: boolean;
   private lastPointer: Point;
 
-  public ReproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
-    CardinalSpline.Reproduce(canvas, object.color, object.width, object.points);
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
+    CardinalSpline.reproduce(canvas, object.color, object.width, object.points);
   }
 
-  public SerializeObject(object: FreeLine, builder = new Protocol.Builder()): Protocol.Builder {
-    builder.SetProperty('i', object.id);
-    builder.SetProperty('c', object.color);
-    builder.SetProperty('w', object.width);
-    builder.SetProperty('p', object.points);
+  public serializeObject(object: FreeLine, builder = new Protocol.Builder()): Protocol.Builder {
+    builder.setProperty('i', object.id);
+    builder.setProperty('c', object.color);
+    builder.setProperty('w', object.width);
+    builder.setProperty('p', object.points);
 
     return builder;
   }
 
-  public ReadObject(reader: Protocol.Reader): FreeLine | boolean {
+  public readObject(reader: Protocol.Reader): FreeLine | boolean {
 
     const freeLine = new FreeLine();
 
-    reader.AddMapping<string>('i', 'id', freeLine, Protocol.ReadString);
-    reader.AddMapping<string>('c', 'color', freeLine, Protocol.ReadString);
-    reader.AddMapping<number>('w', 'width', freeLine, Protocol.ReadNumber);
-    reader.AddArrayMapping<Point>('p', 'points', freeLine, Protocol.ReadPoint);
+    reader.addMapping<string>('i', 'id', freeLine, Protocol.readString);
+    reader.addMapping<string>('c', 'color', freeLine, Protocol.readString);
+    reader.addMapping<number>('w', 'width', freeLine, Protocol.readNumber);
+    reader.addArrayMapping<Point>('p', 'points', freeLine, Protocol.readPoint);
 
-    reader.Read();
+    reader.read();
 
     return freeLine;
   }
 
-  public OnPointerDown(event: PointerEvent): void {
+  public onPointerDown(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalizedPoint = this.paintManager.NormalizePoint(point);
+    const normalizedPoint = this.paintManager.normalizePoint(point);
     // Start new spline
-    this.currentSpline = new CardinalSpline().Apply(this);
+    this.currentSpline = new CardinalSpline(this.predictCanvas, this.settings.tolerance, this.settings.width, this.settings.color);
     // Add starting point.ts
-    this.currentSpline.AddPoint(normalizedPoint);
+    this.currentSpline.addPoint(normalizedPoint);
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Generate GUID
-    this.currentGUID = Protocol.GenerateId();
+    this.currentGUID = Protocol.generateId();
     // Requires resending
     this.lineChanged = true;
     // Enable rendering
-    this.paintManager.StartFrameUpdate();
+    this.paintManager.startFrameUpdate();
   }
 
-  public OnPointerMove(event: PointerEvent): void {
-    if (!this.currentSpline) { return; }
+  public onPointerMove(event: PointerEvent): void {
+    if (!this.currentSpline) {
+      return;
+    }
 
     const point = new Point(event.offsetX, event.offsetY);
-    const normalizedPoint = this.paintManager.NormalizePoint(point);
+    const normalizedPoint = this.paintManager.normalizePoint(point);
 
     // When lazy is enabled changes to line should be done on frame update
     if (this.settings.lazyEnabled) {
@@ -86,63 +87,69 @@ export class FreeLineMode extends PaintMode {
       this.lastPointer = normalizedPoint;
     } else {
       // Add point.ts
-      this.currentSpline.AddPoint(normalizedPoint);
+      this.currentSpline.addPoint(normalizedPoint);
 
       // Requires resending
       this.lineChanged = true;
     }
   }
 
-  public OnFrameUpdate(): void {
+  public onFrameUpdate(): void {
     // Changes to line are done here because of nature of lazy brush, brush is always trying to catch pointer,
     // so where pointer stops moving lazy brush must be updated continuously
     if (this.settings.lazyEnabled && !!this.lastPointer) {
 
       // Update lazy brush
-      this.currentLazyBrush.Update(this.lastPointer);
+      this.currentLazyBrush.update(this.lastPointer);
 
       // Requires resending
-      if (this.currentLazyBrush.HasMoved) {
+      if (this.currentLazyBrush.moved) {
         this.lineChanged = true;
-        this.currentSpline.AddPoint(this.currentLazyBrush.Get());
+        this.currentSpline.addPoint(this.currentLazyBrush.get());
       }
     }
 
-    if (!this.lineChanged) { return; }
+    if (!this.lineChanged) {
+      return;
+    }
+
     this.lineChanged = false;
 
     // Send to others
     this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
-    this.networkManager.ShareCompiledObject(this.compiled, false);
+    this.networkManager.shareCompiledObject(this.compiled, false);
 
     // Draw predicted line
     this.predictCanvas.clear();
-    this.currentSpline.optimized?.length ?
-      CardinalSpline.Reproduce(this.predictCanvas, this.settings.color, this.settings.width, this.currentSpline.optimized) :
+
+    if (this.currentSpline.optimized?.length) {
+      CardinalSpline.reproduce(this.predictCanvas, this.settings.color, this.settings.width, this.currentSpline.optimized);
+    } else {
       console.warn('Missing line (this should not be possible)');
+    }
   }
 
-  public OnPointerUp(event: PointerEvent): void {
+  public onPointerUp(event: PointerEvent): void {
     if (!this.currentGUID) {
-      return this.paintManager.StopFrameUpdate();
+      return this.paintManager.stopFrameUpdate();
     }
 
     // End spline with saving, this method will draw itself
     this.predictCanvas.clear();
-    this.paintManager.SaveCompiledObject(this.compiled);
-    this.networkManager.ShareCompiledObject(this.compiled, true);
+    this.paintManager.saveCompiledObject(this.compiled);
+    this.networkManager.shareCompiledObject(this.compiled, true);
 
     // Cleanup
-    this.paintManager.StopFrameUpdate();
+    this.paintManager.stopFrameUpdate();
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
     delete this?.currentGUID;
   }
 
-  public OnPointerCancel(event: PointerEvent): void {
+  public onPointerCancel(event: PointerEvent): void {
     // Send delete
-    this.networkManager.SendDelete(this.currentGUID);
+    this.networkManager.sendDelete(this.currentGUID);
 
     // End spline and delete result
     this.predictCanvas.clear();
@@ -152,11 +159,11 @@ export class FreeLineMode extends PaintMode {
     delete this?.currentGUID;
   }
 
-  public OnPointerOut(event: PointerEvent): void {
-    this.OnPointerUp(event);
+  public onPointerOut(event: PointerEvent): void {
+    this.onPointerUp(event);
   }
 
-  public OnSelected(): void {
-    this.paintManager.StopFrameUpdate();
+  public onSelected(): void {
+    this.paintManager.stopFrameUpdate();
   }
 }

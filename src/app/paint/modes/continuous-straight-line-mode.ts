@@ -1,8 +1,7 @@
-import {PaintMode} from './paint-mode';
-import {StraightLine} from './straight-line-mode';
-import {Protocol} from '../protocol/protocol';
-import {Point} from '../protocol/point';
-import {PacketType} from '../protocol/packet-types';
+import { PaintMode } from './paint-mode';
+import { StraightLine } from './straight-line-mode';
+import { Protocol } from '../protocol/protocol';
+import { Point } from '../protocol/point';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';
@@ -10,11 +9,11 @@ export class ContinuousStraightLineMode extends PaintMode {
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
-  public OnPointerDown(event: PointerEvent): void {
-    this.paintManager.StartFrameUpdate();
+  public onPointerDown(event: PointerEvent): void {
+    this.paintManager.startFrameUpdate();
 
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.paintManager.NormalizePoint(point);
+    const normalized = this.paintManager.normalizePoint(point);
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -23,20 +22,20 @@ export class ContinuousStraightLineMode extends PaintMode {
         this.movingControlPoint = true;
 
       } else if (event.button === 0) {
-        this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, normalized, normalized);
+        this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, normalized, normalized);
 
         if (this.currentControlPoint) {
           this.currentStraightLine.begin = this.currentControlPoint;
         }
       }
     } else {
-      this.currentStraightLine = new StraightLine(Protocol.GenerateId(), this.settings.color, this.settings.width, this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
+      this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
     }
   }
 
-  public OnPointerMove(event: PointerEvent) {
+  public onPointerMove(event: PointerEvent) {
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.paintManager.NormalizePoint(point);
+    const normalized = this.paintManager.normalizePoint(point);
 
     if (this.movingControlPoint) {
       this.currentControlPoint = normalized;
@@ -45,13 +44,13 @@ export class ContinuousStraightLineMode extends PaintMode {
     }
   }
 
-  public OnFrameUpdate(): void {
+  public onFrameUpdate(): void {
     this.predictCanvas.clear();
 
     if (this.currentStraightLine) {
-      this.ReproduceObject(this.predictCanvas, this.currentStraightLine);
+      this.reproduceObject(this.predictCanvas, this.currentStraightLine);
 
-      this.networkManager.ShareCompiledObject(this.currentStraightLine, false);
+      this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
@@ -59,10 +58,10 @@ export class ContinuousStraightLineMode extends PaintMode {
     }
   }
 
-  public OnPointerUp(event: PointerEvent): void {
-    this.paintManager.StopFrameUpdate();
+  public onPointerUp(event: PointerEvent): void {
+    this.paintManager.stopFrameUpdate();
     const point = new Point(event.offsetX, event.offsetY);
-    const normalized = this.paintManager.NormalizePoint(point);
+    const normalized = this.paintManager.normalizePoint(point);
 
     // PC only
     if (event.pointerType === 'mouse') {
@@ -78,9 +77,9 @@ export class ContinuousStraightLineMode extends PaintMode {
         this.currentStraightLine.end = normalized;
         this.currentControlPoint = normalized;
 
-        this.paintManager.SaveCompiledObject(this.currentStraightLine);
-        this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
-        this.paintManager.SingleFrameUpdate();
+        this.paintManager.saveCompiledObject(this.currentStraightLine);
+        this.networkManager.shareCompiledObject(this.currentStraightLine, true);
+        this.paintManager.singleFrameUpdate();
 
         delete this.currentStraightLine;
       }
@@ -93,28 +92,28 @@ export class ContinuousStraightLineMode extends PaintMode {
       this.currentStraightLine.end = normalized;
       this.currentControlPoint = normalized;
 
-      this.paintManager.SaveCompiledObject(this.currentStraightLine);
-      this.networkManager.ShareCompiledObject(this.currentStraightLine, true);
-      this.paintManager.SingleFrameUpdate();
+      this.paintManager.saveCompiledObject(this.currentStraightLine);
+      this.networkManager.shareCompiledObject(this.currentStraightLine, true);
+      this.paintManager.singleFrameUpdate();
 
       delete this.currentStraightLine;
     }
   }
 
-  public OnSelected(): void {
+  public onSelected(): void {
     delete this?.currentStraightLine;
     delete this?.currentControlPoint;
   }
 
-  public OnUnSelected(): void {
+  public onUnSelected(): void {
     this.predictCanvas.clear();
   }
 
-  public MakeReady(): void {
-    this.paintManager.SingleFrameUpdate();
+  public makeReady(): void {
+    this.paintManager.singleFrameUpdate();
   }
 
-  public ReproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
     canvas.beginPath();
     canvas.moveTo(object.begin.x, object.begin.y);
     canvas.lineTo(object.end.x, object.end.y);
@@ -124,17 +123,17 @@ export class ContinuousStraightLineMode extends PaintMode {
     canvas.stroke();
   }
 
-  public SerializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
-    builder.SetName('straight-line');
-    builder.SetProperty('i', object.id);
-    builder.SetProperty('c', object.color);
-    builder.SetProperty('w', object.width);
-    builder.SetProperty('b', object.begin);
-    builder.SetProperty('e', object.end);
+  public serializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
+    builder.setName('straight-line');
+    builder.setProperty('i', object.id);
+    builder.setProperty('c', object.color);
+    builder.setProperty('w', object.width);
+    builder.setProperty('b', object.begin);
+    builder.setProperty('e', object.end);
     return builder;
   }
 
-  public ReadObject(reader: Protocol.Reader): boolean {
+  public readObject(reader: Protocol.Reader): boolean {
     return false;
   }
 }

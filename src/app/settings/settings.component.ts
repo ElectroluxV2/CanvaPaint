@@ -13,7 +13,7 @@ export class SettingsComponent {
     settingsService.settings.subscribe(value => this.settings = value);
   }
 
-  public Save(): void {
+  public save(): void {
     // @ts-ignore
     this.settingsService.settings = this.settings;
   }

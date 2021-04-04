@@ -1,25 +1,23 @@
 import { Simplify } from './simplify';
-import { FreeLineMode } from '../modes/free-line-mode';
-import {Point} from '../protocol/point';
+import { Point } from '../protocol/point';
 
 export class CardinalSpline {
+  public optimized: Point[] = [];
   private predict: CanvasRenderingContext2D;
-  private tolerance: number;
+  private readonly tolerance: number;
   private width: number;
   private color: string;
 
   private points: Point[] = [];
-  public optimized: Point[] = [];
 
-  constructor(); // Make apply possible
-  constructor(predict?: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
+  constructor(predict: CanvasRenderingContext2D, tolerance = 1, width = 5, color = 'green') {
     this.predict = predict;
     this.tolerance = tolerance;
     this.width = width;
     this.color = color;
   }
 
-  static QuadraticCurve(context: CanvasRenderingContext2D, points: Point[], color: string, width: number, drawDotOnly: boolean = false): void {
+  static quadraticCurve(context: CanvasRenderingContext2D, points: Point[], color: string, width: number, drawDotOnly: boolean = false): void {
     if (drawDotOnly) {
       context.beginPath();
       context.arc(points[0].x, points[0].y, width * 2 / Math.PI, 0, 2 * Math.PI, false);
@@ -53,40 +51,17 @@ export class CardinalSpline {
     context.stroke();
   }
 
-  public static Reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Point[]): void {
+  public static reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Point[]): void {
     canvas.strokeStyle = color;
     canvas.lineWidth = width;
-    CardinalSpline.QuadraticCurve(canvas, points, color, width, points?.length < 2);
+    CardinalSpline.quadraticCurve(canvas, points, color, width, points?.length < 2);
   }
 
-  /**
-   * Alternative to constructor
-   */
-  public Apply(mode: FreeLineMode): CardinalSpline {
-    this.predict = mode.predictCanvas;
-    this.tolerance = mode.settings.tolerance;
-    this.width = mode.settings.width;
-    this.color = mode.settings.color;
-    return this;
-  }
-
-  public set Color(value: string) {
-    this.color = value;
-  }
-
-  public set Width(value: number) {
-    this.width = value;
-  }
-
-  public set Tolerance(value: number) {
-    this.tolerance = value;
-  }
-
-  public get IsEmpty(): boolean {
+  public get isEmpty(): boolean {
     return this.points.length === 0;
   }
 
-  public AddPoint(point: Point): void {
+  public addPoint(point: Point): void {
     // Same point.ts prevention
     if (this.points.length) {
       const toCheck = this.points[this.points.length - 1];
@@ -96,7 +71,7 @@ export class CardinalSpline {
     }
 
     // Deep copy
-    this.points.push(point.Duplicate());
+    this.points.push(point.duplicate());
     this.optimized = Simplify.Simplify(this.points, this.tolerance);
 
     // TODO: better way of doing it

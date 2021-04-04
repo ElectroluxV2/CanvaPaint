@@ -1,13 +1,12 @@
-import {Point} from '../protocol/point';
+import { Point } from '../protocol/point';
 
 export class LazyBrush {
-
   private readonly percentOfDivide: number;
   private pointer: LazyPoint;
   private brush: LazyPoint;
   private angle = 0;
   private distance = 0;
-  private hasMoved = false;
+  private movedInternal = false;
 
   constructor(percentOfDivide: number, startPoint: Point) {
     this.percentOfDivide = percentOfDivide;
@@ -18,18 +17,19 @@ export class LazyBrush {
 
   /**
    * Updates the pointer point.ts and calculates the new brush point.ts.
+   *
    * @param newPointerPoint Array of cords
    * @returns Whether any of the two points changed
    */
-  public Update(newPointerPoint: Point): boolean {
-    this.hasMoved = false;
+  public update(newPointerPoint: Point): boolean {
+    this.movedInternal = false;
 
-    this.distance = this.pointer.GetDistanceTo(this.brush.Get());
+    this.distance = this.pointer.getDistanceTo(this.brush.get());
     let lazyDistance;
 
-    if (!this.pointer.EqualsTo(newPointerPoint)) {
-      this.pointer.Update(newPointerPoint);
-      this.angle = this.pointer.GetAngleTo(this.brush.Get());
+    if (!this.pointer.equalsTo(newPointerPoint)) {
+      this.pointer.update(newPointerPoint);
+      this.angle = this.pointer.getAngleTo(this.brush.get());
 
       lazyDistance = this.distance * this.percentOfDivide;
     } else {
@@ -40,24 +40,24 @@ export class LazyBrush {
       return false;
     }
 
-    this.brush.MoveByAngle(this.angle, lazyDistance);
-    this.hasMoved = true;
+    this.brush.moveByAngle(this.angle, lazyDistance);
+    this.movedInternal = true;
 
     return true;
   }
 
-  public get HasMoved(): boolean {
-    return this.hasMoved;
+  public get(): Point {
+    return this.brush.get();
   }
 
-  public Get(): Point {
-    return this.brush.Get();
+  get moved(): boolean {
+    return this.movedInternal;
   }
 
-  public ForceBrush(lastPointer: Point) {
-    this.brush.Update(lastPointer);
-    this.pointer.Update(lastPointer);
-    this.hasMoved = true;
+  public forceBrush(lastPointer: Point) {
+    this.brush.update(lastPointer);
+    this.pointer.update(lastPointer);
+    this.movedInternal = true;
   }
 }
 
@@ -69,37 +69,37 @@ class LazyPoint {
     this.coords.y = startPoint.y;
   }
 
-  public EqualsTo(another: Point): boolean {
+  public equalsTo(another: Point): boolean {
     return this.coords.x === another.x && this.coords.y === another.y;
   }
 
-  public Update(newPointerPoint: Point): void {
+  public update(newPointerPoint: Point): void {
     this.coords.x = newPointerPoint.x;
     this.coords.y = newPointerPoint.y;
   }
 
-  public Get(): Point {
+  public get(): Point {
     return this.coords;
   }
 
-  public GetDistanceTo(another: Point): number {
-    const diff = this.GetDifferenceTo(another);
+  public getDistanceTo(another: Point): number {
+    const diff = this.getDifferenceTo(another);
     return Math.sqrt(Math.pow(diff.x, 2) + Math.pow(diff.y, 2));
   }
 
-  public GetAngleTo(another: Point): number {
-    const diff = this.GetDifferenceTo(another);
+  public getAngleTo(another: Point): number {
+    const diff = this.getDifferenceTo(another);
     return Math.atan2(diff.y, diff.x);
   }
 
-  public MoveByAngle(angle: number, distance: number): void {
+  public moveByAngle(angle: number, distance: number): void {
     // Rotate the angle based on the browser coordinate system ([0,0] in the top left)
     const angleRotated = angle + (Math.PI / 2);
     this.coords.x = this.coords.x + (Math.sin(angleRotated) * distance);
     this.coords.y = this.coords.y - (Math.cos(angleRotated) * distance);
   }
 
-  private GetDifferenceTo(another: Point) {
+  private getDifferenceTo(another: Point) {
     return new Point(this.coords.x - another.x, this.coords.y - another.y);
   }
 }
