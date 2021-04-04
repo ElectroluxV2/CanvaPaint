@@ -132,8 +132,4 @@ export class ContinuousStraightLineMode extends PaintMode {
     builder.setProperty('e', object.end);
     return builder;
   }
-
-  public readObject(reader: Protocol.Reader): boolean {
-    return false;
-  }
 }
