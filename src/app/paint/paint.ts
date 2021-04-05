@@ -10,6 +10,7 @@ import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
 import {RemoveObjectMode} from './modes/remove-object-mode';
+import {Box} from './protocol/compiled-object';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -25,6 +26,13 @@ declare global {
      * @param color color of dot
      */
     dot(position: Point, width: number, color: string): void;
+
+    /**
+     * Draws box on canvas
+     *
+     * @param box box to draw
+     */
+    box(box: Box): void;
   }
 }
 
@@ -191,6 +199,20 @@ export class Paint {
 
     this.mainCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
+
+    const calcBox = (box: Box) => {
+      const x = box.p0.x;
+      const y = box.p0.y;
+
+      const width = box.p1.x - x;
+      const height = box.p1.y - y;
+
+      return { x, y, width, height };
+    };
+
+    this.predictCanvasCTX.box = (box: Box) => {
+      ((({x, y, width, height}) => this.predictCanvasCTX.strokeRect(x, y, width, height))(calcBox(box)));
+    };
   }
 
   private handleModes(): void {

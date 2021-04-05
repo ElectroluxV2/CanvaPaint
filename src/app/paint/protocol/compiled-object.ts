@@ -1,3 +1,10 @@
+import { Point } from './point';
+
+export interface Box {
+  p0: Point;
+  p1: Point;
+}
+
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
  */
@@ -15,4 +22,8 @@ export interface CompiledObject {
    * Color
    */
   color: string;
+  /**
+   * Hit box
+   */
+  box?: Box;
 }

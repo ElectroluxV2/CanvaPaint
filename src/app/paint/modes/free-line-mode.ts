@@ -2,7 +2,7 @@ import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../curves/cardinal-spline';
 import { LazyBrush } from '../curves/lazy-brush';
 import { Protocol } from '../protocol/protocol';
-import { CompiledObject } from '../protocol/compiled-object';
+import { Box, CompiledObject } from '../protocol/compiled-object';
 import { Point } from '../protocol/point';
 
 export class FreeLine implements CompiledObject {
@@ -11,12 +11,14 @@ export class FreeLine implements CompiledObject {
   width: number;
   points: Point[];
   id: string;
+  box: Box;
 
-  constructor(id?: string, color?: string, width?: number, points?: Point[]) {
+  constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
     this.id = id;
     this.color = color;
     this.width = width;
     this.points = points;
+    this.box = box;
   }
 }
 
@@ -25,6 +27,7 @@ export class FreeLineMode extends PaintMode {
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
   private compiled: CompiledObject;
+  private box: Box;
   private currentGUID: string;
   private lineChanged: boolean;
   private lastPointer: Point;
@@ -61,8 +64,13 @@ export class FreeLineMode extends PaintMode {
     const normalizedPoint = this.paintManager.normalizePoint(point);
     // Start new spline
     this.currentSpline = new CardinalSpline(this.predictCanvas, this.settings.tolerance, this.settings.width, this.settings.color);
-    // Add starting point.ts
+    // Add starting point
     this.currentSpline.addPoint(normalizedPoint);
+    // Create box
+    this.box = {
+      p0: normalizedPoint.duplicate(),
+      p1: normalizedPoint.duplicate()
+    };
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Generate GUID
@@ -80,6 +88,19 @@ export class FreeLineMode extends PaintMode {
 
     const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.paintManager.normalizePoint(point);
+
+    // Count hit box
+    if (normalizedPoint.x < this.box.p0.x) {
+      this.box.p0.x = normalizedPoint.x;
+    } else if (normalizedPoint.x > this.box.p1.x) {
+      this.box.p1.x = normalizedPoint.x;
+    }
+
+    if (normalizedPoint.y < this.box.p0.y) {
+      this.box.p0.y = normalizedPoint.y;
+    } else if (normalizedPoint.y > this.box.p1.y) {
+      this.box.p1.y = normalizedPoint.y;
+    }
 
     // When lazy is enabled changes to line should be done on frame update
     if (this.settings.lazyEnabled) {
@@ -116,11 +137,14 @@ export class FreeLineMode extends PaintMode {
     this.lineChanged = false;
 
     // Send to others
-    this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
+    this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized, this.box);
     this.networkManager.shareCompiledObject(this.compiled, false);
 
     // Draw predicted line
     this.predictCanvas.clear();
+
+    // Draw box
+    this.predictCanvas.box(this.box);
 
     if (this.currentSpline.optimized?.length) {
       CardinalSpline.reproduce(this.predictCanvas, this.settings.color, this.settings.width, this.currentSpline.optimized);
@@ -141,6 +165,7 @@ export class FreeLineMode extends PaintMode {
 
     // Cleanup
     this.paintManager.stopFrameUpdate();
+    delete this?.box;
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
@@ -153,6 +178,7 @@ export class FreeLineMode extends PaintMode {
 
     // End spline and delete result
     this.predictCanvas.clear();
+    delete this?.box;
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
