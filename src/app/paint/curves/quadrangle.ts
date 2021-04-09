@@ -21,8 +21,8 @@ export class Quadrangle {
     const v2 = Vector.makeVector(anchorPoint1, anchorPoint2).perpendicularCounterClockwise().normalize().multiply(scalar);
 
     const p1 = v1.add(anchorPoint1);
-    const p2 = v2.add(anchorPoint1);
-    const p3 = v1.add(anchorPoint2);
+    const p2 = v1.add(anchorPoint1);
+    const p3 = v2.add(anchorPoint2);
     const p4 = v2.add(anchorPoint2);
 
     const sumOfDiagonal = p1.distance(p3) + p2.distance(p4);
