@@ -88,8 +88,7 @@ export class RemoveObjectMode extends PaintMode {
       const sumOfDiagonal = this.distance(c0, c1Prim) + this.distance(c1, c0Prim);
       const sumOfNotDiagonal = this.distance(c0, cursor) + this.distance(c1, cursor) + this.distance(c0Prim, cursor) + this.distance(c1Prim, cursor);
 
-      const inside = Math.abs(sumOfDiagonal - sumOfNotDiagonal) < 10;
-
+      const inside = Math.abs(sumOfDiagonal - sumOfNotDiagonal) < line.width * 1.5;
 
       if (inside) {
         this.predictCanvas.clear();
