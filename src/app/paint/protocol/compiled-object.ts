@@ -39,4 +39,11 @@ export interface CompiledObject {
    * Hit box
    */
   box?: Box;
+
+  /**
+   * Should return true if pointer is inside object
+   *
+   * @param pointer point in canvas
+   */
+  isSelectedBy(pointer: Point): boolean;
 }
