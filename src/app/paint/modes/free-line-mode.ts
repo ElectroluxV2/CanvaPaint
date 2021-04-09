@@ -13,7 +13,7 @@ export class FreeLine implements CompiledObject {
   width: number;
   points: Point[];
   id: string;
-  box: Box;
+  private readonly box: Box;
 
   constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
     this.id = id;
@@ -21,6 +21,10 @@ export class FreeLine implements CompiledObject {
     this.width = width;
     this.points = points;
     this.box = box;
+  }
+
+  public getBox(): Box {
+    return this.box;
   }
 
   public isSelectedBy(pointer: Point): boolean {

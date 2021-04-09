@@ -35,10 +35,6 @@ export interface CompiledObject {
    * Color
    */
   color: string;
-  /**
-   * Hit box
-   */
-  box?: Box;
 
   /**
    * Should return true if pointer is inside object

@@ -37,7 +37,7 @@ export class RemoveObjectMode extends PaintMode {
         // Draw box
         this.predictCanvas.strokeStyle = line.color;
         this.predictCanvas.lineWidth = 1;
-        this.predictCanvas.box(line.box);
+        this.predictCanvas.box(line.getBox());
 
         // Draw sub boxes
         // console.log(`Suma przekątnych: ${sumOfDiagonal}, suma nie przekątnych: ${sumOfNotDiagonal}, różnica: ${Math.abs(sumOfDiagonal - sumOfNotDiagonal)}`);
