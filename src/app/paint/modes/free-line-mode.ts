@@ -4,16 +4,17 @@ import { LazyBrush } from '../curves/lazy-brush';
 import { Protocol } from '../protocol/protocol';
 import { Box, CompiledObject } from '../protocol/compiled-object';
 import { Point } from '../protocol/point';
-import { Vector } from '../curves/vectors';
+import { Quadrangle } from '../curves/quadrangle';
 
 export class FreeLine implements CompiledObject {
-  static DEBUG_IS_SELECTED_BY = false;
+  static readonly DEBUG_IS_SELECTED_BY = false;
   name = 'free-line';
   color: string;
   width: number;
   points: Point[];
   id: string;
   private readonly box: Box;
+  private readonly advancedBox: Quadrangle[] = [];
 
   constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
     this.id = id;
@@ -33,25 +34,19 @@ export class FreeLine implements CompiledObject {
       return false;
     }
 
+    // Prepare advancedBox
+    if (this.advancedBox.length < this.points.length) {
+      for (let i = 1; i < this.points.length; i++) {
+        const p1 = this.points[i - 1];
+        const p2 = this.points[i];
+
+        this.advancedBox.push(Quadrangle.constructOnPoints(p1, p2, 5));
+      }
+    }
+
     // Hard check
-    for (let i = 1; i < this.points.length; i++) {
-      const p1 = this.points[i - 1];
-      const p2 = this.points[i];
-
-      const v0 = Vector.makeVector(p1, p2).perpendicularClockwise().normalize().multiply(5);
-      const v1 = Vector.makeVector(p1, p2).perpendicularCounterClockwise().normalize().multiply(5);
-
-      const c0 = v1.add(p1);
-      const c0Prim = v0.add(p1);
-
-      const c1 = v1.add(p2);
-      const c1Prim = v0.add(p2);
-
-      const sumOfDiagonal = c0.distance(c1Prim) + c1.distance(c0Prim);
-      const sumOfNotDiagonal = c0.distance(pointer) + c1.distance(pointer) + c0Prim.distance(pointer) + c1Prim.distance(pointer);
-
-      const inside = Math.abs(sumOfDiagonal - sumOfNotDiagonal) < this.width;
-      if (inside) {
+    for (const quadrangle of this.advancedBox) {
+      if (quadrangle.isPointerInside(pointer, this.width)) {
         return true;
       }
     }
