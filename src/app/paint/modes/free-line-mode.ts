@@ -67,10 +67,7 @@ export class FreeLineMode extends PaintMode {
     // Add starting point
     this.currentSpline.addPoint(normalizedPoint);
     // Create box
-    this.box = {
-      topLeft: normalizedPoint.duplicate(),
-      bottomRight: normalizedPoint.duplicate()
-    };
+    this.box = new Box(normalizedPoint.duplicate(), normalizedPoint.duplicate());
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Generate GUID

@@ -1,8 +1,21 @@
 import { Point } from './point';
 
-export interface Box {
-  topLeft: Point;
-  bottomRight: Point;
+export class Box {
+  public readonly topLeft: Point;
+  public readonly bottomRight: Point;
+
+  public constructor(topLeft: Point, bootomRight: Point) {
+    this.topLeft = topLeft;
+    this.bottomRight = bootomRight;
+  }
+
+  public static isPointInside(box: Box, point: Point): boolean {
+    return point.x < box.bottomRight.x && point.x > box.topLeft.x && point.y < box.bottomRight.y && point.y > box.topLeft.y;
+  }
+
+  public isPointInside(point: Point): boolean {
+    return Box.isPointInside(this, point);
+  }
 }
 
 /**
