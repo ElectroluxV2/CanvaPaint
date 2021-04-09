@@ -201,11 +201,11 @@ export class Paint {
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
 
     const calcBox = (box: Box) => {
-      const x = box.p0.x;
-      const y = box.p0.y;
+      const x = box.topLeft.x;
+      const y = box.topLeft.y;
 
-      const width = box.p1.x - x;
-      const height = box.p1.y - y;
+      const width = box.bottomRight.x - x;
+      const height = box.bottomRight.y - y;
 
       return { x, y, width, height };
     };

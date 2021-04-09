@@ -68,8 +68,8 @@ export class FreeLineMode extends PaintMode {
     this.currentSpline.addPoint(normalizedPoint);
     // Create box
     this.box = {
-      p0: normalizedPoint.duplicate(),
-      p1: normalizedPoint.duplicate()
+      topLeft: normalizedPoint.duplicate(),
+      bottomRight: normalizedPoint.duplicate()
     };
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
@@ -89,17 +89,19 @@ export class FreeLineMode extends PaintMode {
     const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.paintManager.normalizePoint(point);
 
+    const boxPadding = this.settings.width * 10;
+
     // Count hit box
-    if (normalizedPoint.x < this.box.p0.x) {
-      this.box.p0.x = normalizedPoint.x;
-    } else if (normalizedPoint.x > this.box.p1.x) {
-      this.box.p1.x = normalizedPoint.x;
+    if (normalizedPoint.x - boxPadding < this.box.topLeft.x) {
+      this.box.topLeft.x = normalizedPoint.x - boxPadding;
+    } else if (normalizedPoint.x + boxPadding > this.box.bottomRight.x) {
+      this.box.bottomRight.x = normalizedPoint.x + boxPadding;
     }
 
-    if (normalizedPoint.y < this.box.p0.y) {
-      this.box.p0.y = normalizedPoint.y;
-    } else if (normalizedPoint.y > this.box.p1.y) {
-      this.box.p1.y = normalizedPoint.y;
+    if (normalizedPoint.y - boxPadding < this.box.topLeft.y) {
+      this.box.topLeft.y = normalizedPoint.y - boxPadding;
+    } else if (normalizedPoint.y + boxPadding > this.box.bottomRight.y) {
+      this.box.bottomRight.y = normalizedPoint.y + boxPadding;
     }
 
     // When lazy is enabled changes to line should be done on frame update

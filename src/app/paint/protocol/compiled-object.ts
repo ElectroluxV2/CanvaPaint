@@ -1,8 +1,8 @@
 import { Point } from './point';
 
 export interface Box {
-  p0: Point;
-  p1: Point;
+  topLeft: Point;
+  bottomRight: Point;
 }
 
 /**

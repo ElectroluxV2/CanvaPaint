@@ -28,7 +28,7 @@ export class RemoveObjectMode extends PaintMode {
     for (const line of this.paintManager.compiledObjectStorage.get('free-line') as FreeLine[]) {
       const box = line.box;
 
-      if (point.x < box.p1.x && point.x > box.p0.x && point.y < box.p1.y && point.y > box.p0.y) {
+      if (point.x < box.bottomRight.x && point.x > box.topLeft.x && point.y < box.bottomRight.y && point.y > box.topLeft.y) {
         this.predictCanvas.strokeStyle = line.color;
         this.predictCanvas.lineWidth = 1;
         this.predictCanvas.box(box);
