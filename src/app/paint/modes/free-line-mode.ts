@@ -38,6 +38,11 @@ export class FreeLine implements CompiledObject {
       return false;
     }
 
+    // Only light check for dots
+    if (this.points.length === 1) {
+      return true;
+    }
+
     // Prepare advancedBox
     if (this.advancedBox.length < this.points.length) {
       for (let i = 1; i < this.points.length; i++) {
@@ -171,6 +176,12 @@ export class FreeLineMode extends PaintMode {
     }
 
     this.lineChanged = false;
+
+    if (this.currentSpline.optimized.length === 1) {
+      const center = this.currentSpline.optimized[0];
+      const boxPadding = this.settings.width;
+      this.box = new Box(new Point(center.x - boxPadding, center.y - boxPadding), new Point(center.x + boxPadding, center.y + boxPadding));
+    }
 
     // Send to others
     this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized, this.box);
