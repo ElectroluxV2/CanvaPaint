@@ -7,7 +7,7 @@ import { Point } from '../protocol/point';
 import { Quadrangle } from '../curves/quadrangle';
 
 export class FreeLine implements CompiledObject {
-  static readonly DEBUG_IS_SELECTED_BY = false;
+  static readonly DEBUG_IS_SELECTED_BY = true;
   name = 'free-line';
   color: string;
   width: number;
@@ -26,6 +26,10 @@ export class FreeLine implements CompiledObject {
 
   public getBox(): Box {
     return this.box;
+  }
+
+  public getAdvancedBox(): Quadrangle[] {
+    return this.advancedBox;
   }
 
   public isSelectedBy(pointer: Point): boolean {

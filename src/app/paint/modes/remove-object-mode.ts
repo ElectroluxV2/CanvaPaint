@@ -37,48 +37,61 @@ export class RemoveObjectMode extends PaintMode {
         // Draw box
         this.predictCanvas.strokeStyle = line.color;
         this.predictCanvas.lineWidth = 1;
+
+        if (!line.getBox().isPointInside(pointer)) {
+          continue;
+        }
+
         this.predictCanvas.box(line.getBox());
 
+        for (const point of line.points) {
+          this.predictCanvas.dot(point, 10, 'orange');
+        }
+
         // Draw sub boxes
-        // console.log(`Suma przekątnych: ${sumOfDiagonal}, suma nie przekątnych: ${sumOfNotDiagonal}, różnica: ${Math.abs(sumOfDiagonal - sumOfNotDiagonal)}`);
-        /*this.predictCanvas.dot(p0, 10, 'orange');
-        this.predictCanvas.dot(p1, 10, 'orange');
+        for (const quadrangle of line.getAdvancedBox()) {
+          if (quadrangle.isPointerInside(pointer, line.width)) {
+            const sumOfNotDiagonal = quadrangle.sumOfNotDiagonal(pointer);
+            console.info(`sumOfDiagonal: ${quadrangle.sumOfDiagonal}, sumOfNotDiagonal: ${sumOfNotDiagonal}, difference: ${Math.abs(quadrangle.sumOfDiagonal - sumOfNotDiagonal)}`);
+          }
 
-        this.predictCanvas.beginPath();
-        this.predictCanvas.moveTo(c0.x, c0.y);
-        this.predictCanvas.lineTo(c0Prim.x, c0Prim.y);
-        this.predictCanvas.lineTo(c1Prim.x, c1Prim.y);
-        this.predictCanvas.lineTo(c1.x, c1.y);
-        this.predictCanvas.lineTo(c0.x, c0.y);
+          this.predictCanvas.beginPath();
+          this.predictCanvas.moveTo(quadrangle.p1.x, quadrangle.p1.y);
+          this.predictCanvas.lineTo(quadrangle.p2.x, quadrangle.p2.y);
+          this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
+          this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
+          this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
 
-        this.predictCanvas.strokeStyle = inside ? 'purple' : 'pink';
-        this.predictCanvas.lineWidth = 1;
-        this.predictCanvas.stroke();
+          this.predictCanvas.strokeStyle = quadrangle.isPointerInside(pointer, line.width) ? 'purple' : 'pink';
+          this.predictCanvas.lineWidth = 1;
+          this.predictCanvas.stroke();
 
-        this.predictCanvas.beginPath();
-        this.predictCanvas.moveTo(cursor.x, cursor.y);
-        this.predictCanvas.lineTo(c0.x, c0.y);
-        this.predictCanvas.moveTo(cursor.x, cursor.y);
-        this.predictCanvas.lineTo(c1.x, c1.y);
-        this.predictCanvas.moveTo(cursor.x, cursor.y);
-        this.predictCanvas.lineTo(c0Prim.x, c0Prim.y);
-        this.predictCanvas.moveTo(cursor.x, cursor.y);
-        this.predictCanvas.lineTo(c1Prim.x, c1Prim.y);
-        this.predictCanvas.strokeStyle = '#11edff';
-        this.predictCanvas.lineWidth = 1;
-        this.predictCanvas.stroke();
+          this.predictCanvas.beginPath();
+          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
+          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.lineTo(quadrangle.p2.x, quadrangle.p2.y);
+          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
+          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
+          this.predictCanvas.strokeStyle = '#11edff';
+          this.predictCanvas.lineWidth = 1;
+          this.predictCanvas.stroke();
 
-        this.predictCanvas.beginPath();
-        this.predictCanvas.moveTo(c0.x, c0.y);
-        this.predictCanvas.lineTo(c1Prim.x, c1Prim.y);
-        this.predictCanvas.moveTo(c1.x, c1.y);
-        this.predictCanvas.lineTo(c0Prim.x, c0Prim.y);
-        this.predictCanvas.strokeStyle = '#dd0000';
-        this.predictCanvas.lineWidth = 1;
-        this.predictCanvas.stroke();*/
+          this.predictCanvas.beginPath();
+          this.predictCanvas.moveTo(quadrangle.p1.x, quadrangle.p1.y);
+          this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
+          this.predictCanvas.moveTo(quadrangle.p2.x, quadrangle.p2.y);
+          this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
+          this.predictCanvas.strokeStyle = '#dd0000';
+          this.predictCanvas.lineWidth = 1;
+          this.predictCanvas.stroke();
+        }
       }
     }
 
+    // Apply line color change
     this.paintManager.redraw();
   }
 }

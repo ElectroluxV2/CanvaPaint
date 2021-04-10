@@ -2,11 +2,11 @@ import { Point } from '../protocol/point';
 import { Vector } from './vectors';
 
 export class Quadrangle {
-  private p1: Point;
-  private p2: Point;
-  private p3: Point;
-  private p4: Point;
-  private sumOfDiagonal: number;
+  public readonly sumOfDiagonal: number;
+  public readonly p1: Point;
+  public readonly p2: Point;
+  public readonly p3: Point;
+  public readonly p4: Point;
 
   constructor(p1: Point, p2: Point, p3: Point, p4: Point, sumOfDiagonal: number) {
     this.p1 = p1;
@@ -37,5 +37,9 @@ export class Quadrangle {
 
   public isPointerInside(pointer: Point, tolerance: number): boolean {
     return Quadrangle.isPointerInside(this, pointer, tolerance);
+  }
+
+  public sumOfNotDiagonal(pointer: Point): number {
+    return this.p1.distance(pointer) + this.p2.distance(pointer) + this.p3.distance(pointer) + this.p4.distance(pointer);
   }
 }
