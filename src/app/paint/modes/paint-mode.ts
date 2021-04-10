@@ -99,6 +99,26 @@ abstract class PaintModeOptional {
    * @see https://developer.mozilla.org/pl/docs/Web/API/Window/requestAnimationFrame requestAnimationFrame
    */
   public onFrameUpdate?(): void;
+
+  /**
+   * Method that reproduces object created by method's object
+   *
+   * @param canvas render destination
+   * @param object object to render
+   */
+  public reproduceObject?(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+
+  /**
+   * Metod used in transportation
+   * Should return string readable by read method
+   */
+  public serializeObject?(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
+
+  /**
+   * Metod used in transportation
+   * Should return compiled object instance if not possible should return false
+   */
+  public readObject?(reader: Protocol.Reader): CompiledObject | boolean;
 }
 
 export abstract class PaintMode extends PaintModeOptional {
@@ -145,24 +165,4 @@ export abstract class PaintMode extends PaintModeOptional {
   public onSettingsUpdate(settings: Settings): void {
     this.settings = settings;
   }
-
-  /**
-   * Method that reproduces object created by method's object
-   *
-   * @param canvas render destination
-   * @param object object to render
-   */
-  public abstract reproduceObject(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
-
-  /**
-   * Metod used in transportation
-   * Should return string readable by read method
-   */
-  public abstract serializeObject(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
-
-  /**
-   * Metod used in transportation
-   * Should return compiled object instance if not possible should return false
-   */
-  public abstract readObject(reader: Protocol.Reader): CompiledObject | boolean;
 }

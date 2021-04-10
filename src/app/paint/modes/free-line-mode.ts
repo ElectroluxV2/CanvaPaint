@@ -2,21 +2,65 @@ import { PaintMode } from './paint-mode';
 import { CardinalSpline } from '../curves/cardinal-spline';
 import { LazyBrush } from '../curves/lazy-brush';
 import { Protocol } from '../protocol/protocol';
-import { CompiledObject } from '../protocol/compiled-object';
+import { Box, CompiledObject } from '../protocol/compiled-object';
 import { Point } from '../protocol/point';
+import { Quadrangle } from '../curves/quadrangle';
 
 export class FreeLine implements CompiledObject {
+  static readonly DEBUG_IS_SELECTED_BY = false;
   name = 'free-line';
   color: string;
   width: number;
   points: Point[];
   id: string;
+  private readonly box: Box;
+  private readonly advancedBox: Quadrangle[] = [];
 
-  constructor(id?: string, color?: string, width?: number, points?: Point[]) {
+  constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
     this.id = id;
     this.color = color;
     this.width = width;
     this.points = points;
+    this.box = box;
+  }
+
+  public getBox(): Box {
+    return this.box;
+  }
+
+  public getAdvancedBox(): Quadrangle[] {
+    return this.advancedBox;
+  }
+
+  public isSelectedBy(pointer: Point): boolean {
+    // Light check
+    if (!this.box.isPointInside(pointer)) {
+      return false;
+    }
+
+    // Only light check for dots
+    if (this.points.length === 1) {
+      return true;
+    }
+
+    // Prepare advancedBox
+    if (this.advancedBox.length < this.points.length) {
+      for (let i = 1; i < this.points.length; i++) {
+        const p1 = this.points[i - 1];
+        const p2 = this.points[i];
+
+        this.advancedBox.push(Quadrangle.constructOnPoints(p1, p2, 5));
+      }
+    }
+
+    // Hard check
+    for (const quadrangle of this.advancedBox) {
+      if (quadrangle.isPointerInside(pointer, this.width)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 
@@ -25,6 +69,7 @@ export class FreeLineMode extends PaintMode {
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
   private compiled: CompiledObject;
+  private box: Box;
   private currentGUID: string;
   private lineChanged: boolean;
   private lastPointer: Point;
@@ -61,8 +106,10 @@ export class FreeLineMode extends PaintMode {
     const normalizedPoint = this.paintManager.normalizePoint(point);
     // Start new spline
     this.currentSpline = new CardinalSpline(this.predictCanvas, this.settings.tolerance, this.settings.width, this.settings.color);
-    // Add starting point.ts
+    // Add starting point
     this.currentSpline.addPoint(normalizedPoint);
+    // Create box
+    this.box = new Box(normalizedPoint.duplicate(), normalizedPoint.duplicate());
     // Initialize lazy brush
     this.currentLazyBrush = new LazyBrush(this.settings.lazyMultiplier, normalizedPoint);
     // Generate GUID
@@ -80,6 +127,21 @@ export class FreeLineMode extends PaintMode {
 
     const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.paintManager.normalizePoint(point);
+
+    const boxPadding = this.settings.width * 10;
+
+    // Count hit box
+    if (normalizedPoint.x - boxPadding < this.box.topLeft.x) {
+      this.box.topLeft.x = normalizedPoint.x - boxPadding;
+    } else if (normalizedPoint.x + boxPadding > this.box.bottomRight.x) {
+      this.box.bottomRight.x = normalizedPoint.x + boxPadding;
+    }
+
+    if (normalizedPoint.y - boxPadding < this.box.topLeft.y) {
+      this.box.topLeft.y = normalizedPoint.y - boxPadding;
+    } else if (normalizedPoint.y + boxPadding > this.box.bottomRight.y) {
+      this.box.bottomRight.y = normalizedPoint.y + boxPadding;
+    }
 
     // When lazy is enabled changes to line should be done on frame update
     if (this.settings.lazyEnabled) {
@@ -115,12 +177,21 @@ export class FreeLineMode extends PaintMode {
 
     this.lineChanged = false;
 
+    if (this.currentSpline.optimized.length === 1) {
+      const center = this.currentSpline.optimized[0];
+      const boxPadding = this.settings.width;
+      this.box = new Box(new Point(center.x - boxPadding, center.y - boxPadding), new Point(center.x + boxPadding, center.y + boxPadding));
+    }
+
     // Send to others
-    this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized);
+    this.compiled = new FreeLine(this.currentGUID, this.settings.color, this.settings.width, this.currentSpline.optimized, this.box);
     this.networkManager.shareCompiledObject(this.compiled, false);
 
     // Draw predicted line
     this.predictCanvas.clear();
+
+    // Draw box
+    this.predictCanvas.box(this.box);
 
     if (this.currentSpline.optimized?.length) {
       CardinalSpline.reproduce(this.predictCanvas, this.settings.color, this.settings.width, this.currentSpline.optimized);
@@ -141,6 +212,7 @@ export class FreeLineMode extends PaintMode {
 
     // Cleanup
     this.paintManager.stopFrameUpdate();
+    delete this?.box;
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
@@ -153,6 +225,7 @@ export class FreeLineMode extends PaintMode {
 
     // End spline and delete result
     this.predictCanvas.clear();
+    delete this?.box;
     delete this?.lastPointer;
     delete this?.currentLazyBrush;
     delete this?.currentSpline;
