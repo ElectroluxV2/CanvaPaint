@@ -4,7 +4,11 @@ import { FreeLine } from './free-line-mode';
 
 export class RemoveObjectMode extends PaintMode {
   readonly name = 'remove-object';
-  private timer = null;
+  private lastPointer: Point;
+  private running = false;
+  private currentlySelectedIds: string[] = [];
+
+
 
   public onPointerMove(event: PointerEvent) {
     const point = new Point(event.offsetX, event.offsetY);
@@ -14,23 +18,30 @@ export class RemoveObjectMode extends PaintMode {
       return;
     }
 
-    if (this.timer !== null) {
+    if (this.lastPointer?.x === normalized.x && this.lastPointer?.y === normalized.y) {
       return;
     }
 
-    this.timer = setTimeout(this.next.bind(this), 10, normalized);
+    this.lastPointer = normalized;
+
+    if (!this.running) {
+      this.paintManager.singleFrameUpdate();
+    }
   }
 
-  private next(pointer: Point): void {
-    this.timer = null;
+  public onFrameUpdate(): void {
+    this.running = true;
     this.predictCanvas.clear();
 
     for (const line of this.paintManager.compiledObjectStorage.get('free-line') as FreeLine[]) {
 
-      if (line.isSelectedBy(pointer)) {
+      if (line.isSelectedBy(this.lastPointer)) {
+        this.currentlySelectedIds.push(line.id);
+        // this.paintManager.compiledObjectStorage.set('free-line', this.paintManager.compiledObjectStorage.get('free-line').filter(target => target.id !== line.id));
         line.color = 'purple';
       } else {
-        line.color = 'grey';
+        this.currentlySelectedIds = this.currentlySelectedIds.filter(id => id !== line.id);
+        line.color = 'white';
       }
 
       if (FreeLine.DEBUG_IS_SELECTED_BY) {
@@ -38,7 +49,7 @@ export class RemoveObjectMode extends PaintMode {
         this.predictCanvas.strokeStyle = line.color;
         this.predictCanvas.lineWidth = 1;
 
-        if (!line.getBox().isPointInside(pointer)) {
+        if (!line.getBox().isPointInside(this.lastPointer)) {
           continue;
         }
 
@@ -50,8 +61,8 @@ export class RemoveObjectMode extends PaintMode {
 
         // Draw sub boxes
         for (const quadrangle of line.getAdvancedBox()) {
-          if (quadrangle.isPointerInside(pointer, line.width)) {
-            const sumOfNotDiagonal = quadrangle.sumOfNotDiagonal(pointer);
+          if (quadrangle.isPointerInside(this.lastPointer, line.width)) {
+            const sumOfNotDiagonal = quadrangle.sumOfNotDiagonal(this.lastPointer);
             console.info(`sumOfDiagonal: ${quadrangle.sumOfDiagonal}, sumOfNotDiagonal: ${sumOfNotDiagonal}, difference: ${Math.abs(quadrangle.sumOfDiagonal - sumOfNotDiagonal)}`);
           }
 
@@ -62,18 +73,18 @@ export class RemoveObjectMode extends PaintMode {
           this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
           this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
 
-          this.predictCanvas.strokeStyle = quadrangle.isPointerInside(pointer, line.width) ? 'purple' : 'pink';
+          this.predictCanvas.strokeStyle = quadrangle.isPointerInside(this.lastPointer, line.width) ? 'purple' : 'pink';
           this.predictCanvas.lineWidth = 1;
           this.predictCanvas.stroke();
 
           this.predictCanvas.beginPath();
-          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
           this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
-          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
           this.predictCanvas.lineTo(quadrangle.p2.x, quadrangle.p2.y);
-          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
           this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
-          this.predictCanvas.moveTo(pointer.x, pointer.y);
+          this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
           this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
           this.predictCanvas.strokeStyle = '#11edff';
           this.predictCanvas.lineWidth = 1;
@@ -92,6 +103,18 @@ export class RemoveObjectMode extends PaintMode {
     }
 
     // Apply line color change
+    // TODO: maybe another layer would be better
+    this.paintManager.redraw();
+    this.running = false;
+  }
+
+  public onPointerDown(event: PointerEvent) {
+    while (this.currentlySelectedIds.length) {
+      const id = this.currentlySelectedIds.shift();
+      this.paintManager.removeCompiledObject(id);
+    }
+
     this.paintManager.redraw();
   }
+
 }

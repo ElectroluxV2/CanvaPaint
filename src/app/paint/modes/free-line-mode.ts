@@ -7,7 +7,7 @@ import { Point } from '../protocol/point';
 import { Quadrangle } from '../curves/quadrangle';
 
 export class FreeLine implements CompiledObject {
-  static readonly DEBUG_IS_SELECTED_BY = true;
+  static readonly DEBUG_IS_SELECTED_BY = false;
   name = 'free-line';
   color: string;
   width: number;
