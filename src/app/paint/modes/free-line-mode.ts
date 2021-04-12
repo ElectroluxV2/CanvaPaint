@@ -44,7 +44,7 @@ export class FreeLine implements CompiledObject {
     }
 
     // Prepare advancedBox
-    if (this.advancedBox.length < this.points.length) {
+    if (this.advancedBox.length + 1 < this.points.length) {
       for (let i = 1; i < this.points.length; i++) {
         const p1 = this.points[i - 1];
         const p2 = this.points[i];
