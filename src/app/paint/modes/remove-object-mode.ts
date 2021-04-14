@@ -35,7 +35,7 @@ export class RemoveObjectMode extends PaintMode {
 
     for (const line of this.paintManager.compiledObjectStorage.get('free-line') as FreeLine[]) {
 
-      if (line.isSelectedBy(this.lastPointer)) {
+      if (line.isSelectedBy(this.predictCanvas, this.lastPointer)) {
         this.currentlySelectedIds.push(line.id);
         // this.paintManager.compiledObjectStorage.set('free-line', this.paintManager.compiledObjectStorage.get('free-line').filter(target => target.id !== line.id));
         line.color = 'purple';
@@ -60,24 +60,13 @@ export class RemoveObjectMode extends PaintMode {
         }
 
         // Draw sub boxes
-        for (const quadrangle of line.getAdvancedBox()) {
-          if (quadrangle.isPointerInside(this.lastPointer, line.width)) {
-            const sumOfNotDiagonal = quadrangle.sumOfNotDiagonal(this.lastPointer);
-            console.info(`sumOfDiagonal: ${quadrangle.sumOfDiagonal}, sumOfNotDiagonal: ${sumOfNotDiagonal}, difference: ${Math.abs(quadrangle.sumOfDiagonal - sumOfNotDiagonal)}`);
-          }
+        for (const path of line.getAdvancedBox()) {
 
-          this.predictCanvas.beginPath();
-          this.predictCanvas.moveTo(quadrangle.p1.x, quadrangle.p1.y);
-          this.predictCanvas.lineTo(quadrangle.p2.x, quadrangle.p2.y);
-          this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
-          this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
-          this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
+          this.predictCanvas.strokeStyle = this.predictCanvas.isPointInPath(path, this.lastPointer.x, this.lastPointer.y) ? 'purple' : 'pink';
+          this.predictCanvas.lineWidth = 3;
+          this.predictCanvas.stroke(path);
 
-          this.predictCanvas.strokeStyle = quadrangle.isPointerInside(this.lastPointer, line.width) ? 'purple' : 'pink';
-          this.predictCanvas.lineWidth = 1;
-          this.predictCanvas.stroke();
-
-          this.predictCanvas.beginPath();
+          /*this.predictCanvas.beginPath();
           this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
           this.predictCanvas.lineTo(quadrangle.p1.x, quadrangle.p1.y);
           this.predictCanvas.moveTo(this.lastPointer.x, this.lastPointer.y);
@@ -88,16 +77,7 @@ export class RemoveObjectMode extends PaintMode {
           this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
           this.predictCanvas.strokeStyle = '#11edff';
           this.predictCanvas.lineWidth = 1;
-          this.predictCanvas.stroke();
-
-          this.predictCanvas.beginPath();
-          this.predictCanvas.moveTo(quadrangle.p1.x, quadrangle.p1.y);
-          this.predictCanvas.lineTo(quadrangle.p3.x, quadrangle.p3.y);
-          this.predictCanvas.moveTo(quadrangle.p2.x, quadrangle.p2.y);
-          this.predictCanvas.lineTo(quadrangle.p4.x, quadrangle.p4.y);
-          this.predictCanvas.strokeStyle = '#dd0000';
-          this.predictCanvas.lineWidth = 1;
-          this.predictCanvas.stroke();
+          this.predictCanvas.stroke();*/
         }
       }
     }

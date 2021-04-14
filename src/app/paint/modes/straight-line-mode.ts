@@ -20,7 +20,7 @@ export class StraightLine implements CompiledObject {
     this.end = stop ?? new Point(2);
   }
 
-  public isSelectedBy(pointer: Point): boolean {
+  public isSelectedBy(ctx: CanvasRenderingContext2D, pointer: Point): boolean {
     return false;
   }
 

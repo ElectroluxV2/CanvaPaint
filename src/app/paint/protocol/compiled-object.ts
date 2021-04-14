@@ -39,7 +39,8 @@ export interface CompiledObject {
   /**
    * Should return true if pointer is inside object
    *
+   * @param ctx canvas context
    * @param pointer point in canvas
    */
-  isSelectedBy(pointer: Point): boolean;
+  isSelectedBy(ctx: CanvasRenderingContext2D, pointer: Point): boolean;
 }

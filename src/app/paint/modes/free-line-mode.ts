@@ -14,7 +14,7 @@ export class FreeLine implements CompiledObject {
   points: Point[];
   id: string;
   private readonly box: Box;
-  private readonly advancedBox: Quadrangle[] = [];
+  private readonly advancedBox: Path2D[] = [];
 
   constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
     this.id = id;
@@ -28,11 +28,11 @@ export class FreeLine implements CompiledObject {
     return this.box;
   }
 
-  public getAdvancedBox(): Quadrangle[] {
+  public getAdvancedBox(): Path2D[] {
     return this.advancedBox;
   }
 
-  public isSelectedBy(pointer: Point): boolean {
+  public isSelectedBy(ctx: CanvasRenderingContext2D, pointer: Point): boolean {
     // Light check
     if (!this.box.isPointInside(pointer)) {
       return false;
@@ -49,13 +49,13 @@ export class FreeLine implements CompiledObject {
         const p1 = this.points[i - 1];
         const p2 = this.points[i];
 
-        this.advancedBox.push(Quadrangle.constructOnPoints(p1, p2, 5));
+        this.advancedBox.push(Quadrangle.constructOnPoints(p1, p2, this.width / 2));
       }
     }
 
     // Hard check
-    for (const quadrangle of this.advancedBox) {
-      if (quadrangle.isPointerInside(pointer, this.width)) {
+    for (const path of this.advancedBox) {
+      if (ctx.isPointInPath(path, pointer.x, pointer.y)) {
         return true;
       }
     }
