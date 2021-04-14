@@ -203,7 +203,7 @@ export namespace Protocol {
     // Read items
     do {
       array.push(itemParser(data, currentPosition));
-    } while (currentPosition.value < data.length && currentPosition.value++);
+    } while (data[currentPosition.value] !== ',' && currentPosition.value < data.length && currentPosition.value++);
 
     return array;
   };
