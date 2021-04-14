@@ -33,6 +33,11 @@ export class RemoveObjectMode extends PaintMode {
     for (const object of this.paintManager.compiledObjectStorage.values()) {
       const selected = object.isSelectedBy(this.predictCanvas, this.lastPointer);
       this.paintManager.setObjectBit(object, 'selected', selected);
+
+      if (selected && this.pointerDown) {
+        this.paintManager.removeCompiledObject(object.id);
+        this.paintManager.redraw();
+      }
     }
 
     // Redraw selected
@@ -43,9 +48,17 @@ export class RemoveObjectMode extends PaintMode {
 
   public onPointerDown(event: PointerEvent): void {
     this.pointerDown = true;
+
+    if (!this.running) {
+      this.paintManager.singleFrameUpdate();
+    }
   }
 
   public onPointerUp(event: PointerEvent): void {
     this.pointerDown = false;
+
+    if (!this.running) {
+      this.paintManager.singleFrameUpdate();
+    }
   }
 }
