@@ -1,6 +1,6 @@
 import { PACKET_TYPES, PacketType } from './packet-types';
 import { Point } from './point';
-import {CompiledObject} from './compiled-object';
+import { Box, CompiledObject } from './compiled-object';
 
 interface ReaderMapping<T> {
   variable: string;
@@ -39,7 +39,7 @@ export namespace Protocol {
       this.properties.set('n', name);
     }
 
-    public setProperty(name: string, value: string | number | Point[] | Point): void {
+    public setProperty(name: string, value: string | number | Point[] | Point | Box): void {
       if (!this.typeProvided) {
         throw new Error('You must provide type first!');
       }
@@ -51,6 +51,8 @@ export namespace Protocol {
       let stringValue;
       if (typeof value === 'number') {
         stringValue = value.toFixed(2);
+      } else if (value instanceof Box) {
+        stringValue = encodeBox(value);
       } else if (value instanceof Point) {
         stringValue = encodePoint(value);
       } else if (Array.isArray(value)) {
@@ -136,6 +138,8 @@ export namespace Protocol {
   }
 
   export const encodePoint = (point: Point): string => `${point.x.toFixed(2)};${point.y.toFixed(2)}`;
+
+  export const encodeBox = (box: Box): string => encodeArray<Point>([box.topLeft, box.bottomRight], encodePoint);
 
   export const encodeArray = <T>(array: T[], itemEncoder: (item: T) => string): string => {
     const items = [];
@@ -237,6 +241,11 @@ export namespace Protocol {
     const y = Number.parseFloat(s2);
 
     return new Point(x, y);
+  };
+
+  export const readBox = (data: string, currentPosition: Reference<number>): Box => {
+    const points = readArray<Point>(readPoint, data, currentPosition);
+    return new Box(points[0], points[1]);
   };
 
   export const generateId = (): string => Math.random().toString(36).substring(2, 15);

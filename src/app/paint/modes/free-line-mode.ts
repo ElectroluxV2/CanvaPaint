@@ -13,7 +13,7 @@ export class FreeLine implements CompiledObject {
   width: number;
   points: Point[];
   id: string;
-  private readonly box: Box;
+  box: Box;
   private readonly advancedBox: Path2D[] = [];
 
   constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
@@ -22,10 +22,6 @@ export class FreeLine implements CompiledObject {
     this.width = width;
     this.points = points;
     this.box = box;
-  }
-
-  public getBox(): Box {
-    return this.box;
   }
 
   public getAdvancedBox(): Path2D[] {
@@ -103,6 +99,7 @@ export class FreeLineMode extends PaintMode {
     builder.setProperty('i', object.id);
     builder.setProperty('c', object.color);
     builder.setProperty('w', object.width);
+    builder.setProperty('b', object.box);
     builder.setProperty('p', object.points);
 
     return builder;
@@ -115,6 +112,7 @@ export class FreeLineMode extends PaintMode {
     reader.addMapping<string>('i', 'id', freeLine, Protocol.readString);
     reader.addMapping<string>('c', 'color', freeLine, Protocol.readString);
     reader.addMapping<number>('w', 'width', freeLine, Protocol.readNumber);
+    reader.addMapping<Box>('b', 'box', freeLine, Protocol.readBox);
     reader.addArrayMapping<Point>('p', 'points', freeLine, Protocol.readPoint);
 
     reader.read();
