@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --prod --source-map=false",
+    "prod": "ng build --source-map=false --prod",
     "test": "ng test",
     "hackMePlease": "ng serve --host=0.0.0.0 --disable-host-check",
     "lint": "ng lint",
