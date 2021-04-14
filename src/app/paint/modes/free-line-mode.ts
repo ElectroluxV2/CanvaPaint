@@ -190,9 +190,6 @@ export class FreeLineMode extends PaintMode {
     // Draw predicted line
     this.predictCanvas.clear();
 
-    // Draw box
-    this.predictCanvas.box(this.box);
-
     if (this.currentSpline.optimized?.length) {
       CardinalSpline.reproduce(this.predictCanvas, this.settings.color, this.settings.width, this.currentSpline.optimized);
     } else {
