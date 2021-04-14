@@ -33,9 +33,6 @@
         ],
         "max-len": "off",
         "brace-style": "off",
-        "@typescript-eslint/brace-style": [
-          "error"
-        ],
         "keyword-spacing": "off",
         "@typescript-eslint/keyword-spacing": [
           "error"
