@@ -31,6 +31,10 @@ export class Vector extends Point {
     return Math.sqrt(v1.x * v2.x + v1.y * v2.y);
   }
 
+  public static reverse(v: Vector) {
+    return new Vector(-v.x, -v.y);
+  }
+
   public perpendicularClockwise(): Vector {
     return Vector.perpendicularClockwise(this);
   }
@@ -53,6 +57,10 @@ export class Vector extends Point {
 
   public magnitude(v2: Vector): number {
     return Vector.magnitude(this, v2);
+  }
+
+  public reverse(): Vector {
+    return Vector.reverse(this);
   }
 }
 
