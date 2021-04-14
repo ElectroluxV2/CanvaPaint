@@ -13,6 +13,18 @@ export class Box {
     return point.x < box.bottomRight.x && point.x > box.topLeft.x && point.y < box.bottomRight.y && point.y > box.topLeft.y;
   }
 
+  public static fromPoints(p1: Point, p2: Point) {
+    if (p1.x > p2.x && p1.y < p2.y) {
+      return new Box(new Point(p2.x, p1.y), new Point(p1.x, p2.y));
+    } else if (p1.x < p2.x && p1.y < p2.y) {
+      return new Box(p1, p2);
+    } else if (p1.x > p2.x && p1.y > p2.y) {
+      return new Box(p2, p1);
+    } else {
+      return new Box(new Point(p1.x, p2.y), new Point(p2.x, p1.y));
+    }
+  }
+
   public isPointInside(point: Point): boolean {
     return Box.isPointInside(this, point);
   }

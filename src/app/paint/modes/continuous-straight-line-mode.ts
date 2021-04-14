@@ -2,6 +2,7 @@ import { PaintMode } from './paint-mode';
 import { Protocol } from '../protocol/protocol';
 import { Point } from '../protocol/point';
 import { StraightLine } from '../compiled-objects/straight-line';
+import { Box } from '../protocol/compiled-object';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';
@@ -77,6 +78,7 @@ export class ContinuousStraightLineMode extends PaintMode {
         this.currentStraightLine.end = normalized;
         this.currentControlPoint = normalized;
 
+        this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
         this.paintManager.saveCompiledObject(this.currentStraightLine);
         this.networkManager.shareCompiledObject(this.currentStraightLine, true);
         this.paintManager.singleFrameUpdate();
@@ -92,6 +94,7 @@ export class ContinuousStraightLineMode extends PaintMode {
       this.currentStraightLine.end = normalized;
       this.currentControlPoint = normalized;
 
+      this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
       this.paintManager.saveCompiledObject(this.currentStraightLine);
       this.networkManager.shareCompiledObject(this.currentStraightLine, true);
       this.paintManager.singleFrameUpdate();

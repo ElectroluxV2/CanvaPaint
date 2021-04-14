@@ -2,6 +2,7 @@ import { PaintMode } from './paint-mode';
 import { Point } from '../protocol/point';
 import { Protocol } from '../protocol/protocol';
 import { StraightLine } from '../compiled-objects/straight-line';
+import { Box } from '../protocol/compiled-object';
 
 export class StraightLineMode extends PaintMode {
   readonly name = 'straight-line';
@@ -23,6 +24,7 @@ export class StraightLineMode extends PaintMode {
     builder.setProperty('i', object.id);
     builder.setProperty('c', object.color);
     builder.setProperty('w', object.width);
+    builder.setProperty('x', object.box);
     builder.setProperty('b', object.begin);
     builder.setProperty('e', object.end);
     return builder;
@@ -34,6 +36,7 @@ export class StraightLineMode extends PaintMode {
     reader.addMapping<string>('i', 'id', straightLine, Protocol.readString);
     reader.addMapping<string>('c', 'color', straightLine, Protocol.readString);
     reader.addMapping<number>('w', 'width', straightLine, Protocol.readNumber);
+    reader.addMapping<Box>('x', 'box', straightLine, Protocol.readBox);
     reader.addMapping<Point>('b', 'begin', straightLine, Protocol.readPoint);
     reader.addMapping<Point>('e', 'end', straightLine, Protocol.readPoint);
 
@@ -93,6 +96,7 @@ export class StraightLineMode extends PaintMode {
     if (event.pointerType === 'mouse') {
       this.movingControlPoint = false;
       if (event.button === 0) {
+        this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
         this.paintManager.saveCompiledObject(this.currentStraightLine);
         this.networkManager.shareCompiledObject(this.currentStraightLine, true);
         // Set control point.ts
@@ -100,6 +104,7 @@ export class StraightLineMode extends PaintMode {
         this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
       }
     } else {
+      this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
       this.paintManager.saveCompiledObject(this.currentStraightLine);
       this.networkManager.shareCompiledObject(this.currentStraightLine, true);
     }
@@ -112,6 +117,7 @@ export class StraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (!!this.currentStraightLine) {
+      this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
       this.reproduceObject(this.predictCanvas, this.currentStraightLine);
       this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
