@@ -158,11 +158,8 @@ export namespace Protocol {
 
     const c3 = data[currentPosition.value];
 
-    if (PACKET_TYPES.has(c3)) {
-      packetType = PACKET_TYPES.get(c3);
-      // Increment only when found type
-      currentPosition.value++;
-    }
+    packetType = PACKET_TYPES.get(c3);
+    currentPosition.value++;
 
     return packetType;
   };
@@ -182,7 +179,7 @@ export namespace Protocol {
       }
 
       value += c;
-    } while (currentPosition.value < data.length && currentPosition.value++);
+    } while (data[currentPosition.value + 1] !== undefined && currentPosition.value < data.length && currentPosition.value++);
 
     return value;
   };
