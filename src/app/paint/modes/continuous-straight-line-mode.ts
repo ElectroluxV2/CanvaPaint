@@ -49,8 +49,8 @@ export class ContinuousStraightLineMode extends PaintMode {
     this.predictCanvas.clear();
 
     if (this.currentStraightLine) {
+      this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
       this.reproduceObject(this.predictCanvas, this.currentStraightLine);
-
       this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
 
@@ -121,8 +121,19 @@ export class ContinuousStraightLineMode extends PaintMode {
     builder.setProperty('i', object.id);
     builder.setProperty('c', object.color);
     builder.setProperty('w', object.width);
+    builder.setProperty('x', object.box);
     builder.setProperty('b', object.begin);
     builder.setProperty('e', object.end);
     return builder;
+  }
+
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number): void {
+    canvas.beginPath();
+    canvas.moveTo(object.begin.x, object.begin.y);
+    canvas.lineTo(object.end.x, object.end.y);
+    canvas.lineCap = 'round';
+    canvas.lineWidth = width ?? object.width;
+    canvas.strokeStyle = color ?? object.color;
+    canvas.stroke();
   }
 }
