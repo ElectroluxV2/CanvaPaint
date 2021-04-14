@@ -1,9 +1,9 @@
-import {CompiledObject} from './protocol/compiled-object';
-import {PaintMode} from './modes/paint-mode';
-import {Protocol, Reference} from './protocol/protocol';
-import {PacketType} from './protocol/packet-types';
-import {PaintManager} from './paint-manager';
-import {ControlService} from '../settings/control.service';
+import { CompiledObject } from './protocol/compiled-object';
+import { PaintMode } from './modes/paint-mode';
+import { Protocol, Reference } from './protocol/protocol';
+import { PacketType } from './protocol/packet-types';
+import { PaintManager } from './paint-manager';
+import { ControlService } from '../settings/control.service';
 
 export class NetworkManager {
   /**
@@ -154,6 +154,7 @@ export class NetworkManager {
     this.paintManager.removeCompiledObject(id.value);
     // Remove from connection draw loop
     this.compiledObjectStash.delete(id.value);
+    this.paintManager.redraw();
   }
 
   private handleConnection(): void {

@@ -36,6 +36,7 @@ export class RemoveObjectMode extends PaintMode {
 
       if (selected && this.pointerDown) {
         this.paintManager.removeCompiledObject(object.id);
+        this.networkManager.sendDelete(object.id);
         this.paintManager.redraw();
       }
     }
