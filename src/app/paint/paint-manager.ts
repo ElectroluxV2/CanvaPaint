@@ -24,6 +24,8 @@ export class PaintManager {
    */
   private darkModeEnabled = false;
 
+  private lastSelectedObjectsCount = 0;
+
   constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, controlService: ControlService) {
     controlService.settings.subscribe(settings => {
       if (this.darkModeEnabled === settings.darkModeEnabled) {
@@ -116,18 +118,22 @@ export class PaintManager {
   }
 
   public redrawSelected(): void {
-    // Clear selection canvas
-    this.selectionCanvasCTX.clear();
-
+    const objectsToRedraw = [];
     for (const object of this.compiledObjectStorage.values()) {
       const selected = this.objectsBits.get('selected').get(object);
+      if (!selected) { continue; }
 
-      // Reproduce object with different color only if selected
-      if (!selected) {
-        continue;
-      }
+      objectsToRedraw.push(object);
+    }
 
-      // Reproduce on selection canvas
+    // No need to clear nor redraw
+    if (this.lastSelectedObjectsCount === 0 && objectsToRedraw.length === 0) { return; }
+
+    this.lastSelectedObjectsCount = objectsToRedraw.length;
+    // Clear selection canvas
+    this.selectionCanvasCTX.clear();
+    // Reproduce on selection canvas
+    for (const object of objectsToRedraw) {
       this.modes.get(object.name).reproduceObject(this.selectionCanvasCTX, object, '#673ab7');
     }
   }
