@@ -113,16 +113,6 @@ export class ContinuousStraightLineMode extends PaintMode {
     this.paintManager.singleFrameUpdate();
   }
 
-  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
-    canvas.beginPath();
-    canvas.moveTo(object.begin.x, object.begin.y);
-    canvas.lineTo(object.end.x, object.end.y);
-    canvas.lineCap = 'round';
-    canvas.lineWidth = object.width;
-    canvas.strokeStyle = object.color;
-    canvas.stroke();
-  }
-
   public serializeObject(object: StraightLine, builder = new Protocol.Builder()): Protocol.Builder {
     builder.setName('straight-line');
     builder.setProperty('i', object.id);

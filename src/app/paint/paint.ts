@@ -40,6 +40,7 @@ export class Paint {
   readonly mainCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasCTX: CanvasRenderingContext2D;
   readonly predictCanvasNetworkCTX: CanvasRenderingContext2D;
+  readonly selectionCanvasCTX: CanvasRenderingContext2D;
 
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
@@ -50,7 +51,7 @@ export class Paint {
   private readonly paintManager: PaintManager;
   private readonly networkManager: NetworkManager;
 
-  constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private controlService: ControlService) {
+  constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private selectionCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * devicePixelRatio;
@@ -67,9 +68,14 @@ export class Paint {
     this.predictCanvasNetworkCTX = predictCanvasNetwork.getContext('2d');
     this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
 
+    selectionCanvas.height = mainCanvas.height;
+    selectionCanvas.width = mainCanvas.width;
+    this.selectionCanvasCTX = selectionCanvas.getContext('2d');
+    this.selectionCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
+
     this.injectCanvas();
 
-    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX, this.controlService);
+    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX, this.selectionCanvasCTX, this.controlService);
 
     this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager, this.controlService);
 
@@ -83,18 +89,19 @@ export class Paint {
   public resize(): void {
     this.mainCanvas.height = this.mainCanvas.parentElement.offsetHeight * devicePixelRatio;
     this.mainCanvas.width = this.mainCanvas.parentElement.offsetWidth * devicePixelRatio;
-
     this.mainCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.predictCanvas.height = this.mainCanvas.height;
     this.predictCanvas.width = this.mainCanvas.width;
-
     this.predictCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.predictCanvasNetwork.height = this.mainCanvas.height;
     this.predictCanvasNetwork.width = this.mainCanvas.width;
-
     this.predictCanvasNetworkCTX.scale(devicePixelRatio, devicePixelRatio);
+
+    this.selectionCanvas.height = this.mainCanvas.height;
+    this.selectionCanvas.width = this.mainCanvas.width;
+    this.selectionCanvasCTX.scale(devicePixelRatio, devicePixelRatio);
 
     this.redraw();
   }
@@ -102,6 +109,8 @@ export class Paint {
   public redraw(): void {
     this.mainCanvasCTX.clear();
     this.predictCanvasCTX.clear();
+    // Network canvas should be independent
+    this.selectionCanvasCTX.clear();
     this.paintManager.redraw();
     this.currentMode.value?.makeReady?.();
   }
@@ -183,6 +192,10 @@ export class Paint {
       this.predictCanvasNetworkCTX.clearRect(0, 0, this.predictCanvasNetworkCTX.canvas.width, this.predictCanvasNetworkCTX.canvas.height);
     };
 
+    this.selectionCanvasCTX.clear = () => {
+      this.selectionCanvasCTX.clearRect(0, 0, this.selectionCanvasCTX.canvas.width, this.selectionCanvasCTX.canvas.height);
+    };
+
     const dot = (canvas: CanvasRenderingContext2D, position: Point, width: number, color: string) => {
       canvas.beginPath();
       canvas.arc(
@@ -199,6 +212,8 @@ export class Paint {
 
     this.mainCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
+    this.predictCanvasNetworkCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasNetworkCTX, position, width, color);
+    this.selectionCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.selectionCanvasCTX, position, width, color);
 
     const calcBox = (box: Box) => {
       const x = box.topLeft.x;

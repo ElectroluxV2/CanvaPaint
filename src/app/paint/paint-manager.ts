@@ -2,15 +2,18 @@ import { CompiledObject } from './protocol/compiled-object';
 import { Point } from './protocol/point';
 import { PaintMode } from './modes/paint-mode';
 import { Reference } from './protocol/protocol';
-import {ControlService} from '../settings/control.service';
-import set = Reflect.set;
+import { ControlService } from '../settings/control.service';
 
 export class PaintManager {
   /**
    * Contains all compiled objects
+   * Object id is the key
    */
-    // TODO: this should be map consisted of map
-  public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
+  public compiledObjectStorage: Map<string, CompiledObject> = new Map<string, CompiledObject>();
+  /**
+   * Contains single bit information on object grouped by information name
+   */
+  private objectsBits: Map<string, WeakMap<CompiledObject, boolean>> = new Map<string, WeakMap<CompiledObject, boolean>>();
   /**
    * Holds result of requestAnimationFrame
    */
@@ -21,7 +24,7 @@ export class PaintManager {
    */
   private darkModeEnabled = false;
 
-  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, controlService: ControlService) {
+  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, controlService: ControlService) {
     controlService.settings.subscribe(settings => {
       if (this.darkModeEnabled === settings.darkModeEnabled) {
         return;
@@ -29,10 +32,8 @@ export class PaintManager {
 
       this.darkModeEnabled = settings.darkModeEnabled;
       // Need to correct colors and redraw
-      for (const objects of this.compiledObjectStorage.values()) {
-        for (const object of objects) {
-          object.color = controlService.correctColor(object.color);
-        }
+      for (const object of this.compiledObjectStorage.values()) {
+        object.color = controlService.correctColor(object.color);
       }
 
       this.redraw();
@@ -72,18 +73,12 @@ export class PaintManager {
    * @param object Object to save
    */
   public saveCompiledObject(object: CompiledObject): void {
-    if (!this.compiledObjectStorage.has(object.name)) {
-      this.compiledObjectStorage.set(object.name, []);
-    }
-
-    this.compiledObjectStorage.get(object.name).push(object);
+    this.compiledObjectStorage.set(object.id, object);
     this.modes.get(object.name).reproduceObject(this.mainCanvasCTX, object);
   }
 
-  public removeCompiledObject(id: string): void {
-    for (const modeName of this.compiledObjectStorage.keys()) {
-      this.compiledObjectStorage.set(modeName, this.compiledObjectStorage.get(modeName).filter(object => object.id !== id));
-    }
+  public removeCompiledObject(id: string): boolean {
+    return this.compiledObjectStorage.delete(id);
   }
 
   /**
@@ -107,10 +102,33 @@ export class PaintManager {
 
   public redraw(): void {
     this.mainCanvasCTX.clear();
-    for (const [name, objects] of this.compiledObjectStorage) {
-      for (const compiledObject of objects) {
-        this.modes.get(name).reproduceObject(this.mainCanvasCTX, compiledObject);
+    for (const object of this.compiledObjectStorage.values()) {
+      this.modes.get(object.name).reproduceObject(this.mainCanvasCTX, object);
+    }
+  }
+
+  public setObjectBit(object: CompiledObject, name: string, value: boolean): void {
+    if (!this.objectsBits.has(name)) {
+      this.objectsBits.set(name, new WeakMap<CompiledObject, boolean>());
+    }
+
+    this.objectsBits.get(name).set(object, value);
+  }
+
+  public redrawSelected(): void {
+    // Clear selection canvas
+    this.selectionCanvasCTX.clear();
+
+    for (const object of this.compiledObjectStorage.values()) {
+      const selected = this.objectsBits.get('selected').get(object);
+
+      // Reproduce object with different color only if selected
+      if (!selected) {
+        continue;
       }
+
+      // Reproduce on selection canvas
+      this.modes.get(object.name).reproduceObject(this.selectionCanvasCTX, object, '#673ab7');
     }
   }
 }

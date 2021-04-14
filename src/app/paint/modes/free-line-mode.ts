@@ -33,6 +33,18 @@ export class FreeLine implements CompiledObject {
   }
 
   public isSelectedBy(ctx: CanvasRenderingContext2D, pointer: Point): boolean {
+
+    if (FreeLine.DEBUG_IS_SELECTED_BY) {
+      // Draw box
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 2;
+      ctx.box(this.box);
+
+      for (const point of this.points) {
+        ctx.dot(point, 10, 'orange');
+      }
+    }
+
     // Light check
     if (!this.box.isPointInside(pointer)) {
       return false;
@@ -55,7 +67,16 @@ export class FreeLine implements CompiledObject {
 
     // Hard check
     for (const path of this.advancedBox) {
-      if (ctx.isPointInPath(path, pointer.x, pointer.y)) {
+
+      const isIn = ctx.isPointInPath(path, pointer.x, pointer.y);
+
+      if (FreeLine.DEBUG_IS_SELECTED_BY) {
+        ctx.strokeStyle = isIn ? 'purple' : this.color;
+        ctx.lineWidth = 2;
+        ctx.stroke(path);
+      }
+
+      if (isIn) {
         return true;
       }
     }
@@ -74,8 +95,8 @@ export class FreeLineMode extends PaintMode {
   private lineChanged: boolean;
   private lastPointer: Point;
 
-  public reproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine): void {
-    CardinalSpline.reproduce(canvas, object.color, object.width, object.points);
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: FreeLine, color?: string, width?: number): void {
+    CardinalSpline.reproduce(canvas, color ?? object.color, width ?? object.width, object.points);
   }
 
   public serializeObject(object: FreeLine, builder = new Protocol.Builder()): Protocol.Builder {

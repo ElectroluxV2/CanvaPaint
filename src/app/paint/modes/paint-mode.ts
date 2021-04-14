@@ -106,7 +106,7 @@ abstract class PaintModeOptional {
    * @param canvas render destination
    * @param object object to render
    */
-  public reproduceObject?(canvas: CanvasRenderingContext2D, object: CompiledObject): void;
+  public reproduceObject?(canvas: CanvasRenderingContext2D, object: CompiledObject, color?: string, width?: number): void;
 
   /**
    * Metod used in transportation

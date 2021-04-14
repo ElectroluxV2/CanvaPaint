@@ -40,13 +40,13 @@ export class StraightLineMode extends PaintMode {
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
-  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine): void {
+  public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number): void {
     canvas.beginPath();
     canvas.moveTo(object.begin.x, object.begin.y);
     canvas.lineTo(object.end.x, object.end.y);
     canvas.lineCap = 'round';
-    canvas.lineWidth = object.width;
-    canvas.strokeStyle = object.color;
+    canvas.lineWidth = width ?? object.width;
+    canvas.strokeStyle = color ?? object.color;
     canvas.stroke();
   }
 
