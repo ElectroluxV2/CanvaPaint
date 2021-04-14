@@ -9,8 +9,8 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import {RemoveObjectMode} from './modes/remove-object-mode';
-import {Box} from './protocol/compiled-object';
+import { RemoveObjectMode } from './modes/remove-object-mode';
+import { Box } from './protocol/compiled-object';
 
 declare global {
   interface CanvasRenderingContext2D {

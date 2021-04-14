@@ -61,7 +61,7 @@ export class NetworkManager {
       this.predictCanvasNetworkCTX.clear();
 
       // TODO: Object can stuck here forever
-      // Here we will iterate through objects transferred from sockets
+      // Here we will iterate through compiled-objects transferred from sockets
       for (const [, object] of this.compiledObjectStash) {
         if (!this.modes.has(object.name)) {
           console.warn(`Missing mode: ${object.name}`);

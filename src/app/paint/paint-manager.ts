@@ -6,7 +6,7 @@ import { ControlService } from '../settings/control.service';
 
 export class PaintManager {
   /**
-   * Contains all compiled objects
+   * Contains all compiled compiled-objects
    * Object id is the key
    */
   public compiledObjectStorage: Map<string, CompiledObject> = new Map<string, CompiledObject>();
