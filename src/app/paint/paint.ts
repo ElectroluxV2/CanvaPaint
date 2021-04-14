@@ -9,8 +9,6 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import {RemoveObjectMode} from './modes/remove-object-mode';
-import {Box} from './protocol/compiled-object';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -26,13 +24,6 @@ declare global {
      * @param color color of dot
      */
     dot(position: Point, width: number, color: string): void;
-
-    /**
-     * Draws box on canvas
-     *
-     * @param box box to draw
-     */
-    box(box: Box): void;
   }
 }
 
@@ -199,20 +190,6 @@ export class Paint {
 
     this.mainCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.mainCanvasCTX, position, width, color);
     this.predictCanvasCTX.dot = (position: Point, width: number, color: string) => dot(this.predictCanvasCTX, position, width, color);
-
-    const calcBox = (box: Box) => {
-      const x = box.topLeft.x;
-      const y = box.topLeft.y;
-
-      const width = box.bottomRight.x - x;
-      const height = box.bottomRight.y - y;
-
-      return { x, y, width, height };
-    };
-
-    this.predictCanvasCTX.box = (box: Box) => {
-      ((({x, y, width, height}) => this.predictCanvasCTX.strokeRect(x, y, width, height))(calcBox(box)));
-    };
   }
 
   private handleModes(): void {
@@ -222,8 +199,7 @@ export class Paint {
     const modesArray = [
       new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
       new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
     ];
 
     const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');

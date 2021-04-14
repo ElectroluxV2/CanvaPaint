@@ -1,23 +1,3 @@
-import { Point } from './point';
-
-export class Box {
-  public readonly topLeft: Point;
-  public readonly bottomRight: Point;
-
-  public constructor(topLeft: Point, bootomRight: Point) {
-    this.topLeft = topLeft;
-    this.bottomRight = bootomRight;
-  }
-
-  public static isPointInside(box: Box, point: Point): boolean {
-    return point.x < box.bottomRight.x && point.x > box.topLeft.x && point.y < box.bottomRight.y && point.y > box.topLeft.y;
-  }
-
-  public isPointInside(point: Point): boolean {
-    return Box.isPointInside(this, point);
-  }
-}
-
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
  */
@@ -35,11 +15,4 @@ export interface CompiledObject {
    * Color
    */
   color: string;
-
-  /**
-   * Should return true if pointer is inside object
-   *
-   * @param pointer point in canvas
-   */
-  isSelectedBy(pointer: Point): boolean;
 }

@@ -20,10 +20,6 @@ export class StraightLine implements CompiledObject {
     this.end = stop ?? new Point(2);
   }
 
-  public isSelectedBy(pointer: Point): boolean {
-    return false;
-  }
-
   public duplicate(): StraightLine {
     return new StraightLine(this.id, this.color, this.width, this.begin, this.end);
   }

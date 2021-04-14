@@ -9,7 +9,6 @@ export class PaintManager {
   /**
    * Contains all compiled objects
    */
-    // TODO: this should be map consisted of map
   public compiledObjectStorage: Map<string, Array<CompiledObject>> = new Map<string, []>();
   /**
    * Holds result of requestAnimationFrame
@@ -81,9 +80,8 @@ export class PaintManager {
   }
 
   public removeCompiledObject(id: string): void {
-    for (const modeName of this.compiledObjectStorage.keys()) {
-      this.compiledObjectStorage.set(modeName, this.compiledObjectStorage.get(modeName).filter(object => object.id !== id));
-    }
+    this.compiledObjectStorage.delete(id);
+    this.redraw();
   }
 
   /**

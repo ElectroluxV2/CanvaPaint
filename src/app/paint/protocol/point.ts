@@ -1,7 +1,6 @@
 /**
  * Represents single point.ts in canvas
  */
-
 export class Point {
   x: number; // Float
   y: number; // Float
@@ -11,18 +10,10 @@ export class Point {
     this.y = y ?? 0;
   }
 
-  public static distance(p1: Point, p2: Point): number {
-    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-  }
-
   /**
    * Creates deep copy
    */
   public duplicate(): Point {
     return new Point(this.x, this.y);
-  }
-
-  public distance(p2: Point): number {
-    return Point.distance(this, p2);
   }
 }
