@@ -1,11 +1,23 @@
-import { PaintMode } from './paint-mode';
-import { Point } from '../protocol/point';
+import { PaintMode } from '../paint-mode';
+import { Point } from '../../protocol/point';
+import { PaintManager } from '../../paint-manager';
+import { NetworkManager } from '../../network-manager';
 
 export class RemoveObjectMode extends PaintMode {
   readonly name = 'remove-object';
   private lastPointer: Point;
   private running = false;
   private pointerDown = false;
+
+  constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
+    super(predictCanvas, paintManager, networkManager);
+
+    /*this.subModes = new Map<string, SubMode>([
+      ['mouse', new RemoveObjectMouse(predictCanvas, paintManager, networkManager)],
+      ['pen', new RemoveObjectPen(predictCanvas, paintManager, networkManager)],
+      ['touch', new RemoveObjectTouch(predictCanvas, paintManager, networkManager)],
+    ]);*/
+  }
 
   public onPointerMove(event: PointerEvent) {
     const point = new Point(event.offsetX, event.offsetY);

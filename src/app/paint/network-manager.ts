@@ -1,9 +1,9 @@
 import { CompiledObject } from './protocol/compiled-object';
-import { PaintMode } from './modes/paint-mode';
 import { Protocol, Reference } from './protocol/protocol';
 import { PacketType } from './protocol/packet-types';
 import { PaintManager } from './paint-manager';
 import { ControlService } from '../settings/control.service';
+import { PaintMode } from './modes/paint-mode';
 
 export class NetworkManager {
   /**

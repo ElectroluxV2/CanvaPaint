@@ -1,16 +1,16 @@
 import { EventEmitter } from '@angular/core';
-import { PaintMode } from './modes/paint-mode';
-import { FreeLineMode } from './modes/free-line-mode';
 import { ControlService } from '../settings/control.service';
 import { Settings } from '../settings/settings.interface';
-import { StraightLineMode } from './modes/straight-line-mode';
-import { ContinuousStraightLineMode } from './modes/continuous-straight-line-mode';
 import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import { RemoveObjectMode } from './modes/remove-object-mode';
 import { Box } from './protocol/compiled-object';
+import { PaintMode } from './modes/paint-mode';
+import { FreeLineMode } from './modes/free-line/free-line-mode';
+import { StraightLineMode } from './modes/straight-line/straight-line-mode';
+import { ContinuousStraightLineMode } from './modes/continuous-straight-line/continuous-straight-line-mode';
+import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -235,10 +235,10 @@ export class Paint {
     this.currentSettings = this.controlService.settings.value;
 
     const modesArray = [
-      new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)
+      new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
+      new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
+      new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager)
     ];
 
     const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');
@@ -273,7 +273,6 @@ export class Paint {
   private responseToControlService(): void {
     // Response to settings change
     this.controlService.settings.subscribe(newSettings => {
-      this.currentMode.value?.onSettingsUpdate(newSettings);
 
       // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {

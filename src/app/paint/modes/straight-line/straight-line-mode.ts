@@ -1,14 +1,26 @@
-import { PaintMode } from './paint-mode';
-import { Point } from '../protocol/point';
-import { Protocol } from '../protocol/protocol';
-import { StraightLine } from '../compiled-objects/straight-line';
-import { Box } from '../protocol/compiled-object';
+import { Point } from '../../protocol/point';
+import { Protocol } from '../../protocol/protocol';
+import { StraightLine } from '../../compiled-objects/straight-line';
+import { Box } from '../../protocol/compiled-object';
+import { PaintMode } from '../paint-mode';
+import { PaintManager } from '../../paint-manager';
+import { NetworkManager } from '../../network-manager';
 
 export class StraightLineMode extends PaintMode {
   readonly name = 'straight-line';
   private currentStraightLine: StraightLine;
   private currentControlPoint: Point;
   private movingControlPoint = false;
+
+  constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
+    super(predictCanvas, paintManager, networkManager);
+
+    /*this.subModes = new Map<string, SubMode>([
+      ['mouse', new StraightLineModeMouse(predictCanvas, paintManager, networkManager)],
+      ['pen', new StraightLineModePen(predictCanvas, paintManager, networkManager)],
+      ['touch', new StraightLineModeTouch(predictCanvas, paintManager, networkManager)],
+    ]);*/
+  }
 
   public reproduceObject(canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number): void {
     canvas.beginPath();
@@ -63,14 +75,14 @@ export class StraightLineMode extends PaintMode {
       } else if (event.button === 0) {
         // Line from pointer location or to pointer location
         if (!!this.currentControlPoint) {
-          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, this.currentControlPoint, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentControlPoint, normalized);
         } else {
-          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, normalized, normalized);
+          this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
         }
       }
     } else {
       // Others
-      this.currentStraightLine = new StraightLine(Protocol.generateId(), this.settings.color, this.settings.width, normalized, normalized);
+      this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
     }
   }
 
@@ -101,7 +113,7 @@ export class StraightLineMode extends PaintMode {
         this.networkManager.shareCompiledObject(this.currentStraightLine, true);
         // Set control point.ts
         this.currentControlPoint = this.currentStraightLine.begin;
-        this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+        this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
       }
     } else {
       this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
@@ -123,13 +135,13 @@ export class StraightLineMode extends PaintMode {
     }
 
     if (!!this.currentControlPoint) {
-      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
   }
 
   public makeReady(): void {
     if (!!this.currentControlPoint) {
-      this.predictCanvas.dot(this.currentControlPoint, this.settings.width * 2.5, 'orange');
+      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
   }
 

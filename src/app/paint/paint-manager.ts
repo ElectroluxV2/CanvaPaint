@@ -1,8 +1,8 @@
 import { CompiledObject } from './protocol/compiled-object';
 import { Point } from './protocol/point';
-import { PaintMode } from './modes/paint-mode';
 import { Reference } from './protocol/protocol';
 import { ControlService } from '../settings/control.service';
+import { PaintMode } from './modes/paint-mode';
 
 export class PaintManager {
   /**
@@ -26,7 +26,7 @@ export class PaintManager {
 
   private lastSelectedObjectsCount = 0;
 
-  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, controlService: ControlService) {
+  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, private controlService: ControlService) {
     controlService.settings.subscribe(settings => {
       if (this.darkModeEnabled === settings.darkModeEnabled) {
         return;
@@ -40,6 +40,10 @@ export class PaintManager {
 
       this.redraw();
     });
+  }
+
+  public getSettings<T>(name: string): T {
+    return this.controlService.settings.value[name];
   }
 
   /**
