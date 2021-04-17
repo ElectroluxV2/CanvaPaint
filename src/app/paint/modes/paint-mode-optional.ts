@@ -37,7 +37,8 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onSelected(): void {
-    for (const subMode of this.subModes?.values?.()) {
+    if (!this.subModes?.values()) { return; }
+    for (const subMode of this.subModes.values()) {
       subMode.onSelected?.();
     }
   }
