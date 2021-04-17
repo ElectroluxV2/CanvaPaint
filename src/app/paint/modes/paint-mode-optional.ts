@@ -37,7 +37,7 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onSelected(): void {
-    for (const subMode of this.subModes?.values()) {
+    for (const subMode of this.subModes?.values?.()) {
       subMode.onSelected?.();
     }
   }
@@ -46,7 +46,8 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onUnSelected(): void {
-    for (const subMode of this.subModes?.values()) {
+    if (!this.subModes?.values()) { return; }
+    for (const subMode of this.subModes.values()) {
       subMode.onUnSelected?.();
     }
   }
@@ -55,7 +56,8 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public makeReady(): void {
-    for (const subMode of this.subModes?.values()) {
+    if (!this.subModes?.values()) { return; }
+    for (const subMode of this.subModes.values()) {
       subMode.makeReady?.();
     }
   }
@@ -64,7 +66,8 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onFrameUpdate(): void {
-    for (const subMode of this.subModes?.values()) {
+    if (!this.subModes?.values()) { return; }
+    for (const subMode of this.subModes.values()) {
       subMode.onFrameUpdate?.();
     }
   }
