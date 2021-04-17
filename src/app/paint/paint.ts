@@ -9,6 +9,7 @@ import { Box } from './protocol/compiled-object';
 import { PaintMode } from './modes/paint-mode';
 import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';
+import { ContinuousStraightLineMode } from './modes/continuous-straight-line/continuous-straight-line-mode';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -235,8 +236,8 @@ export class Paint {
     const modesArray = [
       new FreeLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
       new StraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
-      /*new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings),
-      new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)*/
+      new ContinuousStraightLineMode(this.predictCanvasCTX, this.paintManager, this.networkManager),
+      /*new RemoveObjectMode(this.predictCanvasCTX, this.paintManager, this.networkManager, this.currentSettings)*/
     ];
 
     const nameRegex = new RegExp('\([A-z]+([A-z]|-|[0-9])+)\S', 'g');
