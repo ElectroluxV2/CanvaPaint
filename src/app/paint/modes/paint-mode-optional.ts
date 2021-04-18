@@ -68,6 +68,7 @@ export abstract class PaintModeOptional implements SubMode {
    */
   public onFrameUpdate(): void {
     if (!this.subModes?.values()) { return; }
+    // TODO: Fix firing for every mode, eg. use PaintManager.startFrameUpdate()
     for (const subMode of this.subModes.values()) {
       subMode.onFrameUpdate?.();
     }

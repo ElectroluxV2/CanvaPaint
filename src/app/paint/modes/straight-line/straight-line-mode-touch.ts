@@ -31,9 +31,8 @@ export class StraightLineModeTouch implements SubMode {
   }
 
   public onFrameUpdate(): void {
-
     if (!this.needRedraw) { return; }
-    console.log(this.needRedraw);
+    this.needRedraw = false;
 
     this.predictCanvas.clear();
 
