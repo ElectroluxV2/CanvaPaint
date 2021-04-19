@@ -12,6 +12,11 @@ export abstract class PaintModeOptional implements SubMode {
   protected subModes?: Map<string, SubMode>;
 
   /**
+   * Used to distinct unused modes
+   */
+  protected subModeActivated?: WeakMap<SubMode, boolean>;
+
+  /**
    * Method that reproduces object created by method's object
    *
    * @param canvas render destination
@@ -75,8 +80,8 @@ export abstract class PaintModeOptional implements SubMode {
    */
   public onFrameUpdate(): void {
     if (!this.subModes?.values()) { return; }
-    // TODO: Fix firing for every mode, eg. use PaintManager.startFrameUpdate()
     for (const subMode of this.subModes.values()) {
+      if (!this.subModeActivated.get(subMode)) { continue; }
       subMode.onFrameUpdate?.();
     }
   }
@@ -99,7 +104,13 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onPointerEnter(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerEnter?.(event);
+    if (!this.subModes?.values()) { return; }
+    this.subModes.get(event.pointerType)?.onPointerEnter?.(event);
+
+    if (!this.subModeActivated) { this.subModeActivated = new WeakMap<SubMode, boolean>(); }
+
+    this.subModeActivated.set(this.subModes.get(event.pointerType), true);
+
   }
 
   /**
