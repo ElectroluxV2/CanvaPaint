@@ -17,4 +17,8 @@ export class SettingsComponent {
     // @ts-ignore
     this.settingsService.settings = this.settings;
   }
+
+  public export(): void {
+    this.settingsService.emitExport();
+  }
 }

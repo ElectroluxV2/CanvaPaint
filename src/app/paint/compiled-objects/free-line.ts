@@ -1,6 +1,6 @@
-import { Box, CompiledObject } from '../protocol/compiled-object';
 import { Point } from '../protocol/point';
 import { Quadrangle } from '../curves/quadrangle';
+import { Box, CompiledObject } from './compiled-object';
 
 export class FreeLine implements CompiledObject {
   static readonly DEBUG_IS_SELECTED_BY = false;

@@ -1,7 +1,7 @@
-import { Box, CompiledObject } from '../protocol/compiled-object';
 import { Point } from '../protocol/point';
 import { Settings } from '../../settings/settings.interface';
 import { Quadrangle } from '../curves/quadrangle';
+import { Box, CompiledObject } from './compiled-object';
 
 export class StraightLine implements CompiledObject {
   public static DEBUG = false;

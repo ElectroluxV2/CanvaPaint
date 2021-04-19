@@ -1,6 +1,6 @@
-import { CompiledObject } from '../protocol/compiled-object';
 import { Protocol } from '../protocol/protocol';
 import { SubMode } from './sub-mode';
+import { CompiledObject } from '../compiled-objects/compiled-object';
 
 export abstract class PaintModeOptional implements SubMode {
   /**
@@ -26,6 +26,13 @@ export abstract class PaintModeOptional implements SubMode {
    * Should return string readable by read method
    */
   public serializeObject?(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
+
+  /**
+   * Method used in PDF export
+   *
+   * @param object target to export
+   */
+  public exportObjectSVG?(object: CompiledObject): string;
 
   /**
    * Metod used in transportation
@@ -68,6 +75,7 @@ export abstract class PaintModeOptional implements SubMode {
    */
   public onFrameUpdate(): void {
     if (!this.subModes?.values()) { return; }
+    // TODO: Fix firing for every mode, eg. use PaintManager.startFrameUpdate()
     for (const subMode of this.subModes.values()) {
       subMode.onFrameUpdate?.();
     }

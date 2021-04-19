@@ -11,6 +11,7 @@ export class ControlService {
   public readonly clear: EventEmitter<boolean> = new EventEmitter<boolean>();
   public readonly undo: EventEmitter<null> = new EventEmitter<null>();
   public readonly redo: EventEmitter<null> = new EventEmitter<null>();
+  public readonly export: EventEmitter<null> = new EventEmitter<null>();
   public readonly mode: BehaviorSubject<string> = new BehaviorSubject<string>('free-line');
 
   private settingsData: Settings = {} as Settings;
@@ -89,5 +90,9 @@ export class ControlService {
       // Return without changes
       return color;
     }
+  }
+
+  public emitExport(): void {
+    this.export.next();
   }
 }

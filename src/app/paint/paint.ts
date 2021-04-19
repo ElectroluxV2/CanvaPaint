@@ -5,12 +5,13 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import { Box } from './protocol/compiled-object';
+import { Box } from './compiled-objects/compiled-object';
 import { PaintMode } from './modes/paint-mode';
 import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';
 import { ContinuousStraightLineMode } from './modes/continuous-straight-line/continuous-straight-line-mode';
 import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
+import { LineCapStyle, PDFDocument, rgb } from 'pdf-lib';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -293,5 +294,82 @@ export class Paint {
       this.paintManager.clear();
       this.currentMode.value?.makeReady?.();
     });
+
+    this.controlService.export.subscribe(() => this.export());
+  }
+
+  private async export(): Promise<void> {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([this.mainCanvas.width * (1 / window.devicePixelRatio), this.mainCanvas.height * (1 / window.devicePixelRatio)]);
+
+    const bgHex = this.controlService.settings.value.darkModeEnabled ? '000000' : 'FFFFFF';
+    const bgBigint = parseInt(bgHex, 16);
+    const bgr = ((bgBigint >> 16) & 255) / 255;
+    const bgg = ((bgBigint >> 8) & 255) / 255;
+    const bgb = (bgBigint & 255) / 255;
+
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: page.getWidth(),
+      height: page.getHeight(),
+      color: rgb(bgr, bgg, bgb)
+    });
+
+    const bgLineHex = parseInt(this.controlService.settings.value.darkModeEnabled ? 'FFFFFF' : '000000', 16);
+    const bgLineColor = rgb(((bgLineHex >> 16) & 255) / 255, ((bgLineHex >> 8) & 255) / 255, (bgLineHex & 255) / 255);
+
+    for (let i = 0; i < page.getWidth(); i += 25) {
+      page.drawLine({
+        start: {
+          y: 0,
+          x: i
+        }, end: {
+          y: page.getHeight(),
+          x: i
+        },
+        thickness: 1,
+        color: bgLineColor,
+        opacity: 0.2
+      });
+
+      page.drawLine({
+        start: {
+          y: i,
+          x: 0
+        }, end: {
+          y: i,
+          x: page.getWidth()
+        },
+        thickness: 1,
+        color: bgLineColor,
+        opacity: 0.2
+      });
+    }
+
+    page.moveTo(0, page.getHeight());
+
+    for (const object of this.paintManager.compiledObjectStorage.values()) {
+      const bigint = parseInt(object.color.substr(1), 16);
+      const r = ((bigint >> 16) & 255) / 255;
+      const g = ((bigint >> 8) & 255) / 255;
+      const b = (bigint & 255) / 255;
+
+      const svgPath = this.modes.get(object.name).exportObjectSVG(object);
+
+      page.drawSvgPath(svgPath, {
+        borderColor: rgb(r, g, b),
+        borderWidth: object.width,
+        borderLineCap: LineCapStyle.Round,
+      });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    const fileName = 'test';
+    link.download = fileName;
+    link.click();
   }
 }

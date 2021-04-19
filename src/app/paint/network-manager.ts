@@ -1,4 +1,4 @@
-import { CompiledObject } from './protocol/compiled-object';
+import { CompiledObject } from './compiled-objects/compiled-object';
 import { Protocol, Reference } from './protocol/protocol';
 import { PacketType } from './protocol/packet-types';
 import { PaintManager } from './paint-manager';

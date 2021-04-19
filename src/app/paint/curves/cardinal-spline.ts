@@ -1,5 +1,6 @@
 import { Simplify } from './simplify';
 import { Point } from '../protocol/point';
+import { arc } from './canvas-to-svg';
 
 export class CardinalSpline {
   public optimized: Point[] = [];
@@ -49,6 +50,28 @@ export class CardinalSpline {
     context.strokeStyle = color;
     context.lineWidth = width;
     context.stroke();
+  }
+
+  public static exportSVG(points: Point[], width: number, drawDotOnly: boolean = false): string {
+    if (drawDotOnly) {
+      return arc(points[0].x, points[0].y, width * 2 / Math.PI, 0, 2 * Math.PI, false);
+    }
+
+    // Points must be optimized at this point
+    const svgPath = [];
+    let last = points[0];
+
+    for (let i = 1; i < points.length - 2; i++) {
+      const xc = (points[i].x + points[i + 1].x) / 2;
+      const yc = (points[i].y + points[i + 1].y) / 2;
+
+      svgPath.push(`M${last.x},${last.y} Q${points[i].x},${points[i].y} ${xc},${yc}`);
+      last = new Point(xc, yc);
+    }
+
+    // Curve through the last two points
+    svgPath.push(`M${last.x},${last.y} Q${points[points.length - 2].x},${points[points.length - 2].y} ${points[points.length - 1].x},${points[points.length - 1].y}`);
+    return svgPath.join(' ');
   }
 
   public static reproduce(canvas: CanvasRenderingContext2D, color: string, width: number, points: Point[]): void {

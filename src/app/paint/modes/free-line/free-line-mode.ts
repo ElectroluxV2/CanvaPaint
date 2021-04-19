@@ -3,10 +3,10 @@ import { Protocol } from '../../protocol/protocol';
 import { FreeLine } from '../../compiled-objects/free-line';
 import { CardinalSpline } from '../../curves/cardinal-spline';
 import { Point } from '../../protocol/point';
-import { Box } from '../../protocol/compiled-object';
 import { NetworkManager } from '../../network-manager';
 import { PaintManager } from '../../paint-manager';
 import { LazyBrush } from '../../curves/lazy-brush';
+import { Box } from '../../compiled-objects/compiled-object';
 
 export class FreeLineMode extends PaintMode {
   public readonly name = 'free-line';
@@ -54,6 +54,10 @@ export class FreeLineMode extends PaintMode {
     reader.read();
 
     return freeLine;
+  }
+
+  public exportObjectSVG(freeLine: FreeLine): string {
+    return CardinalSpline.exportSVG(freeLine.points, freeLine.width, freeLine.points.length < 2);
   }
 
   public onSelected() {
