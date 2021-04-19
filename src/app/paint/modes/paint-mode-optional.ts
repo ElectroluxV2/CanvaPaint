@@ -12,9 +12,9 @@ export abstract class PaintModeOptional implements SubMode {
   protected subModes?: Map<string, SubMode>;
 
   /**
-   * Used to distinct unused modes
+   * Used to select which mode is currently used
    */
-  protected subModeActivated?: WeakMap<SubMode, boolean>;
+  protected lastSubMode?: SubMode;
 
   /**
    * Method that reproduces object created by method's object
@@ -49,41 +49,32 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onSelected(): void {
-    if (!this.subModes?.values()) { return; }
-    for (const subMode of this.subModes.values()) {
-      subMode.onSelected?.();
-    }
+    if (!this.lastSubMode) { return; }
+    this.lastSubMode.onSelected?.();
   }
 
   /**
    * @inheritDoc
    */
   public onUnSelected(): void {
-    if (!this.subModes?.values()) { return; }
-    for (const subMode of this.subModes.values()) {
-      subMode.onUnSelected?.();
-    }
+    if (!this.lastSubMode) { return; }
+    this.lastSubMode.onUnSelected?.();
   }
 
   /**
    * @inheritDoc
    */
   public makeReady(): void {
-    if (!this.subModes?.values()) { return; }
-    for (const subMode of this.subModes.values()) {
-      subMode.makeReady?.();
-    }
+    if (!this.lastSubMode) { return; }
+    this.lastSubMode.makeReady?.();
   }
 
   /**
    * @inheritDoc
    */
   public onFrameUpdate(): void {
-    if (!this.subModes?.values()) { return; }
-    for (const subMode of this.subModes.values()) {
-      if (!this.subModeActivated.get(subMode)) { continue; }
-      subMode.onFrameUpdate?.();
-    }
+    if (!this.lastSubMode) { return; }
+    this.lastSubMode.onFrameUpdate?.();
   }
 
   /**
@@ -97,75 +88,89 @@ export abstract class PaintModeOptional implements SubMode {
    * @inheritDoc
    */
   public onPointerOver(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerOver?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerOver?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerEnter(event: PointerEvent): void {
-    if (!this.subModes?.values()) { return; }
-    this.subModes.get(event.pointerType)?.onPointerEnter?.(event);
-
-    if (!this.subModeActivated) { this.subModeActivated = new WeakMap<SubMode, boolean>(); }
-
-    this.subModeActivated.set(this.subModes.get(event.pointerType), true);
-
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerEnter?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerDown(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerDown?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerDown?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerMove(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerMove?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerMove?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerUp(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerUp?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerUp?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerCancel(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerCancel?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerCancel?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerOut(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerOut?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerOut?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerLeave(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerLeave?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerLeave?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerGotCapture(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerGotCapture?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerGotCapture?.(event);
   }
 
   /**
    * @inheritDoc
    */
   public onPointerLostCapture(event: PointerEvent): void {
-    this.subModes?.get(event.pointerType)?.onPointerLostCapture?.(event);
+    if (!this.subModes) { return; }
+    this.lastSubMode = this.subModes.get(event.pointerType);
+    this.lastSubMode?.onPointerLostCapture?.(event);
   }
 }
