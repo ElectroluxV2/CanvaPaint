@@ -57,4 +57,8 @@ export class StraightLineMode extends PaintMode {
 
     return straightLine;
   }
+
+  public exportObjectSVG(straightLine: StraightLine): string {
+    return `M${straightLine.begin.x},${straightLine.begin.y} L${straightLine.end.x},${straightLine.end.y}`;
+  }
 }

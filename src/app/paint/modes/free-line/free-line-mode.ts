@@ -56,6 +56,10 @@ export class FreeLineMode extends PaintMode {
     return freeLine;
   }
 
+  public exportObjectSVG(freeLine: FreeLine): string {
+    return CardinalSpline.exportSVG(freeLine.points, freeLine.width, freeLine.points.length < 2);
+  }
+
   public onSelected() {
     this.paintManager.stopFrameUpdate();
   }

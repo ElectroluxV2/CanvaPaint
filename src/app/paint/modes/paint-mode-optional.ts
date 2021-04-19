@@ -28,6 +28,13 @@ export abstract class PaintModeOptional implements SubMode {
   public serializeObject?(object: CompiledObject, builder?: Protocol.Builder): Protocol.Builder;
 
   /**
+   * Method used in PDF export
+   *
+   * @param object target to export
+   */
+  public exportObjectSVG?(object: CompiledObject): string;
+
+  /**
    * Metod used in transportation
    * Should return compiled object instance if not possible should return false
    */
