@@ -1,6 +1,6 @@
 import { PACKET_TYPES, PacketType } from './packet-types';
 import { Point } from './point';
-import { Box, CompiledObject } from './compiled-object';
+import { Box, CompiledObject } from '../compiled-objects/compiled-object';
 
 interface ReaderMapping<T> {
   variable: string;

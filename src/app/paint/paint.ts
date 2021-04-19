@@ -5,7 +5,7 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import { Box } from './protocol/compiled-object';
+import { Box } from './compiled-objects/compiled-object';
 import { PaintMode } from './modes/paint-mode';
 import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';

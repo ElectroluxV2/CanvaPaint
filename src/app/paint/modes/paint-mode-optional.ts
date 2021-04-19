@@ -1,6 +1,6 @@
-import { CompiledObject } from '../protocol/compiled-object';
 import { Protocol } from '../protocol/protocol';
 import { SubMode } from './sub-mode';
+import { CompiledObject } from '../compiled-objects/compiled-object';
 
 export abstract class PaintModeOptional implements SubMode {
   /**

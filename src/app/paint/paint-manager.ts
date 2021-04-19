@@ -1,4 +1,4 @@
-import { CompiledObject } from './protocol/compiled-object';
+import { CompiledObject } from './compiled-objects/compiled-object';
 import { Point } from './protocol/point';
 import { Reference } from './protocol/protocol';
 import { ControlService } from '../settings/control.service';

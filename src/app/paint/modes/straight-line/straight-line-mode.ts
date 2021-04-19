@@ -1,7 +1,7 @@
 import { Point } from '../../protocol/point';
 import { Protocol } from '../../protocol/protocol';
 import { StraightLine } from '../../compiled-objects/straight-line';
-import { Box } from '../../protocol/compiled-object';
+import { Box } from '../../compiled-objects/compiled-object';
 import { PaintMode } from '../paint-mode';
 import { PaintManager } from '../../paint-manager';
 import { NetworkManager } from '../../network-manager';

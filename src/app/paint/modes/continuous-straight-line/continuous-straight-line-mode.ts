@@ -1,10 +1,10 @@
 import { Protocol } from '../../protocol/protocol';
 import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
-import { Box } from '../../protocol/compiled-object';
 import { PaintManager } from '../../paint-manager';
 import { NetworkManager } from '../../network-manager';
 import { PaintMode } from '../paint-mode';
+import { Box } from '../../compiled-objects/compiled-object';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';

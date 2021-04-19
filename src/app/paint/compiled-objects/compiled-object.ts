@@ -1,4 +1,4 @@
-import { Point } from './point';
+import { Point } from '../protocol/point';
 
 export class Box {
   public readonly topLeft: Point;
@@ -47,6 +47,10 @@ export interface CompiledObject {
    * Color
    */
   color: string;
+  /**
+   * Width
+   */
+  width: number;
 
   /**
    * Should return true if pointer is inside object

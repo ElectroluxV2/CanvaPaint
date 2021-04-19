@@ -4,7 +4,7 @@ import { NetworkManager } from '../../network-manager';
 import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { Protocol } from '../../protocol/protocol';
-import { Box } from '../../protocol/compiled-object';
+import { Box } from '../../compiled-objects/compiled-object';
 
 export class StraightLineModeMouse implements SubMode {
   private currentStraightLine: StraightLine;
