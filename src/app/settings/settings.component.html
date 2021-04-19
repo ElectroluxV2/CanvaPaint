@@ -9,6 +9,7 @@
 <mat-slider [disabled]="!settings.lazyEnabled" thumbLabel tickInterval="auto" step="0.05" min="0.009" max="0.2" [(ngModel)]="settings.lazyMultiplier"></mat-slider>
 
 <div mat-dialog-actions [align]="'end'">
-  <button (click)="save()" mat-button color="accent" mat-dialog-close>Zapisz</button>
+  <button (click)="export()" mat-stroked-button color="accent" mat-dialog-close>Eksportuj</button>
+  <button (click)="save()" mat-stroked-button color="accent" mat-dialog-close>Zapisz</button>
 </div>
 
