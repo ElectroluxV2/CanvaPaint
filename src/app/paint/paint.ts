@@ -11,8 +11,7 @@ import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';
 import { ContinuousStraightLineMode } from './modes/continuous-straight-line/continuous-straight-line-mode';
 import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
-import { BlendMode, LineCapStyle, PDFDocument, rgb } from 'pdf-lib';
-import { FreeLine } from './compiled-objects/free-line';
+import { LineCapStyle, PDFDocument, rgb } from 'pdf-lib';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -351,37 +350,21 @@ export class Paint {
     page.moveTo(0, page.getHeight());
 
     for (const object of this.paintManager.compiledObjectStorage.values()) {
-      if (!(object instanceof FreeLine)) { continue; }
-      const line = object as FreeLine;
-
-      const svgPath = [];
-      let last = line.points[0];
-
-      for (let i = 2; i < line.points.length; i++) {
-        const p1 = line.points[i - 1];
-        const p2 = line.points[i];
-
-        const xc = (p1.x + p2.x) / 2;
-        const yc = (p1.y + p2.y) / 2;
-
-        svgPath.push(`M${last.x},${last.y} Q${p1.x},${p1.y} ${xc},${yc}`);
-        last = new Point(xc, yc);
-      }
-
-      const bigint = parseInt(line.color.substr(1), 16);
+      const bigint = parseInt(object.color.substr(1), 16);
       const r = ((bigint >> 16) & 255) / 255;
       const g = ((bigint >> 8) & 255) / 255;
       const b = (bigint & 255) / 255;
 
-      page.drawSvgPath(svgPath.join(' '), {
+      const svgPath = this.modes.get(object.name).exportObjectSVG(object);
+
+      page.drawSvgPath(svgPath, {
         borderColor: rgb(r, g, b),
-        borderWidth: line.width,
+        borderWidth: object.width,
         borderLineCap: LineCapStyle.Round,
       });
     }
 
     const pdfBytes = await pdfDoc.save();
-
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
