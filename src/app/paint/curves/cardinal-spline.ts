@@ -54,7 +54,8 @@ export class CardinalSpline {
 
   public static exportSVG(points: Point[], width: number, drawDotOnly: boolean = false): string {
     if (drawDotOnly) {
-      return arc(points[0].x, points[0].y, width * 2 / Math.PI, 0, 2 * Math.PI, false);
+      width /= 2;
+      return `M ${points[0].x} ${points[0].y} m ${-width}, 0 a ${width},${width} 0 1,0 ${width * 2},0 a ${width},${width} 0 1,0 ${-(width * 2)},0`;
     }
 
     // Points must be optimized at this point

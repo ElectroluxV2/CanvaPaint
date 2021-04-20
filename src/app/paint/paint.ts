@@ -350,18 +350,7 @@ export class Paint {
     page.moveTo(0, page.getHeight());
 
     for (const object of this.paintManager.compiledObjectStorage.values()) {
-      const bigint = parseInt(object.color.substr(1), 16);
-      const r = ((bigint >> 16) & 255) / 255;
-      const g = ((bigint >> 8) & 255) / 255;
-      const b = (bigint & 255) / 255;
-
-      const svgPath = this.modes.get(object.name).exportObjectSVG(object);
-
-      page.drawSvgPath(svgPath, {
-        borderColor: rgb(r, g, b),
-        borderWidth: object.width,
-        borderLineCap: LineCapStyle.Round,
-      });
+      this.modes.get(object.name).drawObjectOnPDFPage(object, page);
     }
 
     const pdfBytes = await pdfDoc.save();

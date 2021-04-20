@@ -9,6 +9,8 @@ import { SubMode } from '../sub-mode';
 import { StraightLineModeMouse } from './straight-line-mode-mouse';
 import { StraightLineModePen } from './straight-line-mode-pen';
 import { StraightLineModeTouch } from './straight-line-mode-touch';
+import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
+import { CardinalSpline } from '../../curves/cardinal-spline';
 
 export class StraightLineMode extends PaintMode {
   readonly name = 'straight-line';
@@ -58,7 +60,16 @@ export class StraightLineMode extends PaintMode {
     return straightLine;
   }
 
-  public exportObjectSVG(straightLine: StraightLine): string {
-    return `M${straightLine.begin.x},${straightLine.begin.y} L${straightLine.end.x},${straightLine.end.y}`;
+  public drawObjectOnPDFPage(straightLine: StraightLine, page: PDFPage): void {
+    const path = `M${straightLine.begin.x},${straightLine.begin.y} L${straightLine.end.x},${straightLine.end.y}`;
+    const bigint = parseInt(straightLine.color.substr(1), 16);
+    const r = ((bigint >> 16) & 255) / 255;
+    const g = ((bigint >> 8) & 255) / 255;
+    const b = (bigint & 255) / 255;
+    page.drawSvgPath(path, {
+      borderColor: rgb(r, g, b),
+      borderWidth: straightLine.width,
+      borderLineCap: LineCapStyle.Round,
+    });
   }
 }
