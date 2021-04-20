@@ -7,6 +7,7 @@ import { NetworkManager } from '../../network-manager';
 import { PaintManager } from '../../paint-manager';
 import { LazyBrush } from '../../curves/lazy-brush';
 import { Box } from '../../compiled-objects/compiled-object';
+import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
 
 export class FreeLineMode extends PaintMode {
   public readonly name = 'free-line';
@@ -56,8 +57,24 @@ export class FreeLineMode extends PaintMode {
     return freeLine;
   }
 
-  public exportObjectSVG(freeLine: FreeLine): string {
-    return CardinalSpline.exportSVG(freeLine.points, freeLine.width, freeLine.points.length < 2);
+  public drawObjectOnPDFPage(freeLine: FreeLine, page: PDFPage): void {
+    const bigint = parseInt(freeLine.color.substr(1), 16);
+    const r = ((bigint >> 16) & 255) / 255;
+    const g = ((bigint >> 8) & 255) / 255;
+    const b = (bigint & 255) / 255;
+    const path = CardinalSpline.exportSVG(freeLine.points, freeLine.width, freeLine.points.length < 2);
+
+    if (freeLine.points.length < 2) {
+      page.drawSvgPath(path, {
+        color: rgb(r, g, b),
+      });
+    } else {
+      page.drawSvgPath(path, {
+        borderColor: rgb(r, g, b),
+        borderWidth: freeLine.width,
+        borderLineCap: LineCapStyle.Round,
+      });
+    }
   }
 
   public onSelected() {

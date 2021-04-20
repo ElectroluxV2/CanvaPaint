@@ -1,6 +1,7 @@
 import { Protocol } from '../protocol/protocol';
 import { SubMode } from './sub-mode';
 import { CompiledObject } from '../compiled-objects/compiled-object';
+import { PDFPage } from 'pdf-lib';
 
 export abstract class PaintModeOptional implements SubMode {
   /**
@@ -37,7 +38,7 @@ export abstract class PaintModeOptional implements SubMode {
    *
    * @param object target to export
    */
-  public exportObjectSVG?(object: CompiledObject): string;
+  public drawObjectOnPDFPage?(object: CompiledObject, page: PDFPage): void;
 
   /**
    * Metod used in transportation
