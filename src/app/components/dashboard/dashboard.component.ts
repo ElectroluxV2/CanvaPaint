@@ -10,7 +10,7 @@ export class DashboardComponent {
   public boards = [];
 
   constructor() {
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 10; i++) {
       this.boards.push({
         title: 'Jestem zajebisty',
         src: 'https://placekitten.com/800/600'

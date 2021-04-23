@@ -2,28 +2,6 @@
   $primary: map-get($theme, primary);
   $accent: map-get($theme, accent);
 
-  :root {
-    --card-width: 350px;
-  }
-
-  @media (max-width: 425px) {
-    :root {
-      --card-width: 200px;
-    }
-  }
-
-  @media (min-width: 426px) and (max-width: 786px) {
-    :root {
-      --card-width: 250px;
-    }
-  }
-
-  @media (min-width: 787px) and (max-width: 1024px) {
-    :root {
-      --card-width: 300px;
-    }
-  }
-
   section {
     width: 100%;
     min-height: 100vh;
@@ -31,13 +9,16 @@
 
     main {
       min-height: 100%;
-      display: grid;
-      place-items: center;
-      grid-template-columns: repeat(auto-fit, minmax(var(--card-width), 1fr));
-      grid-gap: 2em;
       padding: 2em;
 
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 2em;
+
       mat-card {
+        flex: 1 0 220px;
+        min-width: 220px;
         max-width: 400px;
         background-color: mat-color($accent, 800);
         color: mat-color($accent, 50);
