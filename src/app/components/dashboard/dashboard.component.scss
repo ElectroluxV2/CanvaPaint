@@ -27,7 +27,12 @@
   section {
     width: 100%;
     min-height: 100vh;
-    background-color: mat-color($primary, 500);
+    background-color: mat-color($primary, 700);
+
+    mat-toolbar-row {
+      display: grid;
+      justify-content: space-between;
+    }
 
     main {
       min-height: 100%;
@@ -39,7 +44,7 @@
 
       mat-card {
         max-width: 400px;
-        background-color: mat-color($accent, 800);
+        background-color: mat-color($accent, 600);
         color: mat-color($accent, 50);
 
         mat-card-header > .mat-card-header-text {

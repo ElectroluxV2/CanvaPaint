@@ -1,5 +1,13 @@
 <section>
 
+  <mat-toolbar color="accent">
+    <mat-toolbar-row>
+      <span>Dashboard</span>
+
+      <button color="primary" mat-raised-button>Add</button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+
   <main>
 
     <mat-card *ngFor="let board of boards">
@@ -8,8 +16,8 @@
       </mat-card-header>
       <img mat-card-image [src]="board.src"/>
       <mat-card-actions>
-        <button mat-stroked-button>Ustawienia</button>
-        <button mat-stroked-button>Przejdź</button>
+        <button color="primary" mat-raised-button>Settings</button>
+        <button color="primary" mat-raised-button>Go</button>
       </mat-card-actions>
     </mat-card>
 
