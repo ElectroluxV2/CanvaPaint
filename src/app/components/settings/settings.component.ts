@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { ControlService } from './control.service';
-import { Settings } from './settings.interface';
+import { Settings } from '../../paint/settings.interface';
+import { ControlService } from '../../paint/control.service';
 
 @Component({
   selector: 'app-settings',

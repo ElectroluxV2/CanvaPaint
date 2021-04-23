@@ -1,6 +1,4 @@
 import { EventEmitter } from '@angular/core';
-import { ControlService } from '../settings/control.service';
-import { Settings } from '../settings/settings.interface';
 import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
@@ -11,7 +9,9 @@ import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';
 import { ContinuousStraightLineMode } from './modes/continuous-straight-line/continuous-straight-line-mode';
 import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
-import { LineCapStyle, PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
+import { ControlService } from './control.service';
+import { Settings } from './settings.interface';
 
 declare global {
   interface CanvasRenderingContext2D {

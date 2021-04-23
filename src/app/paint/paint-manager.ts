@@ -1,8 +1,8 @@
 import { CompiledObject } from './compiled-objects/compiled-object';
 import { Point } from './protocol/point';
 import { Reference } from './protocol/protocol';
-import { ControlService } from '../settings/control.service';
 import { PaintMode } from './modes/paint-mode';
+import { ControlService } from './control.service';
 
 export class PaintManager {
   /**

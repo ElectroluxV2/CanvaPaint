@@ -46,8 +46,11 @@ $app-colors: (
 );
 
 // Include theme styles for core and each component used in app.
-@import '../bar/bar.component';
+@import '../components/bar/bar.component';
 @include bar-component($theme, $app-colors);
 
-@import "../settings/settings.component";
+@import "../components/settings/settings.component";
 @include settings-component($theme);
+
+@import "../components/dashboard/dashboard.component";
+@include dashboard-component($theme);

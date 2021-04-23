@@ -4,8 +4,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { BarComponent } from './bar/bar.component';
-import { SettingsComponent } from './settings/settings.component';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,12 +15,21 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
 import { PlatformModule } from '@angular/cdk/platform';
+import { CanvasComponent } from './components/canvas/canvas.component';
+import { BarComponent } from './components/bar/bar.component';
+import { SettingsComponent } from './components/settings/settings.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { PaintComponent } from './components/paint/paint.component';
+import { MatCardModule } from '@angular/material/card';
 
 @NgModule({
   declarations: [
     AppComponent,
     BarComponent,
-    SettingsComponent
+    SettingsComponent,
+    CanvasComponent,
+    DashboardComponent,
+    PaintComponent
   ],
   imports: [
     BrowserModule,
@@ -36,6 +43,7 @@ import { PlatformModule } from '@angular/cdk/platform';
     MatInputModule,
     MatSlideToggleModule,
     MatSliderModule,
+    MatCardModule,
     FormsModule,
     PlatformModule
   ],

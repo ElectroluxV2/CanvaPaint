@@ -1,0 +1,59 @@
+@mixin dashboard-component($theme) {
+  $primary: map-get($theme, primary);
+  $accent: map-get($theme, accent);
+
+  :root {
+    --card-width: 350px;
+  }
+
+  @media (max-width: 425px) {
+    :root {
+      --card-width: 200px;
+    }
+  }
+
+  @media (min-width: 426px) and (max-width: 786px) {
+    :root {
+      --card-width: 250px;
+    }
+  }
+
+  @media (min-width: 787px) and (max-width: 1024px) {
+    :root {
+      --card-width: 300px;
+    }
+  }
+
+  section {
+    width: 100%;
+    min-height: 100vh;
+    background-color: mat-color($primary, 500);
+
+    main {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      grid-template-columns: repeat(auto-fit, minmax(var(--card-width), 1fr));
+      grid-gap: 2em;
+      padding: 2em;
+
+      mat-card {
+        max-width: 400px;
+        background-color: mat-color($accent, 800);
+        color: mat-color($accent, 50);
+
+        mat-card-header > .mat-card-header-text {
+          margin: 0;
+        }
+
+        img {
+          margin-bottom: 0 !important;
+        }
+
+        mat-card-actions > button {
+          background-color: mat-color($accent, 800);
+        }
+      }
+    }
+  }
+}

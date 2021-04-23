@@ -1,7 +1,7 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Settings } from './settings.interface';
 import { Platform } from '@angular/cdk/platform';
+import { Settings } from './settings.interface';
 
 @Injectable({
   providedIn: 'root'
