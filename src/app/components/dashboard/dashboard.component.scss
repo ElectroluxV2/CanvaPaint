@@ -1,3 +1,4 @@
+@use '~@angular/material' as mat;
 @mixin dashboard-component($theme) {
   $primary: map-get($theme, primary);
   $accent: map-get($theme, accent);
@@ -27,7 +28,7 @@
   section {
     width: 100%;
     min-height: 100vh;
-    background-color: mat-color($primary, 700);
+    background-color: mat.get-color-from-palette($primary, 700);
 
     mat-toolbar-row {
       display: grid;
@@ -44,8 +45,8 @@
 
       mat-card {
         max-width: 400px;
-        background-color: mat-color($accent, 600);
-        color: mat-color($accent, 50);
+        background-color: mat.get-color-from-palette($accent, 600);
+        color: mat.get-color-from-palette($accent, 50);
 
         mat-card-header > .mat-card-header-text {
           margin: 0;
@@ -56,7 +57,7 @@
         }
 
         mat-card-actions > button {
-          background-color: mat-color($accent, 800);
+          background-color: mat.get-color-from-palette($accent, 800);
         }
       }
     }
