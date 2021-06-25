@@ -1,12 +1,4 @@
-:host {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: auto;
-  z-index: 10;
-}
-
+@use '~@angular/material' as mat;
 .icon {
     padding: 0 14px;
 }
@@ -63,8 +55,8 @@
   $dark: map-get($app-colors, dark);
 
   .mat-button-toggle {
-    background-color: mat-color($primary, 700);
-    color: mat-color($primary, default-contrast);
+    background-color: mat.get-color-from-palette($primary, 700);
+    color: mat.get-color-from-palette($primary, default-contrast);
 
     &.red {
       color: map-get($normal, red);
@@ -94,32 +86,32 @@
   }
 
   .mat-button-toggle-checked {
-    background-color: mat-color($accent);
-    color: mat-color($accent, default-contrast);
+    background-color: mat.get-color-from-palette($accent);
+    color: mat.get-color-from-palette($accent, default-contrast);
 
     &.red {
       background-color: rgba(map-get($normal, red), .4);
-      //color: mat-color($mat-red, 100);
+      //color: mat.get-color-from-palette(mat.$red-palette, 100);
     }
 
     &.green {
       background-color: rgba(map-get($normal, green), .4);
-      //color: mat-color($mat-green, 100);
+      //color: mat.get-color-from-palette(mat.$green-palette, 100);
     }
 
     &.blue {
       background-color: rgba(map-get($normal, blue), .4);
-      //color: mat-color($mat-blue, 100);
+      //color: mat.get-color-from-palette(mat.$blue-palette, 100);
     }
 
     &.yellow {
       background-color: rgba(map-get($normal, yellow), .4);
-      //color: mat-color($mat-yellow, 50);
+      //color: mat.get-color-from-palette(mat.$yellow-palette, 50);
     }
 
     &.black {
       background-color: rgba(map-get($normal, black), .4);
-      //color: mat-color($mat-grey, 500);
+      //color: mat.get-color-from-palette(mat.$grey-palette, 500);
     }
 
     @media (prefers-color-scheme: dark) {
