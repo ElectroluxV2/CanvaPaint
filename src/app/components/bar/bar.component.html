@@ -1,10 +1,13 @@
 <mat-toolbar color="primary">
 
     <mat-toolbar-row>
-        <span class="copy">&copy; Mateusz Budzisz - kropoki i kreski</span>
+
+        <button mat-mini-fab class="roundBtn" (click)="router.navigate(['/'])">
+          <mat-icon [ngClass]="iconColor">home</mat-icon>
+        </button>
 
         <button mat-mini-fab class="roundBtn" (click)="openSettings()">
-            <mat-icon [ngClass]="iconColor">gesture</mat-icon>
+            <mat-icon [ngClass]="iconColor">settings</mat-icon>
         </button>
 
         <span class="spacer"></span>
