@@ -12,61 +12,64 @@
 
         <span class="spacer"></span>
 
-        <button mat-mini-fab class="roundBtn" color="warn" (click)="this.controlService.clear.emit(true)">
+        <span class="scroll">
+          <button mat-mini-fab class="roundBtn" color="warn" (click)="this.controlService.clear.emit(true)">
             <mat-icon>clear</mat-icon>
-        </button>
+          </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.undo.emit()">
+          <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.undo.emit()">
             <mat-icon>undo</mat-icon>
-        </button>
+          </button>
 
-        <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.redo.emit()">
+          <button mat-mini-fab class="roundBtn" color="accent" (click)="this.controlService.redo.emit()">
             <mat-icon>redo</mat-icon>
-        </button>
+          </button>
 
-        <mat-button-toggle-group class="colors" value="black" (change)="this.controlService.setColor($event.value)">
+          <mat-button-toggle-group class="colors" value="black" (change)="this.controlService.setColor($event.value)">
 
             <mat-button-toggle value="#f44336" class="red">
-                <mat-icon>palette</mat-icon>
+              <mat-icon>palette</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="#2196f3" class="blue">
-                <mat-icon>palette</mat-icon>
+              <mat-icon>palette</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="#4caf50" class="green">
-                <mat-icon>palette</mat-icon>
+              <mat-icon>palette</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="#ffeb3b" class="yellow">
-                <mat-icon>palette</mat-icon>
+              <mat-icon>palette</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="#212121" class="black">
-                <mat-icon>palette</mat-icon>
+              <mat-icon>palette</mat-icon>
             </mat-button-toggle>
 
-        </mat-button-toggle-group>
+          </mat-button-toggle-group>
 
-        <mat-button-toggle-group class="tools" value="free-line" (change)="this.controlService.mode.next($event.value)">
+          <mat-button-toggle-group class="tools" value="free-line"
+                                   (change)="this.controlService.mode.next($event.value)">
 
             <mat-button-toggle value="free-line">
-                <mat-icon>gesture</mat-icon>
+              <mat-icon>gesture</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="continuous-straight-line">
-                <mat-icon>timeline</mat-icon>
+              <mat-icon>timeline</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="straight-line">
-                <mat-icon>horizontal_rule</mat-icon>
+              <mat-icon>horizontal_rule</mat-icon>
             </mat-button-toggle>
 
             <mat-button-toggle value="remove-object">
-                <mat-icon>backspace</mat-icon>
+              <mat-icon>backspace</mat-icon>
             </mat-button-toggle>
 
-        </mat-button-toggle-group>
+          </mat-button-toggle-group>
+        </span>
 
     </mat-toolbar-row>
 
