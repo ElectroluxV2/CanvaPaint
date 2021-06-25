@@ -16,8 +16,8 @@
       </mat-card-header>
       <img mat-card-image [src]="board.src"/>
       <mat-card-actions>
-        <button color="primary" mat-raised-button>Settings</button>
-        <button color="primary" mat-raised-button>Go</button>
+        <button color="primary" (click)="settings(board.id)" mat-raised-button>Settings</button>
+        <button color="primary" (click)="router.navigate(['/', board.id])" mat-raised-button>Go</button>
       </mat-card-actions>
     </mat-card>
 

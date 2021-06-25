@@ -54,6 +54,7 @@ export class Paint {
 
   constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private selectionCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
+    window.onresize = () => this.resize();
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * devicePixelRatio;
     mainCanvas.width = mainCanvas.parentElement.offsetWidth * devicePixelRatio;
     this.mainCanvasCTX = mainCanvas.getContext('2d');

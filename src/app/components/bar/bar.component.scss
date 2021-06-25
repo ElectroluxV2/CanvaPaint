@@ -1,3 +1,12 @@
+:host {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: auto;
+  z-index: 10;
+}
+
 .icon {
     padding: 0 14px;
 }
