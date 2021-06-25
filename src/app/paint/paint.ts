@@ -12,6 +12,7 @@ import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { ControlService } from './control.service';
 import { Settings } from './settings.interface';
+import { SavedCanvas } from './saved-canvas.service';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -296,7 +297,12 @@ export class Paint {
       this.currentMode.value?.makeReady?.();
     });
 
-    this.controlService.export.subscribe(() => this.export());
+    this.controlService.savedCanvas.subscribe(this.loadFromSavedCanvas);
+    this.controlService.export.subscribe(this.export);
+  }
+
+  private loadFromSavedCanvas(savedCanvas: SavedCanvas): void {
+    console.log(savedCanvas);
   }
 
   private async export(): Promise<void> {
