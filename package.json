@@ -4,8 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --prod --source-map=false",
-    "prod": "ng build --source-map=false --prod",
+    "build": "ng build --configuration production --source-map=false",
+    "prod": "ng build --source-map=false --configuration production",
     "test": "ng test",
     "hackMePlease": "ng serve --host=0.0.0.0 --disable-host-check"
   },
