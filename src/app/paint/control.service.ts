@@ -95,6 +95,6 @@ export class ControlService {
   }
 
   public emitExport(): void {
-    this.export.next();
+    this.export.next(null);
   }
 }
