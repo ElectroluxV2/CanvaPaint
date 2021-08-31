@@ -273,7 +273,7 @@ export class Paint {
     }
 
     this.currentMode.value = this.modes.get(this.controlService.mode.value);
-    this.controlService.mode.subscribe(mode => {
+    this.subscriptions.push(this.controlService.mode.subscribe(mode => {
       if (!this.modes.has(mode)) {
         console.warn(`No mode named ${mode}!`);
         return;
@@ -281,7 +281,7 @@ export class Paint {
       this.currentMode.value?.onUnSelected?.();
       this.currentMode.value = this.modes.get(mode);
       this.currentMode.value?.onSelected?.();
-    });
+    }));
   }
 
   private responseToControlService(): void {
