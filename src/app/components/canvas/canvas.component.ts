@@ -31,7 +31,7 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.paint.statusEmitter.unsubscribe();
+    this.paint.destroy();
   }
 
 }

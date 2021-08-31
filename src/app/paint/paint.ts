@@ -13,6 +13,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { ControlService } from './control.service';
 import { Settings } from './settings.interface';
 import { SavedCanvas } from './saved-canvas.service';
+import { Subscription } from 'rxjs';
 
 declare global {
   interface CanvasRenderingContext2D {
@@ -52,6 +53,7 @@ export class Paint {
 
   private readonly paintManager: PaintManager;
   private readonly networkManager: NetworkManager;
+  private subscriptions: Subscription[] = [];
 
   constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private selectionCanvas: HTMLCanvasElement, private controlService: ControlService) {
     // Setup canvas, remember to rescale on window resize
@@ -116,6 +118,15 @@ export class Paint {
     this.selectionCanvasCTX.clear();
     this.paintManager.redraw();
     this.currentMode.value?.makeReady?.();
+  }
+
+  /**
+   * Called when parent component goes away.
+   */
+  public destroy(): void {
+    for (const subscription of this.subscriptions) {
+      subscription.unsubscribe();
+    }
   }
 
   private handleEvents(): void {
@@ -275,7 +286,7 @@ export class Paint {
 
   private responseToControlService(): void {
     // Response to settings change
-    this.controlService.settings.subscribe(newSettings => {
+    this.subscriptions.push(this.controlService.settings.subscribe(newSettings => {
 
       // When color scheme has changed we need to redraw with different palette colour
       if (this.currentSettings?.darkModeEnabled !== newSettings.darkModeEnabled) {
@@ -284,10 +295,10 @@ export class Paint {
       } else {
         this.currentSettings = newSettings;
       }
-    });
+    }));
 
     // Response to clear
-    this.controlService.clear.subscribe(resend => {
+    this.subscriptions.push(this.controlService.clear.subscribe(resend => {
       if (resend) {
         this.networkManager.sendClear();
       }
@@ -295,10 +306,10 @@ export class Paint {
       this.predictCanvasCTX.clear();
       this.paintManager.clear();
       this.currentMode.value?.makeReady?.();
-    });
+    }));
 
-    this.controlService.savedCanvas.subscribe(this.loadFromSavedCanvas);
-    this.controlService.export.subscribe(this.export);
+    this.subscriptions.push(this.controlService.savedCanvas.subscribe(this.loadFromSavedCanvas));
+    this.subscriptions.push(this.controlService.export.subscribe(this.export));
   }
 
   private loadFromSavedCanvas(savedCanvas: SavedCanvas): void {
