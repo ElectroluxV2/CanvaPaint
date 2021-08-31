@@ -1,28 +1,13 @@
 @use '~@angular/material' as mat;
+
 @mixin dashboard-component($theme) {
   $primary: map-get($theme, primary);
   $accent: map-get($theme, accent);
 
   :root {
-    --card-width: 350px;
-  }
-
-  @media (max-width: 425px) {
-    :root {
-      --card-width: 200px;
-    }
-  }
-
-  @media (min-width: 426px) and (max-width: 786px) {
-    :root {
-      --card-width: 250px;
-    }
-  }
-
-  @media (min-width: 787px) and (max-width: 1024px) {
-    :root {
-      --card-width: 300px;
-    }
+    --preferred-card-width: 425px;
+    --spacing-static: 2em;
+    --spacing-dynamic: clamp(0px, calc(100vw - var(--preferred-card-width)), 2em);
   }
 
   section {
@@ -31,33 +16,69 @@
     background-color: mat.get-color-from-palette($primary, 700);
 
     mat-toolbar-row {
-      display: grid;
       justify-content: space-between;
     }
 
     main {
       min-height: 100%;
-      display: grid;
-      place-items: center;
-      grid-template-columns: repeat(auto-fit, minmax(var(--card-width), 1fr));
-      grid-gap: 2em;
-      padding: 2em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--spacing-static);
+      padding: var(--spacing-static) var(--spacing-dynamic);
 
       mat-card {
-        max-width: 400px;
+        max-width: min(calc(100% - 32px), var(--preferred-card-width));
         background-color: mat.get-color-from-palette($accent, 600);
         color: mat.get-color-from-palette($accent, 50);
 
-        mat-card-header > .mat-card-header-text {
-          margin: 0;
+        mat-card-header {
+          .mat-card-header-text {
+            width: 100%;
+            margin: 0;
+
+            mat-card-title {
+              display: flex;
+              gap: calc(var(--spacing-static) / 2);
+              justify-content: space-between;
+              align-items: center;
+
+              .mat-mini-fab {
+                background-color: mat.get-color-from-palette($primary, 900);
+              }
+
+              p {
+                margin: 0;
+                display: inline-block;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+                flex-grow: 1;
+
+                @media (hover: none) {
+                  overflow: scroll;
+                  text-overflow: unset;
+                  position: relative;
+                }
+              }
+            }
+          }
         }
 
-        img {
-          margin-bottom: 0 !important;
+        .mat-card-image {
+          margin-bottom: 0;
         }
 
-        mat-card-actions > button {
-          background-color: mat.get-color-from-palette($accent, 800);
+        .mat-card-actions {
+          display: flex;
+          flex-wrap: wrap;
+          margin-top: -4px;
+          gap: 8px;
+
+          .mat-raised-button {
+            margin: 0;
+            background-color: mat.get-color-from-palette($accent, 800);
+          }
         }
       }
     }

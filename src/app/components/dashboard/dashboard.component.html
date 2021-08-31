@@ -12,12 +12,18 @@
 
     <mat-card *ngFor="let board of boards">
       <mat-card-header>
-        <mat-card-title>{{board.title}}</mat-card-title>
+        <mat-card-title>
+          <p>{{board.title}}</p>
+          <button mat-mini-fab class="roundBtn" (click)="settings(board.id)">
+            <mat-icon>settings</mat-icon>
+          </button>
+        </mat-card-title>
       </mat-card-header>
       <img mat-card-image [src]="board.src"/>
       <mat-card-actions>
-        <button color="primary" (click)="settings(board.id)" mat-raised-button>Settings</button>
-        <button color="primary" (click)="router.navigate(['/', board.id])" mat-raised-button>Go</button>
+        <button (click)="share(board.id)" mat-raised-button>Share</button>
+        <button (click)="duplicate(board.id)" mat-raised-button>Duplicate</button>
+        <button (click)="router.navigate(['/', board.id])" mat-raised-button>Go</button>
       </mat-card-actions>
     </mat-card>
 

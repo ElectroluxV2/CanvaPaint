@@ -11,17 +11,18 @@ export class DashboardComponent {
   public boards = [];
 
   constructor(public router: Router) {
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 10; i++) {
       this.boards.push({
-        title: 'Jestem zajebisty',
+        title: (Math.random() + 1).toString(36).substring(7).repeat(10),
         src: 'https://placekitten.com/800/600',
         id: Math.random().toString(36).substring(7)
       });
     }
   }
 
+   public settings(boardId: string): void {   }
 
-   public settings(boardId: string): void {
+   public duplicate(boardId: string): void {   }
 
-   }
+   public share(boardId: string): void {   }
 }
