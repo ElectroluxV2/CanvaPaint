@@ -4,26 +4,26 @@
     <mat-toolbar-row>
       <span>Dashboard</span>
 
-      <button color="primary" mat-raised-button>Add</button>
+      <button color="primary" (click)="add()" mat-raised-button>Add</button>
     </mat-toolbar-row>
   </mat-toolbar>
 
   <main>
 
-    <mat-card *ngFor="let board of boards">
+    <mat-card *ngFor="let canvas of canvases">
       <mat-card-header>
         <mat-card-title>
-          <p>{{board.title}}</p>
-          <button mat-mini-fab class="roundBtn" (click)="settings(board.id)">
+          <p>{{canvas.title}}</p>
+          <button mat-mini-fab class="roundBtn" (click)="settings(canvas.id)">
             <mat-icon>settings</mat-icon>
           </button>
         </mat-card-title>
       </mat-card-header>
-      <img mat-card-image [src]="board.src"/>
+      <img mat-card-image [src]="canvas.image"/>
       <mat-card-actions>
-        <button (click)="share(board.id)" mat-raised-button>Share</button>
-        <button (click)="duplicate(board.id)" mat-raised-button>Duplicate</button>
-        <button (click)="router.navigate(['/', board.id])" mat-raised-button>Go</button>
+        <button (click)="share(canvas.id)" mat-raised-button>Share</button>
+        <button (click)="duplicate(canvas.id)" mat-raised-button>Duplicate</button>
+        <button (click)="router.navigate(['/', canvas.id])" mat-raised-button>Go</button>
       </mat-card-actions>
     </mat-card>
 

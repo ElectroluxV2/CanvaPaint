@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { SavedCanvasService } from '../../paint/saved-canvas.service';
+import { Protocol } from '../../paint/protocol/protocol';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,21 +10,28 @@ import { Router } from '@angular/router';
 })
 export class DashboardComponent {
 
-  public boards = [];
+  public canvases = [];
 
-  constructor(public router: Router) {
-    for (let i = 0; i < 10; i++) {
-      this.boards.push({
-        title: (Math.random() + 1).toString(36).substring(7).repeat(10),
-        src: 'https://placekitten.com/800/600',
-        id: Math.random().toString(36).substring(7)
-      });
-    }
+  constructor(public router: Router, private savedCanvasService: SavedCanvasService) {
+    (async () => {
+      for await (const canvas of this.savedCanvasService.canvases()) {
+        this.canvases.push(canvas);
+      }
+    })();
   }
 
-   public settings(boardId: string): void {   }
+  public settings(id: string): void {  }
 
-   public duplicate(boardId: string): void {   }
+  public async duplicate(id: string): Promise<void> {
+    const canvas = await this.savedCanvasService.getCanvas(id);
+    canvas.id = Protocol.generateId();
+    this.canvases.push(canvas);
+    this.savedCanvasService.saveCanvas(canvas);
+  }
 
-   public share(boardId: string): void {   }
+  public share(id: string): void {   }
+
+  public async add(): Promise<void> {
+    this.canvases.push(await this.savedCanvasService.getCanvas(Protocol.generateId()));
+  }
 }

@@ -245,5 +245,5 @@ export namespace Protocol {
     return new Box(points[0], points[1]);
   };
 
-  export const generateId = (): string => Math.random().toString(36).substring(2, 15);
+  export const generateId = (): string => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }

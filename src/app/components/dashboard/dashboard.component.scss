@@ -67,6 +67,8 @@
 
         .mat-card-image {
           margin-bottom: 0;
+          image-rendering: pixelated;
+          image-rendering: crisp-edges;
         }
 
         .mat-card-actions {

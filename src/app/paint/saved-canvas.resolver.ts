@@ -8,6 +8,6 @@ export class SavedCanvasResolver implements Resolve<SavedCanvas> {
   constructor(private service: SavedCanvasService) { }
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<SavedCanvas> | Promise<SavedCanvas> | SavedCanvas {
-    return this.service.getSavedCanvas(route.paramMap.get('id'));
+    return this.service.getCanvas(route.paramMap.get('id'));
   }
 }
