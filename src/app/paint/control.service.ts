@@ -2,7 +2,7 @@ import { EventEmitter, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { Settings } from './settings.interface';
-import { SavedCanvas } from './saved-canvas.service';
+import { SavedCanvas, SavedCanvasService } from './saved-canvas.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +14,7 @@ export class ControlService {
   public readonly redo: EventEmitter<null> = new EventEmitter<null>();
   public readonly export: EventEmitter<null> = new EventEmitter<null>();
   public readonly mode: BehaviorSubject<string> = new BehaviorSubject<string>('free-line');
-  public readonly savedCanvas: BehaviorSubject<SavedCanvas> = new BehaviorSubject<SavedCanvas>({} as SavedCanvas);
+  public readonly savedCanvas: BehaviorSubject<SavedCanvas> = new BehaviorSubject<SavedCanvas>(null);
 
   private settingsData: Settings = {} as Settings;
   private readonly settingsBehaviorSubject: BehaviorSubject<Settings>;

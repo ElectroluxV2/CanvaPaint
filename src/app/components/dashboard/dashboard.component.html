@@ -23,7 +23,7 @@
       <mat-card-actions>
         <button (click)="share(canvas.id)" mat-raised-button>Share</button>
         <button (click)="duplicate(canvas.id)" mat-raised-button>Duplicate</button>
-        <button (click)="router.navigate(['/', canvas.id])" mat-raised-button>Go</button>
+        <button (click)="router.navigate(['/', canvas.id.substr(1)])" mat-raised-button>Go</button>
       </mat-card-actions>
     </mat-card>
 

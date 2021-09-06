@@ -12,7 +12,7 @@ import { RemoveObjectMode } from './modes/remove-object/remove-object-mode';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { ControlService } from './control.service';
 import { Settings } from './settings.interface';
-import { SavedCanvas } from './saved-canvas.service';
+import { SavedCanvas, SavedCanvasService } from './saved-canvas.service';
 import { Subscription } from 'rxjs';
 
 declare global {
@@ -55,7 +55,7 @@ export class Paint {
   private readonly networkManager: NetworkManager;
   private subscriptions: Subscription[] = [];
 
-  constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private selectionCanvas: HTMLCanvasElement, private controlService: ControlService) {
+  constructor(private mainCanvas: HTMLCanvasElement, private predictCanvas: HTMLCanvasElement, private predictCanvasNetwork: HTMLCanvasElement, private selectionCanvas: HTMLCanvasElement, private controlService: ControlService, private savedCanvasService: SavedCanvasService) {
     // Setup canvas, remember to rescale on window resize
     window.onresize = () => this.resize();
     mainCanvas.height = mainCanvas.parentElement.offsetHeight * devicePixelRatio;
@@ -80,7 +80,7 @@ export class Paint {
 
     this.injectCanvas();
 
-    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX, this.selectionCanvasCTX, this.controlService);
+    this.paintManager = new PaintManager(this.currentMode, this.modes, this.mainCanvasCTX, this.selectionCanvasCTX, this.controlService, this.savedCanvasService);
 
     this.networkManager = new NetworkManager(this.modes, this.predictCanvasNetworkCTX, this.paintManager, this.controlService);
 
@@ -308,15 +308,19 @@ export class Paint {
       this.currentMode.value?.makeReady?.();
     }));
 
-    this.subscriptions.push(this.controlService.savedCanvas.subscribe(this.loadFromSavedCanvas));
-    this.subscriptions.push(this.controlService.export.subscribe(this.export));
+    this.subscriptions.push(this.controlService.savedCanvas.subscribe(n => this.loadFromSavedCanvas(n)));
+    this.subscriptions.push(this.controlService.export.subscribe(() => this.export()));
   }
 
-  private loadFromSavedCanvas(savedCanvas: SavedCanvas): void {
+  private async loadFromSavedCanvas(savedCanvas: SavedCanvas): Promise<void> {
+    console.log(this.paintManager.compiledObjectStorage);
     console.log(savedCanvas);
   }
 
   private async export(): Promise<void> {
+    console.log(this.paintManager.compiledObjectStorage);
+
+    return;
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([this.mainCanvas.width * (1 / window.devicePixelRatio), this.mainCanvas.height * (1 / window.devicePixelRatio)]);
 

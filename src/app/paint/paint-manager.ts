@@ -3,6 +3,7 @@ import { Point } from './protocol/point';
 import { Reference } from './protocol/protocol';
 import { PaintMode } from './modes/paint-mode';
 import { ControlService } from './control.service';
+import { SavedCanvasService } from './saved-canvas.service';
 
 export class PaintManager {
   /**
@@ -26,7 +27,7 @@ export class PaintManager {
 
   private lastSelectedObjectsCount = 0;
 
-  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, private controlService: ControlService) {
+  constructor(private currentMode: Reference<PaintMode>, private modes: Map<string, PaintMode>, private mainCanvasCTX: CanvasRenderingContext2D, private selectionCanvasCTX: CanvasRenderingContext2D, private controlService: ControlService, private savedCanvasService: SavedCanvasService) {
     controlService.settings.subscribe(settings => {
       if (this.darkModeEnabled === settings.darkModeEnabled) {
         return;
@@ -75,12 +76,21 @@ export class PaintManager {
   /**
    * Saves compiled object
    * Draws compiled object
+   * Saves to localstorage
    *
    * @param object Object to save
    */
   public saveCompiledObject(object: CompiledObject): void {
     this.compiledObjectStorage.set(object.id, object);
     this.modes.get(object.name).reproduceObject(this.mainCanvasCTX, object);
+
+    // Save to localstorage
+    (async () => {
+      const canvasId = this.controlService.savedCanvas.value.id;
+      const canvas = await this.savedCanvasService.getCanvas(canvasId);
+      canvas.objects.set(object.id, object);
+      this.savedCanvasService.saveCanvas(canvas);
+    })();
   }
 
   public removeCompiledObject(id: string): boolean {

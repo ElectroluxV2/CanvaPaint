@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Paint } from '../../paint/paint';
 import { ControlService } from '../../paint/control.service';
+import { SavedCanvasService } from '../../paint/saved-canvas.service';
 
 @Component({
   selector: 'app-canvas',
@@ -17,12 +18,12 @@ export class CanvasComponent implements AfterViewInit, OnDestroy {
   public paint: Paint;
   public statusEmitter: EventEmitter<string> = new EventEmitter<string>();
 
-  constructor(private ngZone: NgZone, private settingsService: ControlService) {
+  constructor(private ngZone: NgZone, private settingsService: ControlService, private savedCanvasService: SavedCanvasService) {
   }
 
   ngAfterViewInit(): void {
     this.ngZone.runOutsideAngular(() => {
-      this.paint = new Paint(this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.predictCanvasNetwork.nativeElement, this.selectionCanvas.nativeElement, this.settingsService);
+      this.paint = new Paint(this.mainCanvas.nativeElement, this.predictCanvas.nativeElement, this.predictCanvasNetwork.nativeElement, this.selectionCanvas.nativeElement, this.settingsService, this.savedCanvasService);
     });
 
     this.paint.statusEmitter.subscribe(value => {

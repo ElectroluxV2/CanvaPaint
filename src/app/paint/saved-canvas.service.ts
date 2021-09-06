@@ -5,7 +5,7 @@ export interface SavedCanvas {
   id: string;
   title: string;
   image?: string;
-  objects: CompiledObject[];
+  objects: Map<string, CompiledObject>;
 }
 
 @Injectable({
@@ -27,6 +27,10 @@ export class SavedCanvasService {
       canvas.id = `C${canvas.id}`;
     }
 
+    canvas.image = null;
+    console.log(JSON.stringify(canvas))
+    console.log(canvas)
+
     localStorage.setItem(canvas.id, JSON.stringify(canvas));
   }
 
@@ -43,7 +47,14 @@ export class SavedCanvasService {
       return placeholder;
     }
 
-    return JSON.parse(json) as SavedCanvas;
+    const canvas = JSON.parse(json);
+
+    if (!(canvas.objects instanceof Map)) {
+      console.log(canvas.objects);
+      canvas.objects = new Map();
+    }
+
+    return canvas;
   }
 
   private async placeholderCanvas(id: string): Promise<SavedCanvas> {
@@ -73,7 +84,7 @@ export class SavedCanvasService {
 
     canvas.title = 'Untitled';
     canvas.image = base64;
-    canvas.objects = [];
+    canvas.objects = new Map<string, CompiledObject>();
 
     return canvas;
   }
