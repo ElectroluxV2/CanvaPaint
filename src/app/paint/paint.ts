@@ -1,7 +1,7 @@
 import { EventEmitter } from '@angular/core';
 import { Point } from './protocol/point';
-import { PaintManager } from './paint-manager';
-import { NetworkManager } from './network-manager';
+import { PaintManager } from './managers/paint-manager';
+import { NetworkManager } from './managers/network-manager';
 import { Reference } from './protocol/protocol';
 import { PaintMode } from './modes/paint-mode';
 import { FreeLineMode } from './modes/free-line/free-line-mode';

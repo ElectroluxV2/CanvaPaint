@@ -1,6 +1,4 @@
 import { SubMode } from '../sub-mode';
-import { PaintManager } from '../../paint-manager';
-import { NetworkManager } from '../../network-manager';
 import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { Protocol } from '../../protocol/protocol';
@@ -11,7 +9,7 @@ export class StraightLineModeTouch extends SubMode {
   private currentStraightLine: StraightLine;
   private needRedraw = false;
 
-  constructor(parentMode: PaintMode, private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
+  constructor(parentMode: PaintMode, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
     super(parentMode);
   }
 
@@ -37,13 +35,13 @@ export class StraightLineModeTouch extends SubMode {
     if (!this.needRedraw) { return; }
     this.needRedraw = false;
 
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
 
     this.currentStraightLine.width = this.paintManager.getSettings<number>('width');
     this.currentStraightLine.color = this.paintManager.getSettings<string>('color');
     this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
 
-    this.reproduceObject(this.predictCanvas, this.currentStraightLine);
+    this.reproduceObject(this.predictCanvasCTX, this.currentStraightLine);
     this.networkManager.shareCompiledObject(this.currentStraightLine, false);
   }
 

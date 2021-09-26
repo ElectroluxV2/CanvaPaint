@@ -1,6 +1,7 @@
 import { Point } from '../protocol/point';
 import { PaintMode } from '../modes/paint-mode';
-import { Protocol } from '../protocol/protocol';
+import { Protocol, Reference } from '../protocol/protocol';
+import { PacketType } from '../protocol/packet-types';
 import Reader = Protocol.Reader;
 
 /**
@@ -12,25 +13,29 @@ export class CompiledObject {
    * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
    */
   readonly #name: string;
+
   /**
    * Parent Mode that created this object
    */
-  readonly #paintMode: PaintMode;
+  readonly #paintMode: Reference<PaintMode> = new Reference<PaintMode>();
+
   /**
    * Unique identifier
    */
   id: string;
+
   /**
    * Color
    */
   color: string;
+
   /**
    * Width
    */
   width: number;
 
   constructor(paintMode: PaintMode, id: string) {
-    this.#paintMode = paintMode;
+    this.paintMode = paintMode;
     this.#name = paintMode.name;
     this.id = id;
   }
@@ -45,20 +50,23 @@ export class CompiledObject {
     throw new Error(`isSelectedBy not implemented!`);
   }
 
-  serialize() {
-    return this.paintMode.serializeObject(this).toString();
+  serialize(): string {
+    return this.paintMode.serializeObject(this, new Protocol.Builder(PacketType.OBJECT, this.name)).toString();
   }
 
-  read(data: string) {
-    const reader = new Reader(data);
-    return this.paintMode.readObject(reader);
+  read(data: string): CompiledObject | boolean {
+    return this.paintMode.readObject(new Reader(data));
   }
 
   get name() {
     return this.#name;
   }
 
+  set paintMode(value) {
+    this.#paintMode.value = value;
+  }
+
   get paintMode() {
-    return this.#paintMode;
+    return this.#paintMode.value;
   }
 }

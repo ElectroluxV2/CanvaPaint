@@ -3,14 +3,13 @@ import { Protocol } from '../../protocol/protocol';
 import { FreeLine } from '../../compiled-objects/free-line';
 import { CardinalSpline } from '../../curves/cardinal-spline';
 import { Point } from '../../protocol/point';
-import { NetworkManager } from '../../network-manager';
-import { PaintManager } from '../../paint-manager';
 import { LazyBrush } from '../../curves/lazy-brush';
 import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
 import { Box } from '../../compiled-objects/box';
+import { PaintManager } from '../../managers/paint-manager';
+import { NetworkManager } from '../../managers/network-manager';
 
 export class FreeLineMode extends PaintMode {
-  public readonly name = 'free-line';
   public currentSpline: CardinalSpline;
   private currentLazyBrush: LazyBrush;
   private compiled: FreeLine;
@@ -20,12 +19,12 @@ export class FreeLineMode extends PaintMode {
   private lastPointer: Point;
 
   constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
-    super(predictCanvas, paintManager, networkManager);
+    super('free-line', predictCanvas, paintManager, networkManager);
 
     /*this.subModes = new Map<string, SubMode>([
-      ['mouse', new FreeLineModeMouse(predictCanvas, paintManager, networkManager)],
-      ['pen', new FreeLineModePen(predictCanvas, paintManager, networkManager)],
-      ['touch', new FreeLineModeTouch(predictCanvas, paintManager, networkManager)],
+      ['mouse', new FreeLineModeMouse(this)],
+      ['pen', new FreeLineModePen(this)],
+      ['touch', new FreeLineModeTouch(this)],
     ]);*/
   }
 
@@ -85,7 +84,7 @@ export class FreeLineMode extends PaintMode {
     const point = new Point(event.offsetX, event.offsetY);
     const normalizedPoint = this.paintManager.normalizePoint(point);
     // Start new spline
-    this.currentSpline = new CardinalSpline(this.predictCanvas, this.paintManager.getSettings<number>('tolerance'), this.paintManager.getSettings<number>('width'), this.paintManager.getSettings<string>('color'));
+    this.currentSpline = new CardinalSpline(this.predictCanvasCTX, this.paintManager.getSettings<number>('tolerance'), this.paintManager.getSettings<number>('width'), this.paintManager.getSettings<string>('color'));
     // Add starting point
     this.currentSpline.addPoint(normalizedPoint);
     // Create box
@@ -168,10 +167,10 @@ export class FreeLineMode extends PaintMode {
     this.networkManager.shareCompiledObject(this.compiled, false);
 
     // Draw predicted line
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
 
     if (this.currentSpline.optimized?.length) {
-      CardinalSpline.reproduce(this.predictCanvas, this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentSpline.optimized);
+      CardinalSpline.reproduce(this.predictCanvasCTX, this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentSpline.optimized);
     } else {
       console.warn('Missing line (this should not be possible)');
     }
@@ -183,7 +182,7 @@ export class FreeLineMode extends PaintMode {
     }
 
     // End spline with saving, this method will draw itself
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
     this.paintManager.saveCompiledObject(this.compiled);
     this.networkManager.shareCompiledObject(this.compiled, true);
 

@@ -1,9 +1,9 @@
-import { CompiledObject } from './compiled-objects/compiled-object';
-import { Point } from './protocol/point';
-import { Reference } from './protocol/protocol';
-import { PaintMode } from './modes/paint-mode';
-import { ControlService } from './control.service';
-import { SavedCanvasService } from './saved-canvas.service';
+import { CompiledObject } from '../compiled-objects/compiled-object';
+import { Point } from '../protocol/point';
+import { Reference } from '../protocol/protocol';
+import { PaintMode } from '../modes/paint-mode';
+import { ControlService } from '../control.service';
+import { SavedCanvasService } from '../saved-canvas.service';
 
 export class PaintManager {
   /**

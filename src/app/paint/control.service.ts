@@ -2,7 +2,7 @@ import { EventEmitter, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { Settings } from './settings.interface';
-import { SavedCanvas, SavedCanvasService } from './saved-canvas.service';
+import { SavedCanvas} from './saved-canvas.service';
 
 @Injectable({
   providedIn: 'root'

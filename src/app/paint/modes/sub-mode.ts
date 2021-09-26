@@ -101,4 +101,16 @@ export class SubMode {
   get parentMode() {
     return this.#parentMode;
   }
+
+  get paintManager() {
+    return this.parentMode.paintManager;
+  }
+
+  get networkManager() {
+    return this.parentMode.networkManager;
+  }
+
+  get predictCanvasCTX() {
+    return this.parentMode.predictCanvasCTX;
+  }
 }

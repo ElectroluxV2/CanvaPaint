@@ -1,24 +1,23 @@
 import { Protocol } from '../../protocol/protocol';
 import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
-import { PaintManager } from '../../paint-manager';
-import { NetworkManager } from '../../network-manager';
 import { PaintMode } from '../paint-mode';
 import { Box } from '../../compiled-objects/box';
+import { PaintManager } from '../../managers/paint-manager';
+import { NetworkManager } from '../../managers/network-manager';
 
 export class ContinuousStraightLineMode extends PaintMode {
-  readonly name = 'continuous-straight-line';
   private currentStraightLine: StraightLine;
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
   constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
-    super(predictCanvas, paintManager, networkManager);
+    super('continuous-straight-line', predictCanvas, paintManager, networkManager);
 
     /*this.subModes = new Map<string, SubMode>([
-      ['mouse', new ContinuousStraightLineModeMouse(predictCanvas, paintManager, networkManager)],
-      ['pen', new ContinuousStraightLineModePen(predictCanvas, paintManager, networkManager)],
-      ['touch', new ContinuousStraightLineModeTouch(predictCanvas, paintManager, networkManager)],
+      ['mouse', new ContinuousStraightLineModeMouse(this)],
+      ['pen', new ContinuousStraightLineModePen(this)],
+      ['touch', new ContinuousStraightLineModeTouch(this)],
     ]);*/
   }
 
@@ -58,16 +57,16 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public onFrameUpdate(): void {
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
 
     if (this.currentStraightLine) {
       this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
-      this.reproduceObject(this.predictCanvas, this.currentStraightLine);
+      this.reproduceObject(this.predictCanvasCTX, this.currentStraightLine);
       this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
-      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
+      this.predictCanvasCTX.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
   }
 
@@ -121,7 +120,7 @@ export class ContinuousStraightLineMode extends PaintMode {
   }
 
   public onUnSelected(): void {
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
   }
 
   public makeReady(): void {

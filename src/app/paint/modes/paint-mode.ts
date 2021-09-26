@@ -1,38 +1,60 @@
-import { PaintManager } from '../paint-manager';
-import { NetworkManager } from '../network-manager';
+import { PaintManager } from '../managers/paint-manager';
+import { NetworkManager } from '../managers/network-manager';
 import { PaintModeOptional } from './paint-mode-optional';
 
 export abstract class PaintMode extends PaintModeOptional {
   /**
    * Has to be unique, used for storing in map as key, must match exported object name
-   * must return only 1 match with regex /([A-z]+([A-z]|-|[0-9])+)/g
+   * must return only 1 match with regex /[a-zA-Z0-9-]+/g
    */
-  public readonly name: string;
+  readonly #name: string;
 
   /**
    * Contains Paint's methods
    */
-  protected readonly paintManager: PaintManager;
+  readonly #paintManager: PaintManager;
 
   /**
    * Contains network methods
    */
-  protected readonly networkManager: NetworkManager;
+  readonly #networkManager: NetworkManager;
 
   /**
    * Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    */
-  protected readonly predictCanvas: CanvasRenderingContext2D;
+  readonly #predictCanvasCTX: CanvasRenderingContext2D;
 
   /**
-   * @param predictCanvas Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
+   * @param name Name of mode
+   * @param predictCanvasCTX Canvas treated as helper, used e.g. to draw control dots. WARNING This canvas may and probably will be cleared by mode
    * @param paintManager Paint manager
    * @param networkManager Network manager
    */
-  protected constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
+  protected constructor(name: string, predictCanvasCTX: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
     super(null);
-    this.predictCanvas = predictCanvas;
-    this.paintManager = paintManager;
-    this.networkManager = networkManager;
+    this.#name = name;
+    this.#predictCanvasCTX = predictCanvasCTX;
+    this.#paintManager = paintManager;
+    this.#networkManager = networkManager;
+  }
+
+  /**
+   * Has to be unique, used for storing in map as key, must match exported object name
+   * must return only 1 match with regex /[a-zA-Z0-9-]+/g
+   */
+  get name() {
+    return this.#name;
+  }
+
+  get paintManager() {
+    return this.#paintManager;
+  }
+
+  get networkManager() {
+    return this.#networkManager;
+  }
+
+  get predictCanvasCTX() {
+    return this.#predictCanvasCTX;
   }
 }

@@ -1,18 +1,15 @@
 import { SubMode } from '../sub-mode';
-import { PaintManager } from '../../paint-manager';
-import { NetworkManager } from '../../network-manager';
 import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { Protocol } from '../../protocol/protocol';
 import { Box } from '../../compiled-objects/box';
-import { PaintMode } from '../paint-mode';
 
 export class StraightLineModeMouse extends SubMode {
   private currentStraightLine: StraightLine;
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
-  constructor(parentMode: PaintMode, private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
+  constructor(parentMode, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
     super(parentMode);
   }
 
@@ -23,7 +20,7 @@ export class StraightLineModeMouse extends SubMode {
   public onPointerDown(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.paintManager.normalizePoint(point);
-    this.paintManager.startFrameUpdate();
+    this.parentMode.paintManager.startFrameUpdate();
 
     // Control point move on right click
     if (event.button === 2) {
@@ -59,7 +56,7 @@ export class StraightLineModeMouse extends SubMode {
       this.networkManager.shareCompiledObject(this.currentStraightLine, true);
       // Set control point.ts
       this.currentControlPoint = this.currentStraightLine.begin;
-      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
+      this.predictCanvasCTX.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
 
     this.paintManager.stopFrameUpdate();
@@ -67,26 +64,26 @@ export class StraightLineModeMouse extends SubMode {
   }
 
   public onFrameUpdate(): void {
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
 
     if (!!this.currentStraightLine) {
       this.currentStraightLine.box = Box.fromPoints(this.currentStraightLine.begin, this.currentStraightLine.end);
-      this.reproduceObject(this.predictCanvas, this.currentStraightLine);
+      this.reproduceObject(this.predictCanvasCTX, this.currentStraightLine);
       this.networkManager.shareCompiledObject(this.currentStraightLine, false);
     }
 
     if (!!this.currentControlPoint) {
-      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
+      this.predictCanvasCTX.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
   }
 
   public makeReady(): void {
     if (!!this.currentControlPoint) {
-      this.predictCanvas.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
+      this.predictCanvasCTX.dot(this.currentControlPoint, this.paintManager.getSettings<number>('width') * 2.5, 'orange');
     }
   }
 
   public onUnSelected(): void {
-    this.predictCanvas.clear();
+    this.predictCanvasCTX.clear();
   }
 }

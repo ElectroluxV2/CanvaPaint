@@ -1,21 +1,20 @@
 import { PaintMode } from '../paint-mode';
 import { Point } from '../../protocol/point';
-import { PaintManager } from '../../paint-manager';
-import { NetworkManager } from '../../network-manager';
+import { PaintManager } from '../../managers/paint-manager';
+import { NetworkManager } from '../../managers/network-manager';
 
 export class RemoveObjectMode extends PaintMode {
-  readonly name = 'remove-object';
   private lastPointer: Point;
   private running = false;
   private pointerDown = false;
 
   constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
-    super(predictCanvas, paintManager, networkManager);
+    super('remove-object', predictCanvas, paintManager, networkManager);
 
     /*this.subModes = new Map<string, SubMode>([
-      ['mouse', new RemoveObjectMouse(predictCanvas, paintManager, networkManager)],
-      ['pen', new RemoveObjectPen(predictCanvas, paintManager, networkManager)],
-      ['touch', new RemoveObjectTouch(predictCanvas, paintManager, networkManager)],
+      ['mouse', new RemoveObjectMouse(this)],
+      ['pen', new RemoveObjectPen(this)],
+      ['touch', new RemoveObjectTouch(this)],
     ]);*/
   }
 
@@ -43,7 +42,7 @@ export class RemoveObjectMode extends PaintMode {
 
     // Mark every object as selected
     for (const object of this.paintManager.compiledObjectStorage.values()) {
-      const selected = object.isSelectedBy(this.predictCanvas, this.lastPointer);
+      const selected = object.isSelectedBy(this.predictCanvasCTX, this.lastPointer);
       this.paintManager.setObjectBit(object, 'selected', selected);
 
       if (selected && this.pointerDown) {

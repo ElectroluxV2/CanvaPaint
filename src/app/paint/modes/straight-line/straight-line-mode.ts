@@ -2,25 +2,24 @@ import { Point } from '../../protocol/point';
 import { Protocol } from '../../protocol/protocol';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { PaintMode } from '../paint-mode';
-import { PaintManager } from '../../paint-manager';
-import { NetworkManager } from '../../network-manager';
 import { SubMode } from '../sub-mode';
 import { StraightLineModeMouse } from './straight-line-mode-mouse';
 import { StraightLineModePen } from './straight-line-mode-pen';
 import { StraightLineModeTouch } from './straight-line-mode-touch';
 import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
 import { Box } from '../../compiled-objects/box';
+import { PaintManager } from '../../managers/paint-manager';
+import { NetworkManager } from '../../managers/network-manager';
 
 export class StraightLineMode extends PaintMode {
-  readonly name = 'straight-line';
 
   constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
-    super(predictCanvas, paintManager, networkManager);
+    super('straight-line', predictCanvas, paintManager, networkManager);
 
     this.subModes = new Map<string, SubMode>([
-      ['mouse', new StraightLineModeMouse(this, predictCanvas, paintManager, networkManager, this.reproduceObject)],
-      ['pen', new StraightLineModePen(this, predictCanvas, paintManager, networkManager)],
-      ['touch', new StraightLineModeTouch(this, predictCanvas, paintManager, networkManager, this.reproduceObject)],
+      ['mouse', new StraightLineModeMouse(this, this.reproduceObject)],
+      ['pen', new StraightLineModePen(this)],
+      ['touch', new StraightLineModeTouch(this, this.reproduceObject)],
     ]);
   }
 
