@@ -24,6 +24,13 @@ export namespace Protocol {
     private typeProvided = false;
     private nameProvided = false;
 
+    constructor(type?: PacketType, name?: string) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      type && this.setType(type);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      name && this.setName(name);
+    }
+
     public setType(type: PacketType): void {
       this.properties.set('t', type);
 
