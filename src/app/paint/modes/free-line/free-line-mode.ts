@@ -6,8 +6,8 @@ import { Point } from '../../protocol/point';
 import { NetworkManager } from '../../network-manager';
 import { PaintManager } from '../../paint-manager';
 import { LazyBrush } from '../../curves/lazy-brush';
-import { Box } from '../../compiled-objects/compiled-object';
 import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
+import { Box } from '../../compiled-objects/box';
 
 export class FreeLineMode extends PaintMode {
   public readonly name = 'free-line';

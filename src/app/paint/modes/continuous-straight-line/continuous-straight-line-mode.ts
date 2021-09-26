@@ -4,7 +4,7 @@ import { StraightLine } from '../../compiled-objects/straight-line';
 import { PaintManager } from '../../paint-manager';
 import { NetworkManager } from '../../network-manager';
 import { PaintMode } from '../paint-mode';
-import { Box } from '../../compiled-objects/compiled-object';
+import { Box } from '../../compiled-objects/box';
 
 export class ContinuousStraightLineMode extends PaintMode {
   readonly name = 'continuous-straight-line';

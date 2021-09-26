@@ -1,7 +1,6 @@
 import { Point } from '../../protocol/point';
 import { Protocol } from '../../protocol/protocol';
 import { StraightLine } from '../../compiled-objects/straight-line';
-import { Box } from '../../compiled-objects/compiled-object';
 import { PaintMode } from '../paint-mode';
 import { PaintManager } from '../../paint-manager';
 import { NetworkManager } from '../../network-manager';
@@ -11,6 +10,7 @@ import { StraightLineModePen } from './straight-line-mode-pen';
 import { StraightLineModeTouch } from './straight-line-mode-touch';
 import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
 import { CardinalSpline } from '../../curves/cardinal-spline';
+import { Box } from '../../compiled-objects/box';
 
 export class StraightLineMode extends PaintMode {
   readonly name = 'straight-line';

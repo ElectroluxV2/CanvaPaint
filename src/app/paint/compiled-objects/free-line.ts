@@ -1,19 +1,19 @@
 import { Point } from '../protocol/point';
 import { Quadrangle } from '../curves/quadrangle';
-import { Box, CompiledObject } from './compiled-object';
+import { CompiledObject } from './compiled-object';
+import { Box } from './box';
+import { Protocol } from '../protocol/protocol';
 
-export class FreeLine implements CompiledObject {
+export class FreeLine extends CompiledObject {
   static readonly DEBUG_IS_SELECTED_BY = false;
-  name = 'free-line';
   color: string;
   width: number;
   points: Point[];
-  id: string;
   box: Box;
   private readonly advancedBox: Path2D[] = [];
 
-  constructor(id?: string, color?: string, width?: number, points?: Point[], box?: Box) {
-    this.id = id;
+  constructor(id: string = Protocol.generateId(), color?: string, width?: number, points?: Point[], box?: Box) {
+    super(id, 'free-line');
     this.color = color;
     this.width = width;
     this.points = points;

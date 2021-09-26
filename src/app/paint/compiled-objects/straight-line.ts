@@ -1,22 +1,21 @@
 import { Point } from '../protocol/point';
 import { Quadrangle } from '../curves/quadrangle';
-import { Box, CompiledObject } from './compiled-object';
+import { CompiledObject } from './compiled-object';
 import { Settings } from '../settings.interface';
+import { Box } from './box';
+import { Protocol } from '../protocol/protocol';
 
-export class StraightLine implements CompiledObject {
+export class StraightLine extends CompiledObject {
   public static DEBUG = false;
-  name = 'straight-line';
   color: string;
   width: number;
   begin: Point;
   end: Point;
-  id: string;
   box: Box;
   advancedBox: Path2D;
 
-  constructor(id?: string, color?: string, width?: number, start?: Point, stop?: Point, box?: Box) {
-    this.id = id;
-    this.color = color;
+  constructor(id: string = Protocol.generateId(), color?: string, width?: number, start?: Point, stop?: Point, box?: Box) {
+    super(id, 'straight-line');
     this.width = width;
     this.begin = start ?? new Point(2);
     this.end = stop ?? new Point(2);

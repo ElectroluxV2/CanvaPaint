@@ -3,7 +3,6 @@ import { Point } from './protocol/point';
 import { PaintManager } from './paint-manager';
 import { NetworkManager } from './network-manager';
 import { Reference } from './protocol/protocol';
-import { Box } from './compiled-objects/compiled-object';
 import { PaintMode } from './modes/paint-mode';
 import { FreeLineMode } from './modes/free-line/free-line-mode';
 import { StraightLineMode } from './modes/straight-line/straight-line-mode';
@@ -14,6 +13,7 @@ import { ControlService } from './control.service';
 import { Settings } from './settings.interface';
 import { SavedCanvas, SavedCanvasService } from './saved-canvas.service';
 import { Subscription } from 'rxjs';
+import { Box } from './compiled-objects/box';
 
 declare global {
   interface CanvasRenderingContext2D {
