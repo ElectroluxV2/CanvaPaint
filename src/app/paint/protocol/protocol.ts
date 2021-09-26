@@ -162,14 +162,11 @@ export namespace Protocol {
   export const encodeProperty = (name: string, value: string): string => `${name}:${value}`;
 
   export const readPacketType = (data: string, currentPosition: Reference<number>): PacketType => {
-    let packetType = PacketType.UNKNOWN;
-
     const c3 = data[currentPosition.value];
 
-    packetType = PACKET_TYPES.get(c3);
     currentPosition.value++;
 
-    return packetType;
+    return PACKET_TYPES.get(c3);
   };
 
   export const readBoolean = (data: string, currentPosition: Reference<number>): boolean => {
