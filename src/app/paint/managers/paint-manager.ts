@@ -76,21 +76,12 @@ export class PaintManager {
   /**
    * Saves compiled object
    * Draws compiled object
-   * Saves to localstorage
    *
    * @param object Object to save
    */
   public saveCompiledObject(object: CompiledObject): void {
     this.compiledObjectStorage.set(object.id, object);
     this.modes.get(object.name).reproduceObject(this.mainCanvasCTX, object);
-
-    // Save to localstorage
-    (async () => {
-      const canvasId = this.controlService.savedCanvas.value.id;
-      const canvas = await this.savedCanvasService.getCanvas(canvasId);
-      canvas.objects.set(object.id, object);
-      this.savedCanvasService.saveCanvas(canvas);
-    })();
   }
 
   public removeCompiledObject(id: string): boolean {

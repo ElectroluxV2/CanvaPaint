@@ -313,14 +313,12 @@ export class Paint {
   }
 
   private async loadFromSavedCanvas(savedCanvas: SavedCanvas): Promise<void> {
-    console.log(this.paintManager.compiledObjectStorage);
-    console.log(savedCanvas);
+    for (const packet of savedCanvas.packets) {
+      this.networkManager.readData(packet);
+    }
   }
 
   private async export(): Promise<void> {
-    console.log(this.paintManager.compiledObjectStorage);
-
-    return;
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([this.mainCanvas.width * (1 / window.devicePixelRatio), this.mainCanvas.height * (1 / window.devicePixelRatio)]);
 

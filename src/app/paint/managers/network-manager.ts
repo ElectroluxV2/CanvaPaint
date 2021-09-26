@@ -54,6 +54,10 @@ export class NetworkManager {
     this.connection.send(`t:d,i:${id}`);
   }
 
+  public readData(data: string): void {
+    this.onConnectionMessage(data);
+  }
+
   private connectionDrawLoop(): void {
 
     if (this.compiledObjectStashNeedRedraw) {
