@@ -30,7 +30,7 @@ export abstract class PaintMode extends PaintModeOptional {
    * @param networkManager Network manager
    */
   protected constructor(predictCanvas: CanvasRenderingContext2D, paintManager: PaintManager, networkManager: NetworkManager) {
-    super();
+    super(null);
     this.predictCanvas = predictCanvas;
     this.paintManager = paintManager;
     this.networkManager = networkManager;

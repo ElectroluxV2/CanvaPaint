@@ -5,18 +5,21 @@ import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { Protocol } from '../../protocol/protocol';
 import { Box } from '../../compiled-objects/box';
+import { PaintMode } from '../paint-mode';
 
-export class StraightLineModeTouch implements SubMode {
+export class StraightLineModeTouch extends SubMode {
   private currentStraightLine: StraightLine;
   private needRedraw = false;
 
-  constructor(private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) { }
+  constructor(parentMode: PaintMode, private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
+    super(parentMode);
+  }
 
   public onPointerDown(event: PointerEvent): void {
     const point = new Point(event.offsetX, event.offsetY);
     const normalized = this.paintManager.normalizePoint(point);
 
-    this.currentStraightLine = new StraightLine(Protocol.generateId());
+    this.currentStraightLine = new StraightLine(this.parentMode, Protocol.generateId());
     this.currentStraightLine.begin = normalized;
 
     this.paintManager.startFrameUpdate();

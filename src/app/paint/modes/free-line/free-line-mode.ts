@@ -44,7 +44,7 @@ export class FreeLineMode extends PaintMode {
   }
 
   public readObject(reader: Protocol.Reader): FreeLine {
-    const freeLine = new FreeLine();
+    const freeLine = new FreeLine(this);
 
     reader.addMapping<string>('i', 'id', freeLine, Protocol.readString);
     reader.addMapping<string>('c', 'color', freeLine, Protocol.readString);
@@ -164,7 +164,7 @@ export class FreeLineMode extends PaintMode {
     }
 
     // Send to others
-    this.compiled = new FreeLine(this.currentId, this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentSpline.optimized, this.box);
+    this.compiled = new FreeLine(this, this.currentId, this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentSpline.optimized, this.box);
     this.networkManager.shareCompiledObject(this.compiled, false);
 
     // Draw predicted line

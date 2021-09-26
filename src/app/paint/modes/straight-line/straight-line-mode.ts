@@ -9,7 +9,6 @@ import { StraightLineModeMouse } from './straight-line-mode-mouse';
 import { StraightLineModePen } from './straight-line-mode-pen';
 import { StraightLineModeTouch } from './straight-line-mode-touch';
 import { LineCapStyle, PDFPage, rgb } from 'pdf-lib';
-import { CardinalSpline } from '../../curves/cardinal-spline';
 import { Box } from '../../compiled-objects/box';
 
 export class StraightLineMode extends PaintMode {
@@ -19,9 +18,9 @@ export class StraightLineMode extends PaintMode {
     super(predictCanvas, paintManager, networkManager);
 
     this.subModes = new Map<string, SubMode>([
-      ['mouse', new StraightLineModeMouse(predictCanvas, paintManager, networkManager, this.reproduceObject)],
-      ['pen', new StraightLineModePen(predictCanvas, paintManager, networkManager)],
-      ['touch', new StraightLineModeTouch(predictCanvas, paintManager, networkManager, this.reproduceObject)],
+      ['mouse', new StraightLineModeMouse(this, predictCanvas, paintManager, networkManager, this.reproduceObject)],
+      ['pen', new StraightLineModePen(this, predictCanvas, paintManager, networkManager)],
+      ['touch', new StraightLineModeTouch(this, predictCanvas, paintManager, networkManager, this.reproduceObject)],
     ]);
   }
 
@@ -46,7 +45,7 @@ export class StraightLineMode extends PaintMode {
   }
 
   public readObject(reader: Protocol.Reader): StraightLine | boolean {
-    const straightLine = new StraightLine();
+    const straightLine = new StraightLine(this);
 
     reader.addMapping<string>('i', 'id', straightLine, Protocol.readString);
     reader.addMapping<string>('c', 'color', straightLine, Protocol.readString);

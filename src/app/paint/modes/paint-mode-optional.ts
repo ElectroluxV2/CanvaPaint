@@ -3,7 +3,7 @@ import { SubMode } from './sub-mode';
 import { CompiledObject } from '../compiled-objects/compiled-object';
 import { PDFPage } from 'pdf-lib';
 
-export abstract class PaintModeOptional implements SubMode {
+export abstract class PaintModeOptional extends SubMode {
   /**
    * Contains sub modes, with keys corresponding to pointer types
    * If empty mode should override methods in PaintMode

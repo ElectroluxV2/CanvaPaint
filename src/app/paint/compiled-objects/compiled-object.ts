@@ -1,4 +1,7 @@
 import { Point } from '../protocol/point';
+import { PaintMode } from '../modes/paint-mode';
+import { Protocol } from '../protocol/protocol';
+import Reader = Protocol.Reader;
 
 /**
  * Represents object that contains minimalistic data on how to draw it onto canvas
@@ -10,9 +13,13 @@ export class CompiledObject {
    */
   readonly #name: string;
   /**
+   * Parent Mode that created this object
+   */
+  readonly #paintMode: PaintMode;
+  /**
    * Unique identifier
    */
-  readonly #id: string;
+  id: string;
   /**
    * Color
    */
@@ -22,11 +29,11 @@ export class CompiledObject {
    */
   width: number;
 
-  constructor(id: string, name: string) {
-    this.#id = id;
-    this.#name = name;
+  constructor(paintMode: PaintMode, id: string) {
+    this.#paintMode = paintMode;
+    this.#name = paintMode.name;
+    this.id = id;
   }
-
 
   /**
    * Should return true if pointer is inside object
@@ -38,11 +45,20 @@ export class CompiledObject {
     throw new Error(`isSelectedBy not implemented!`);
   }
 
+  serialize() {
+    return this.paintMode.serializeObject(this).toString();
+  }
+
+  read(data: string) {
+    const reader = new Reader(data);
+    return this.paintMode.readObject(reader);
+  }
+
   get name() {
     return this.#name;
   }
 
-  get id() {
-    return this.#id;
+  get paintMode() {
+    return this.#paintMode;
   }
 }

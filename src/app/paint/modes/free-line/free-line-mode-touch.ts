@@ -1,9 +1,12 @@
 import { SubMode } from '../sub-mode';
 import { PaintManager } from '../../paint-manager';
 import { NetworkManager } from '../../network-manager';
+import { PaintMode } from '../paint-mode';
 
-export class FreeLineModeTouch implements SubMode {
-  constructor(private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager) { }
+export class FreeLineModeTouch extends SubMode {
+  constructor(parentMode: PaintMode, private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager) {
+    super(parentMode);
+  }
 
   public onPointerDown(event: PointerEvent): void {
     console.log('down touch');

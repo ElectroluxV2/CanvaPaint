@@ -1,4 +1,15 @@
-export interface SubMode {
+import { PaintMode } from './paint-mode';
+
+export class SubMode {
+  /**
+   * Reference to parent mode (PaintMode)
+   */
+  readonly #parentMode: PaintMode;
+
+  constructor(parentMode: PaintMode) {
+    this.#parentMode = parentMode;
+  }
+
   /**
    * Induced every time mode is selected
    */
@@ -86,4 +97,8 @@ export interface SubMode {
    * Fired after pointer capture is released for a pointer.
    */
   onPointerLostCapture?(event: PointerEvent): void;
+
+  get parentMode() {
+    return this.#parentMode;
+  }
 }

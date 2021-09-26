@@ -35,14 +35,14 @@ export class ContinuousStraightLineMode extends PaintMode {
         this.movingControlPoint = true;
 
       } else if (event.button === 0) {
-        this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
+        this.currentStraightLine = new StraightLine(this, Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
 
         if (this.currentControlPoint) {
           this.currentStraightLine.begin = this.currentControlPoint;
         }
       }
     } else {
-      this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
+      this.currentStraightLine = new StraightLine(this, Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentControlPoint ? this.currentControlPoint : normalized, normalized);
     }
   }
 

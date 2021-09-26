@@ -4,6 +4,7 @@ import { CompiledObject } from './compiled-object';
 import { Settings } from '../settings.interface';
 import { Box } from './box';
 import { Protocol } from '../protocol/protocol';
+import { PaintMode } from '../modes/paint-mode';
 
 export class StraightLine extends CompiledObject {
   public static DEBUG = false;
@@ -14,8 +15,8 @@ export class StraightLine extends CompiledObject {
   box: Box;
   advancedBox: Path2D;
 
-  constructor(id: string = Protocol.generateId(), color?: string, width?: number, start?: Point, stop?: Point, box?: Box) {
-    super(id, 'straight-line');
+  constructor(paintMode: PaintMode, id: string = Protocol.generateId(), color?: string, width?: number, start?: Point, stop?: Point, box?: Box) {
+    super(paintMode, id);
     this.width = width;
     this.begin = start ?? new Point(2);
     this.end = stop ?? new Point(2);
@@ -53,7 +54,7 @@ export class StraightLine extends CompiledObject {
   }
 
   public duplicate(): StraightLine {
-    return new StraightLine(this.id, this.color, this.width, this.begin, this.end, this.box);
+    return new StraightLine(this.paintMode, this.id, this.color, this.width, this.begin, this.end, this.box);
   }
 
   public applySettings(settings: Settings): void {

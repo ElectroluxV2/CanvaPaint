@@ -5,13 +5,16 @@ import { Point } from '../../protocol/point';
 import { StraightLine } from '../../compiled-objects/straight-line';
 import { Protocol } from '../../protocol/protocol';
 import { Box } from '../../compiled-objects/box';
+import { PaintMode } from '../paint-mode';
 
-export class StraightLineModeMouse implements SubMode {
+export class StraightLineModeMouse extends SubMode {
   private currentStraightLine: StraightLine;
   private currentControlPoint: Point;
   private movingControlPoint = false;
 
-  constructor(private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) { }
+  constructor(parentMode: PaintMode, private predictCanvas: CanvasRenderingContext2D, private paintManager: PaintManager, private networkManager: NetworkManager, private reproduceObject: (canvas: CanvasRenderingContext2D, object: StraightLine, color?: string, width?: number) => void) {
+    super(parentMode);
+  }
 
   public onSelected(): void {
     delete this.currentControlPoint;
@@ -29,9 +32,9 @@ export class StraightLineModeMouse implements SubMode {
     } else if (event.button === 0) {
       // Line from pointer location or to pointer location
       if (!!this.currentControlPoint) {
-        this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentControlPoint, normalized);
+        this.currentStraightLine = new StraightLine(this.parentMode, Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), this.currentControlPoint, normalized);
       } else {
-        this.currentStraightLine = new StraightLine(Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
+        this.currentStraightLine = new StraightLine(this.parentMode, Protocol.generateId(), this.paintManager.getSettings<string>('color'), this.paintManager.getSettings<number>('width'), normalized, normalized);
       }
     }
   }

@@ -3,6 +3,7 @@ import { Quadrangle } from '../curves/quadrangle';
 import { CompiledObject } from './compiled-object';
 import { Box } from './box';
 import { Protocol } from '../protocol/protocol';
+import { PaintMode } from '../modes/paint-mode';
 
 export class FreeLine extends CompiledObject {
   static readonly DEBUG_IS_SELECTED_BY = false;
@@ -12,8 +13,8 @@ export class FreeLine extends CompiledObject {
   box: Box;
   private readonly advancedBox: Path2D[] = [];
 
-  constructor(id: string = Protocol.generateId(), color?: string, width?: number, points?: Point[], box?: Box) {
-    super(id, 'free-line');
+  constructor(paintMode: PaintMode, id: string = Protocol.generateId(), color?: string, width?: number, points?: Point[], box?: Box) {
+    super(paintMode, id);
     this.color = color;
     this.width = width;
     this.points = points;
