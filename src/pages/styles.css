@@ -1,0 +1,78 @@
+body:not(.custom-color) {
+  --primary-h: 153;
+  --primary-s: 67%;
+  --primary-l: 81%;
+
+  --secondary-h: 210;
+  --secondary-s: 100%;
+  --secondary-l: 12%;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not(.custom-color) {
+    --primary-h: 210;
+    --primary-s: 33%;
+    --primary-l: 9%;
+
+    --secondary-h: 34;
+    --secondary-s: 86%;
+    --secondary-l: 62%;
+  }
+}
+
+body {
+  --primary-hsl: var(--primary-h), var(--primary-s), var(--primary-l);
+
+  --primary: hsl(var(--primary-hsl));
+  --primary-10: hsla(var(--primary-hsl), .1);
+  --primary-20: hsla(var(--primary-hsl), .2);
+  --primary-30: hsla(var(--primary-hsl), .3);
+  --primary-40: hsla(var(--primary-hsl), .4);
+  --primary-50: hsla(var(--primary-hsl), .5);
+  --primary-60: hsla(var(--primary-hsl), .6);
+  --primary-70: hsla(var(--primary-hsl), .7);
+  --primary-80: hsla(var(--primary-hsl), .8);
+  --primary-90: hsla(var(--primary-hsl), .9);
+
+  --primary-warm: hsl(calc(var(--primary-h) + 80), var(--primary-s), var(--primary-l));
+  --primary-cold: hsl(calc(var(--primary-h) - 80), var(--primary-s), var(--primary-l));
+
+  --primary-low: hsl(var(--primary-h), calc(var(--primary-s) / 2), var(--primary-l));
+  --primary-lowest: hsl(var(--primary-h), calc(var(--primary-s) / 4), var(--primary-l));
+
+  --primary-light: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) / .9));
+  --primary-dark: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .9));
+
+  --secondary-hsl: var(--secondary-h), var(--secondary-s), var(--secondary-l);
+
+  --secondary: hsl(var(--secondary-hsl));
+  --secondary-10: hsla(var(--secondary-hsl), .1);
+  --secondary-20: hsla(var(--secondary-hsl), .2);
+  --secondary-30: hsla(var(--secondary-hsl), .3);
+  --secondary-40: hsla(var(--secondary-hsl), .4);
+  --secondary-50: hsla(var(--secondary-hsl), .5);
+  --secondary-60: hsla(var(--secondary-hsl), .6);
+  --secondary-70: hsla(var(--secondary-hsl), .7);
+  --secondary-80: hsla(var(--secondary-hsl), .8);
+  --secondary-90: hsla(var(--secondary-hsl), .9);
+
+  --secondary-warm: hsl(calc(var(--secondary-h) + 80), var(--secondary-s), var(--secondary-l));
+  --secondary-cold: hsl(calc(var(--secondary-h) - 80), var(--secondary-s), var(--secondary-l));
+
+  --secondary-low: hsl(var(--secondary-h), calc(var(--secondary-s) / 2), var(--secondary-l));
+  --secondary-lowest: hsl(var(--secondary-h), calc(var(--secondary-s) / 4), var(--secondary-l));
+
+  --secondary-light: hsl(var(--secondary-h), var(--secondary-s), calc(var(--secondary-l) / .9));
+  --secondary-dark: hsl(var(--secondary-h), var(--secondary-s), calc(var(--secondary-l) * .9));
+}
+
+body {
+  margin: 0;
+  padding: 1em;
+  background-color: var(--primary-dark);
+  color: var(--secondary-light);
+}
+
+a {
+  color: var(--secondary);
+}

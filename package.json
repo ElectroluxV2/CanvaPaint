@@ -1,60 +1,14 @@
 {
-  "name": "paint",
-  "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build --prod --source-map=false",
-    "prod": "ng build --source-map=false --prod",
-    "test": "ng test",
-    "hackMePlease": "ng serve --host=0.0.0.0 --disable-host-check",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
-  },
+  "name": "csvgp",
   "private": true,
-  "dependencies": {
-    "@angular/animations": "^11.2.7",
-    "@angular/cdk": "^11.0.4",
-    "@angular/common": "^11.2.7",
-    "@angular/compiler": "^11.2.7",
-    "@angular/core": "^11.2.7",
-    "@angular/forms": "^11.2.7",
-    "@angular/material": "^11.0.4",
-    "@angular/platform-browser": "^11.2.7",
-    "@angular/platform-browser-dynamic": "^11.2.7",
-    "@angular/router": "^11.2.7",
-    "pdf-lib": "^1.16.0",
-    "rxjs": "^6.6.3",
-    "tslib": "^2.0.0",
-    "zone.js": "~0.10.2"
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.1102.6",
-    "@angular-eslint/builder": "2.0.2",
-    "@angular-eslint/eslint-plugin": "2.0.2",
-    "@angular-eslint/eslint-plugin-template": "2.0.2",
-    "@angular-eslint/schematics": "2.0.2",
-    "@angular-eslint/template-parser": "2.0.2",
-    "@angular/cli": "^11.2.6",
-    "@angular/compiler-cli": "^11.2.7",
-    "@angular/language-service": "^11.2.7",
-    "@types/jasmine": "~3.6.0",
-    "@types/jasminewd2": "~2.0.3",
-    "@typescript-eslint/eslint-plugin": "4.16.1",
-    "@typescript-eslint/parser": "4.16.1",
-    "eslint": "^7.6.0",
-    "eslint-plugin-import": "2.22.1",
-    "eslint-plugin-jsdoc": "30.7.6",
-    "eslint-plugin-prefer-arrow": "1.2.2",
-    "jasmine-core": "~3.6.0",
-    "jasmine-spec-reporter": "~5.0.0",
-    "karma": "~6.3.1",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
-    "protractor": "~7.0.0",
-    "ts-node": "~8.3.0",
-    "typescript": "~4.0.5"
+    "vite": "^3.0.7"
   }
 }
