@@ -1,0 +1,12 @@
+@import "../../elements/canva-canvas/canva-canvas.scss";
+
+body {
+  box-sizing: border-box;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  canva-canvas {
+
+  }
+}

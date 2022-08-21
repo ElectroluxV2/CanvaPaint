@@ -1,0 +1,10 @@
+canva-canvas {
+  min-height: 1px;
+  height: 100%;
+  display: grid;
+
+  canvas {
+    grid-area: 1 / 1;
+    width: 100%; // Although canvases are resized by js, until they load we would like use css to stretch them
+  }
+}
