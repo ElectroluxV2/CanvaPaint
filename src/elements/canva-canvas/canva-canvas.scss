@@ -2,6 +2,7 @@ canva-canvas {
   min-height: 1px;
   height: 100%;
   display: grid;
+  cursor: crosshair;
 
   canvas {
     grid-area: 1 / 1;
