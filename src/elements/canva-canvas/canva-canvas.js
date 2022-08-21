@@ -29,9 +29,6 @@ export class CanvaCanvas extends HTMLElement {
         canvas.width = width * window.devicePixelRatio;
         canvas.height = height * window.devicePixelRatio;
 
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-
         // canvas.getContext('2d').scale(window.devicePixelRatio, window.devicePixelRatio); FIXME: Why is this working without this?
     }
 
