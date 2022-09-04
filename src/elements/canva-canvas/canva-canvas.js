@@ -1,5 +1,6 @@
 import { DrawableManager } from './drawable-manager.js';
 import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
+import { createCanvasElement } from './utils/create-canvas-element.js';
 import { scaleCanvas } from './utils/scale-canvas.js';
 
 export class CanvaCanvas extends HTMLElement {
@@ -16,7 +17,7 @@ export class CanvaCanvas extends HTMLElement {
 
         const s = () => {
             this.#foregroundContext.clearRect(0, 0, this.#foregroundContext.canvas.width, this.#foregroundContext.canvas.height);
-            this.#backgroundContext.clearRect(0, 0, this.#backgroundContext.canvas.width, this.#backgroundContext.canvas.height);
+            // this.#backgroundContext.clearRect(0, 0, this.#backgroundContext.canvas.width, this.#backgroundContext.canvas.height);
             this.#foregroundContext.beginPath();
 
             this.#foregroundContext.moveTo(0, 0);
@@ -43,21 +44,16 @@ export class CanvaCanvas extends HTMLElement {
     #setupCanvases() {
         const canvases = new Array(2)
             .fill(0)
-            .map((_, i) => {
-                const canvas = document.createElement('canvas');
-                canvas.setAttribute('id', `layer-${i}`);
-                return canvas;
-            });
+            .map((_, i) => createCanvasElement(i));
 
         this.append(...canvases);
 
         const contexts = canvases.map(canvas => canvas.getContext('2d'));
-        this.#foregroundContext = contexts[0];
-        this.#backgroundContext = contexts[1];
+        this.#backgroundContext = contexts[0];
+        this.#foregroundContext = contexts[1];
 
-        this.#selfResizeObserver = new ResizeObserver(([{ contentRect }]) => {
-            canvases.forEach(canvas => scaleCanvas(canvas, contentRect.width, contentRect.height));
-        });
+        this.#selfResizeObserver = new ResizeObserver(([{ contentRect }]) =>
+            canvases.forEach(canvas => scaleCanvas(canvas, contentRect.width, contentRect.height)));
 
         this.#selfResizeObserver.observe(this);
     }

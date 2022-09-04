@@ -27,9 +27,8 @@ export class QuadraticLineMode {
 
         const { offsetX, offsetY, pointerType, pointerId } = event;
 
-        DrawableManager.updateDrawable(pointerType, pointerId,
-            line => line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio)
-        );
+        DrawableManager.updateDrawable(pointerType, pointerId, line =>
+            line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio));
     }
 
     #onPointerUp(event) {
@@ -37,8 +36,7 @@ export class QuadraticLineMode {
 
         const { offsetX, offsetY, pointerType, pointerId } = event;
 
-        DrawableManager.finishDrawable(pointerType, pointerId,
-            line => line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio)
-        );
+        DrawableManager.finishDrawable(pointerType, pointerId, line =>
+            line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio));
     }
 }
