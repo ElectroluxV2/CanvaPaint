@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'src/pages/index.html'),
-        dashboard: resolve(__dirname, 'src/pages/dashboard/index.html')
+        dashboard: resolve(__dirname, 'src/pages/dashboard/index.html'),
+        canva: resolve(__dirname, 'src/pages/canva/index.html')
       }
     }
   }

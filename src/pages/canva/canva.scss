@@ -2,11 +2,11 @@
 
 body {
   box-sizing: border-box;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 
   canva-canvas {
-
+    touch-action: none;
   }
 }
