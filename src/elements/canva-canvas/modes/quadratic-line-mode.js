@@ -1,3 +1,4 @@
+import { DrawableManager } from '../drawable-manager.js';
 import { SmoothCurve } from '../drawable/smooth-curve.js';
 
 export class QuadraticLineMode {
@@ -14,42 +15,30 @@ export class QuadraticLineMode {
     #onPointerDown(event) {
         this.#isDragging = true;
 
-        const { offsetX, offsetY, pointerId } = event;
-        const lineId = this.#getLineId(pointerId);
+        const { offsetX, offsetY, pointerType, pointerId } = event;
+        const line = new SmoothCurve('pink', 'lime');
 
-        this.#canvaCanvasInstance.drawableStore.set(lineId, new SmoothCurve('pink', 'lime'));
-        this.#canvaCanvasInstance
-            .drawableStore
-            .get(lineId)
-            .path
-            .moveTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
+        line.path.moveTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
+        DrawableManager.createDrawable(pointerType, pointerId, line);
     }
 
     #onPointerMove(event) {
         if (!this.#isDragging) return;
 
-        const { offsetX, offsetY, pointerId } = event;
+        const { offsetX, offsetY, pointerType, pointerId } = event;
 
-        this.#canvaCanvasInstance
-            .drawableStore
-            .get(this.#getLineId(pointerId))
-            .path
-            .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
+        DrawableManager.updateDrawable(pointerType, pointerId,
+            line => line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio)
+        );
     }
 
     #onPointerUp(event) {
         this.#isDragging = false;
 
-        const { offsetX, offsetY, pointerId } = event;
+        const { offsetX, offsetY, pointerType, pointerId } = event;
 
-        this.#canvaCanvasInstance
-            .drawableStore
-            .get(this.#getLineId(pointerId))
-            .path
-            .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
-    }
-
-    #getLineId(pointerId) {
-        return `qlm-${pointerId}`;
+        DrawableManager.finishDrawable(pointerType, pointerId,
+            line => line.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio)
+        );
     }
 }

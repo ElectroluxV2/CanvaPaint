@@ -1,3 +1,4 @@
+import { DrawableManager } from './drawable-manager.js';
 import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
 import { scaleCanvas } from './utils/scale-canvas.js';
 
@@ -5,7 +6,6 @@ export class CanvaCanvas extends HTMLElement {
     #selfResizeObserver;
     #foregroundContext;
     #backgroundContext;
-    #drawableStore = new Map();
     #currentMode;
 
     constructor() {
@@ -16,6 +16,7 @@ export class CanvaCanvas extends HTMLElement {
 
         const s = () => {
             this.#foregroundContext.clearRect(0, 0, this.#foregroundContext.canvas.width, this.#foregroundContext.canvas.height);
+            this.#backgroundContext.clearRect(0, 0, this.#backgroundContext.canvas.width, this.#backgroundContext.canvas.height);
             this.#foregroundContext.beginPath();
 
             this.#foregroundContext.moveTo(0, 0);
@@ -30,7 +31,8 @@ export class CanvaCanvas extends HTMLElement {
             this.#foregroundContext.fillStyle = 'red';
             this.#foregroundContext.fill();
 
-            this.#drawableStore.forEach(drawable => drawable.draw(this.#foregroundContext));
+            DrawableManager.unfinishedDrawables.forEach(drawable => drawable.draw(this.#foregroundContext));
+            DrawableManager.drawableStore.forEach(drawable => drawable.draw(this.#backgroundContext));
 
             requestAnimationFrame(s.bind(this));
         };
@@ -58,9 +60,5 @@ export class CanvaCanvas extends HTMLElement {
         });
 
         this.#selfResizeObserver.observe(this);
-    }
-
-    get drawableStore() {
-        return this.#drawableStore;
     }
 }
