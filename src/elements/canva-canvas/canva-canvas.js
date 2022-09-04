@@ -1,15 +1,22 @@
+import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
+import { scaleCanvas } from './utils/scale-canvas.js';
+
 export class CanvaCanvas extends HTMLElement {
     #selfResizeObserver;
     #foregroundContext;
     #backgroundContext;
+    #drawableStore = new Map();
+    #currentMode;
 
     constructor() {
         super();
 
         this.#setupCanvases();
+        this.#currentMode = new QuadraticLineMode(this);
 
         const s = () => {
-            this.#foregroundContext.clearRect(0, 0, this.#foregroundContext.height, this.#foregroundContext.width);
+            this.#foregroundContext.clearRect(0, 0, this.#foregroundContext.canvas.width, this.#foregroundContext.canvas.height);
+            this.#foregroundContext.beginPath();
 
             this.#foregroundContext.moveTo(0, 0);
             this.#foregroundContext.lineTo(this.#foregroundContext.canvas.width, 0);
@@ -18,6 +25,12 @@ export class CanvaCanvas extends HTMLElement {
             this.#foregroundContext.closePath();
             this.#foregroundContext.strokeStyle = 'white';
             this.#foregroundContext.stroke();
+            this.#foregroundContext.beginPath();
+            this.#foregroundContext.arc(Math.random() * 1500, Math.random() * 1500, 10, 0, 360);
+            this.#foregroundContext.fillStyle = 'red';
+            this.#foregroundContext.fill();
+
+            this.#drawableStore.forEach(drawable => drawable.draw(this.#foregroundContext));
 
             requestAnimationFrame(s.bind(this));
         };
@@ -25,29 +38,29 @@ export class CanvaCanvas extends HTMLElement {
         requestAnimationFrame(s.bind(this));
     }
 
-    static #scaleCanvas(canvas, width, height) {
-        canvas.width = width * window.devicePixelRatio;
-        canvas.height = height * window.devicePixelRatio;
-
-        // canvas.getContext('2d').scale(window.devicePixelRatio, window.devicePixelRatio); FIXME: Why is this working without this?
-    }
-
     #setupCanvases() {
-        const foregroundCanvas = document.createElement('canvas');
-        const backgroundCanvas = document.createElement('canvas');
+        const canvases = new Array(2)
+            .fill(0)
+            .map((_, i) => {
+                const canvas = document.createElement('canvas');
+                canvas.setAttribute('id', `layer-${i}`);
+                return canvas;
+            });
 
-        this.append(backgroundCanvas, foregroundCanvas);
+        this.append(...canvases);
 
-        this.#foregroundContext = foregroundCanvas.getContext('2d');
-        this.#backgroundContext = backgroundCanvas.getContext('2d');
+        const contexts = canvases.map(canvas => canvas.getContext('2d'));
+        this.#foregroundContext = contexts[0];
+        this.#backgroundContext = contexts[1];
 
-        this.#selfResizeObserver = new ResizeObserver(([self]) => {
-            const { contentRect } = self;
-            const canvases = Array.from(this.getElementsByTagName('canvas')); // TODO: Make polyfill for forEach for HTMLCollection
-
-            canvases.forEach(canvas => CanvaCanvas.#scaleCanvas(canvas, contentRect.width, contentRect.height));
+        this.#selfResizeObserver = new ResizeObserver(([{ contentRect }]) => {
+            canvases.forEach(canvas => scaleCanvas(canvas, contentRect.width, contentRect.height));
         });
 
         this.#selfResizeObserver.observe(this);
+    }
+
+    get drawableStore() {
+        return this.#drawableStore;
     }
 }
