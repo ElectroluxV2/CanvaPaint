@@ -1,8 +1,6 @@
 import { SmoothCurve } from '../drawable/smooth-curve.js';
 
 export class QuadraticLineMode {
-    #currentId;
-    #currentLine;
     #canvaCanvasInstance;
     #isDragging = false;
 
@@ -15,30 +13,41 @@ export class QuadraticLineMode {
 
     #onPointerDown(event) {
         this.#isDragging = true;
-        const { offsetX, offsetY } = event;
 
-        this.#currentId = `qlm-${performance.now()}`;
+        const { offsetX, offsetY, pointerId } = event;
+        const lineId = `qlm-${pointerId}`;
 
-        this.#currentLine = new SmoothCurve('pink', 'lime');
-        this.#currentLine.path.moveTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
-        this.#canvaCanvasInstance.drawableStore.set(this.#currentId, this.#currentLine);
+        this.#canvaCanvasInstance.drawableStore.set(lineId, new SmoothCurve('pink', 'lime'));
+        this.#canvaCanvasInstance
+            .drawableStore
+            .get(lineId)
+            .path
+            .moveTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
     }
 
     #onPointerMove(event) {
         if (!this.#isDragging) return;
 
-        const { offsetX, offsetY } = event;
-        this.#currentLine.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
-        this.#canvaCanvasInstance.drawableStore.set(this.#currentId, this.#currentLine);
+        const { offsetX, offsetY, pointerId } = event;
+        const lineId = `qlm-${pointerId}`;
+
+        this.#canvaCanvasInstance
+            .drawableStore
+            .get(lineId)
+            .path
+            .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
     }
 
     #onPointerUp(event) {
         this.#isDragging = false;
-        const { offsetX, offsetY } = event;
 
-        this.#currentLine.path.lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
-        this.#canvaCanvasInstance.drawableStore.set(this.#currentId, this.#currentLine);
+        const { offsetX, offsetY, pointerId } = event;
+        const lineId = `qlm-${pointerId}`;
 
-        console.log(this.#canvaCanvasInstance.drawableStore);
+        this.#canvaCanvasInstance
+            .drawableStore
+            .get(lineId)
+            .path
+            .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
     }
 }
