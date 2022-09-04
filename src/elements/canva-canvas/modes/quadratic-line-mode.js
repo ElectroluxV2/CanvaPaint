@@ -32,7 +32,6 @@ export class QuadraticLineMode {
         this.#canvaCanvasInstance.drawableStore.set(this.#currentId, this.#currentLine);
     }
 
-
     #onPointerUp(event) {
         this.#isDragging = false;
         const { offsetX, offsetY } = event;
