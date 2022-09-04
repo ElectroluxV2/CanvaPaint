@@ -15,7 +15,7 @@ export class QuadraticLineMode {
         this.#isDragging = true;
 
         const { offsetX, offsetY, pointerId } = event;
-        const lineId = `qlm-${pointerId}`;
+        const lineId = this.#getLineId(pointerId);
 
         this.#canvaCanvasInstance.drawableStore.set(lineId, new SmoothCurve('pink', 'lime'));
         this.#canvaCanvasInstance
@@ -29,11 +29,10 @@ export class QuadraticLineMode {
         if (!this.#isDragging) return;
 
         const { offsetX, offsetY, pointerId } = event;
-        const lineId = `qlm-${pointerId}`;
 
         this.#canvaCanvasInstance
             .drawableStore
-            .get(lineId)
+            .get(this.#getLineId(pointerId))
             .path
             .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
     }
@@ -42,12 +41,15 @@ export class QuadraticLineMode {
         this.#isDragging = false;
 
         const { offsetX, offsetY, pointerId } = event;
-        const lineId = `qlm-${pointerId}`;
 
         this.#canvaCanvasInstance
             .drawableStore
-            .get(lineId)
+            .get(this.#getLineId(pointerId))
             .path
             .lineTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
+    }
+
+    #getLineId(pointerId) {
+        return `qlm-${pointerId}`;
     }
 }
