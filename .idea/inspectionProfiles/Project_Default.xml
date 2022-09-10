@@ -10,7 +10,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="8">
+          <list size="12">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -19,6 +19,10 @@
             <item index="5" class="java.lang.String" itemvalue="script" />
             <item index="6" class="java.lang.String" itemvalue="canva-paint" />
             <item index="7" class="java.lang.String" itemvalue="canva-canvas" />
+            <item index="8" class="java.lang.String" itemvalue="canva-dashboard" />
+            <item index="9" class="java.lang.String" itemvalue="canva-preview" />
+            <item index="10" class="java.lang.String" itemvalue="canva-canvases-list" />
+            <item index="11" class="java.lang.String" itemvalue="canva-nav" />
           </list>
         </value>
       </option>

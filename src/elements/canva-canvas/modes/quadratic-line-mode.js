@@ -1,4 +1,4 @@
-import { DrawableManager } from '../drawable-manager.js';
+import { DrawableManager } from '../../../shared/drawable-manager.js';
 import { SmoothCurve } from '../drawable/smooth-curve.js';
 
 export class QuadraticLineMode {

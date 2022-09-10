@@ -1,4 +1,4 @@
-import { DrawableManager } from './drawable-manager.js';
+import { DrawableManager } from '../../shared/drawable-manager.js';
 import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
 import { createCanvasElement } from './utils/create-canvas-element.js';
 import { scaleCanvas } from './utils/scale-canvas.js';
