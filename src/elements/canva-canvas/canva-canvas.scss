@@ -3,6 +3,7 @@ canva-canvas {
   height: 100%;
   display: grid;
   cursor: crosshair;
+  touch-action: none;
 
   canvas {
     grid-area: 1 / 1;

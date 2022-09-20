@@ -66,9 +66,31 @@ body {
   --secondary-dark: hsl(var(--secondary-h), var(--secondary-s), calc(var(--secondary-l) * .9));
 }
 
+@font-face {
+  font-family: "CanvaRegular";
+  src: url("/JetBrainsMono-VariableFont_wght.ttf");
+  font-weight: 125 950;
+  font-stretch: 75% 125%;
+  font-style: normal;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1,
+  'wght' 700,
+  'GRAD' 0,
+  'opsz' 48
+}
+
 body {
+  font-family: CanvaRegular, serif;
   margin: 0;
   padding: 1em;
+  box-sizing: border-box;
+  /*@formatter:off*/
+  /*noinspection CssInvalidPropertyValue*/height: 100dvh;
+  /*@formatter:on*/
+  display: flex;
+  flex-direction: column;
   background-color: var(--primary-dark);
   color: var(--secondary-light);
 }
