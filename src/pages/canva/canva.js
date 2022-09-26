@@ -14,7 +14,7 @@ function handleDragStart(e) {
   dragSrcEl = this;
 
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.innerHTML);
+  e.dataTransfer.setData('text/plain', this.innerHTML);
 }
 
 function handleDragEnd(e) {
@@ -43,7 +43,7 @@ function handleDrop(e) {
 
   if (dragSrcEl !== this) {
     dragSrcEl.innerHTML = this.innerHTML;
-    this.innerHTML = e.dataTransfer.getData('text/html');
+    this.innerHTML = e.dataTransfer.getData('text/plain');
   }
 
   return false;
