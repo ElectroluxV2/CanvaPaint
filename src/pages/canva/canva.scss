@@ -1,0 +1,29 @@
+body {
+  padding: 0;
+  display: grid;
+  grid-template: 2em auto 2em / 2em auto 2em;
+
+  canva-canvas {
+    grid-area: 2 / 2;
+  }
+
+  canva-toolbar:nth-of-type(1) {
+    grid-area: 2 / 1;
+  }
+
+  canva-toolbar:nth-of-type(2) {
+    grid-area: 1 / 2;
+  }
+
+  canva-toolbar:nth-of-type(3) {
+    grid-area: 2 / 3;
+  }
+
+  canva-toolbar:nth-of-type(4) {
+    grid-area: 3 / 2;
+  }
+}
+
+.over {
+  border: 3px dotted #666;
+}
