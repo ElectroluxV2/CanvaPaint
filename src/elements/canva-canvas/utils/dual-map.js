@@ -3,6 +3,10 @@ export class DualMap extends Map {
         return super.set(this.#combineKeys(key1, key2), value);
     }
 
+    has(key1, key2) {
+      return super.has(this.#combineKeys(key1, key2));
+    }
+
     get(key1, key2) {
         return super.get(this.#combineKeys(key1, key2));
     }
