@@ -18,7 +18,7 @@ export class CanvaCanvas extends HTMLElement {
 
     const s = () => {
       this.#foregroundContext.clearRect(0, 0, this.#foregroundContext.canvas.width, this.#foregroundContext.canvas.height);
-      // this.#backgroundContext.clearRect(0, 0, this.#backgroundContext.canvas.width, this.#backgroundContext.canvas.height);
+      this.#backgroundContext.clearRect(0, 0, this.#backgroundContext.canvas.width, this.#backgroundContext.canvas.height);
       this.#foregroundContext.beginPath();
 
       this.#foregroundContext.moveTo(0, 0);
