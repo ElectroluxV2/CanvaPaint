@@ -4,15 +4,20 @@ body {
   grid-template: 2em auto 2em / 2em auto 2em;
 
   .toolbar-container {
+    display: flex;
+
     &.left {
       grid-area: 2 / 1;
     }
+
     &.top {
       grid-area: 1 / 2;
     }
+
     &.right {
       grid-area: 2 / 3;
     }
+
     &.bottom {
       grid-area: 3 / 2;
     }
@@ -21,8 +26,4 @@ body {
   canva-canvas {
     grid-area: 2 / 2;
   }
-}
-
-.over {
-  border: 3px dotted #666;
 }
