@@ -4,6 +4,7 @@ body {
   grid-template: 2em auto 2em / 2em auto 2em;
 
   .toolbar-container {
+    container: toolbar-container / inline-size;
     display: flex;
 
     &.left {

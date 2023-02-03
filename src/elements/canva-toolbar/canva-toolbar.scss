@@ -1,13 +1,16 @@
 .canva-toolbar {
-  container-type: inline-size;
-  background-color: red;
+  display: contents;
 
   form {
     display: flex;
+    align-items: center;
 
-  @container(min-width:10 em) {
-    flex-direction: column;
-  }
+
+    // @formatter:off
+    @container toolbar-container (max-width: 2em) {
+      flex-direction: column;
+    }
+    // @formatter:on
   }
 
   //display: grid;
