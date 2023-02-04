@@ -1,10 +1,11 @@
 body {
   padding: 0;
   display: grid;
-  grid-template: 2em auto 2em / 2em auto 2em;
+  grid-template: 2.5em auto 2.5em / 2.5em auto 2.5em;
 
   .toolbar-container {
     container: toolbar-container / inline-size;
+    align-items: center;
     display: flex;
 
     &.left {

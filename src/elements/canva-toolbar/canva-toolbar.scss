@@ -5,12 +5,15 @@
     display: flex;
     align-items: center;
 
-
     // @formatter:off
-    @container toolbar-container (max-width: 2em) {
+    @container toolbar-container (max-width: 2.5em) {
       flex-direction: column;
     }
     // @formatter:on
+
+    &.content-switcher {
+      @import 'content-switcher.scss';
+    }
   }
 
   //display: grid;

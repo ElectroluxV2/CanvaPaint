@@ -1,7 +1,7 @@
-import { CanvaModePickerToolbar } from '../../elements/canva-toolbar/canva-mode-picker/canva-mode-picker-toolbar.js';
+import { CanvaToolbarModePicker } from '../../elements/canva-toolbar/canva-mode-picker/canva-toolbar-mode-picker.js';
 import { CanvaToolbar } from '../../elements/canva-toolbar/canva-toolbar.js';
 
-CanvaModePickerToolbar.defineAsCustomElement();
+CanvaToolbarModePicker.defineAsCustomElement();
 
 const toolbarContainers = document.getElementsByClassName('toolbar-container');
 const [leftToolbarContainer, topToolbarContainer, rightToolbarContainer, bottomToolbarContainer] = toolbarContainers;

@@ -1,5 +1,6 @@
 import { DrawableManager } from '../../shared/drawable-manager.js';
 import './canva-canvas.scss';
+import { ModeChangeEvent } from './events/mode-change-event.js';
 import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
 import { createCanvasElement } from './utils/create-canvas-element.js';
 import { scaleCanvas } from './utils/scale-canvas.js';
@@ -40,6 +41,8 @@ export class CanvaCanvas extends HTMLElement {
     };
 
     requestAnimationFrame(s.bind(this));
+
+    document.addEventListener(ModeChangeEvent.type, this.#onModeChange.bind(this));
   }
 
   #setupCanvases() {
@@ -57,5 +60,9 @@ export class CanvaCanvas extends HTMLElement {
         canvases.forEach(canvas => scaleCanvas(canvas, contentRect.width, contentRect.height)));
 
     this.#selfResizeObserver.observe(this);
+  }
+
+  #onModeChange(event) {
+    console.log('listener', event.mode);
   }
 }
