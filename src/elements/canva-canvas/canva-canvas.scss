@@ -4,6 +4,7 @@ canva-canvas {
   display: grid;
   cursor: crosshair;
   touch-action: none;
+  background-color: var(--canva-background);
 
   canvas {
     grid-area: 1 / 1;

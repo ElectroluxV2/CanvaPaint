@@ -8,6 +8,7 @@ body:not(.custom-color) {
   --secondary-l: 12%;
 
   --contrast: orangered;
+  --canva-background: #fff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +22,7 @@ body:not(.custom-color) {
     --secondary-l: 62%;
 
     --contrast: lawngreen;
+    --canva-background: #000;
   }
 }
 
