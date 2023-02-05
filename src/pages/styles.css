@@ -6,6 +6,8 @@ body:not(.custom-color) {
   --secondary-h: 210;
   --secondary-s: 100%;
   --secondary-l: 12%;
+
+  --contrast: orangered;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,6 +19,8 @@ body:not(.custom-color) {
     --secondary-h: 34;
     --secondary-s: 86%;
     --secondary-l: 62%;
+
+    --contrast: lawngreen;
   }
 }
 
