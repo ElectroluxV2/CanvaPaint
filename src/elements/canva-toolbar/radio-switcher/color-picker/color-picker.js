@@ -14,40 +14,46 @@ export class ColorPicker extends RadioSwitcherBehaviour {
 
   #prepareAvailableColors() {
     // TODO: Prepare some logic for last used color restoration, and ColorMap that will adjust values to match color-scheme
-    this.#colors = [
-      '#001f3f',
-      '#0074D9',
-      '#7FDBFF',
-      '#39CCCC',
-      '#B10DC9',
-      '#F012BE',
-      '#85144b',
-      '#FF4136',
-      '#FF851B',
-      '#FFDC00',
-      '#3D9970',
-      '#2ECC40',
-      '#01FF70',
-      '#111111',
-      '#AAAAAA',
-      '#DDDDDD',
-      '#FFFFFF',
-    ];
+    // keys are drawable colors and values are icon colors
+    this.#colors = {
+      '#001f3f': '#80bfff',
+      '#0074D9': '#b3dbff',
+      '#7FDBFF': '#004966',
+      '#39CCCC': '#000000',
+      '#B10DC9': '#efa9f9',
+      '#F012BE': '#65064f',
+      '#85144b': '#eb7ab1',
+      '#FF4136': '#800600',
+      '#FF851B': '#663000',
+      '#FFDC00': '#665800',
+      '#3D9970': '#163728',
+      '#2ECC40': '#0e3e14',
+      '#01FF70': '#00662c',
+      '#111111': '#ffffff',
+      '#AAAAAA': '#000000',
+      '#DDDDDD': '#000000',
+      '#FFFFFF': '#000000',
+    };
   }
 
   connectedCallback() {
     const builder = makeOption(this.#name);
-    const options = this.#colors.map(color => builder('palette', color));
+    const options = Object.keys(this.#colors).map(color => builder('palette', color));
+
     const coloredOptions = options.map(option => {
-      const color = option.children[1].value;
-      option.style = `--icon-color: ${color}; --background-selected-color: ${color}`;
+      const realColor = option.children[1].value;
+      const contrastingColor = this.#colors[realColor];
+      option.style = `--icon-selected-color: ${contrastingColor}; --icon-color: ${realColor}; --background-selected-color: ${realColor}; --background-color: ${realColor}`;
 
       return option;
     });
 
-    coloredOptions[0].children[1].checked = true; // Select first color as default
+    coloredOptions[1].children[1].checked = true; // Select second color as default, TODO: selection restoration
 
-    this.form.append(...coloredOptions);
+    const transparentOption = builder('visibility_off', 'transparent');
+    transparentOption.style = '';
+
+    this.form.append(transparentOption, ...coloredOptions);
 
     super.connectedCallback();
   }
