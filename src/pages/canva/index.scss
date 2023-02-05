@@ -5,8 +5,13 @@ body {
 
   .toolbar-container {
     container: toolbar-container / inline-size;
-    align-items: center;
     display: flex;
+    align-items: center;
+
+    &.left, &.right {
+      align-items: normal;
+      justify-content: center;
+    }
 
     &.left {
       grid-area: 2 / 1;
