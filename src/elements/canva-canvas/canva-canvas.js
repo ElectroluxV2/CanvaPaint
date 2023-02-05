@@ -1,5 +1,6 @@
 import { DrawableManager } from '../../shared/drawable-manager.js';
 import './canva-canvas.scss';
+import { BackgroundColorChangeEvent } from './events/background-color-change-event.js';
 import { ForegroundColorChangeEvent } from './events/foreground-color-change-event.js';
 import { ModeChangeEvent } from './events/mode-change-event.js';
 import { QuadraticLineMode } from './modes/quadratic-line-mode.js';
@@ -44,7 +45,8 @@ export class CanvaCanvas extends HTMLElement {
     requestAnimationFrame(s.bind(this));
 
     document.addEventListener(ModeChangeEvent.type, this.#onModeChange.bind(this));
-    document.addEventListener(ForegroundColorChangeEvent.type, this.#onForegroundColorChange.bind(this));
+    document.addEventListener(ForegroundColorChangeEvent.type, ({ color }) => this.currentOptions.foregroundColor = color);
+    document.addEventListener(BackgroundColorChangeEvent.type, ({ color }) => this.currentOptions.backgroundColor = color);
   }
 
   #setupCanvases() {
@@ -72,9 +74,5 @@ export class CanvaCanvas extends HTMLElement {
       default:
         console.warn('Unknown mode', mode);
     }
-  }
-
-  #onForegroundColorChange({ color }) {
-    this.currentOptions.foregroundColor = color;
   }
 }

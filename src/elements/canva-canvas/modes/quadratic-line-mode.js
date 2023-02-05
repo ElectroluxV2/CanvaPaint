@@ -16,7 +16,10 @@ export class QuadraticLineMode {
     this.#isDragging = true;
 
     const { offsetX, offsetY, pointerType, pointerId } = event;
-    const line = new SmoothCurve(this.#canvaCanvasInstance.currentOptions.foregroundColor, 'lime');
+    const line = new SmoothCurve(
+        this.#canvaCanvasInstance.currentOptions.foregroundColor,
+        this.#canvaCanvasInstance.currentOptions.backgroundColor,
+    );
 
     line.path.moveTo(offsetX * window.devicePixelRatio, offsetY * window.devicePixelRatio);
     DrawableManager.createDrawable(pointerType, pointerId, line);
