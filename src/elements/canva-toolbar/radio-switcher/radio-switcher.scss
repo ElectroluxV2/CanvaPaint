@@ -1,5 +1,7 @@
 & {
-  height: 2rem;
+  --size: 2rem;
+
+  height: var(--size);
   width: min-content;
   border-radius: 0.25rem;
   border: 0.0625rem solid var(--secondary);
@@ -13,7 +15,7 @@
   // @formatter:off
   @container toolbar-container (max-width: 2.5em) {
     height: min-content;
-    width: 2rem;
+    width: var( --size);
 
     label {
       &:not(:last-of-type) {
@@ -24,10 +26,11 @@
   // @formatter:on
 
   label {
+    flex-shrink: 0;
     user-select: none;
     cursor: pointer;
-    width: 2rem;
-    height: 2rem;
+    width: var(--size);
+    height: var(--size);
     display: grid;
     place-items: center;
     background-color: var(--background-color);
