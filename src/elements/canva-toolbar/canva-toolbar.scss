@@ -11,8 +11,8 @@
     }
     // @formatter:on
 
-    &.content-switcher {
-      @import 'content-switcher.scss';
+    &.radio-switcher {
+      @import 'radio-switcher/radio-switcher';
     }
   }
 }

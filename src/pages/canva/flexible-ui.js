@@ -1,6 +1,6 @@
 import { CanvaToolbar } from '../../elements/canva-toolbar/canva-toolbar.js';
-import { CanvaToolbarForegroundColorPicker } from '../../elements/canva-toolbar/radio-checkbox/color-picker/canva-toolbar-foreground-color-picker.js';
-import { CanvaToolbarModePicker } from '../../elements/canva-toolbar/radio-checkbox/mode-picker/canva-toolbar-mode-picker.js';
+import { CanvaToolbarForegroundColorPicker } from '../../elements/canva-toolbar/radio-switcher/color-picker/canva-toolbar-foreground-color-picker.js';
+import { CanvaToolbarModePicker } from '../../elements/canva-toolbar/radio-switcher/mode-picker/canva-toolbar-mode-picker.js';
 
 CanvaToolbarModePicker.defineAsCustomElement();
 CanvaToolbarForegroundColorPicker.defineAsCustomElement();

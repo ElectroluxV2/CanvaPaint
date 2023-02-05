@@ -1,7 +1,7 @@
 import { ModeChangeEvent } from '../../../canva-canvas/events/mode-change-event.js';
-import { RadioCheckboxBehaviour } from '../radio-checkbox-behaviour.js';
+import { RadioSwitcherBehaviour } from '../radio-switcher-behaviour.js';
 
-export class CanvaToolbarModePicker extends RadioCheckboxBehaviour {
+export class CanvaToolbarModePicker extends RadioSwitcherBehaviour {
   static defineAsCustomElement() {
     customElements.define('canva-toolbar-mode-picker', CanvaToolbarModePicker);
   }

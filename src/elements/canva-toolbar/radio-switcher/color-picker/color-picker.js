@@ -1,7 +1,7 @@
 import { makeOption } from '../make-option.js';
-import { RadioCheckboxBehaviour } from '../radio-checkbox-behaviour.js';
+import { RadioSwitcherBehaviour } from '../radio-switcher-behaviour.js';
 
-export class ColorPicker extends RadioCheckboxBehaviour {
+export class ColorPicker extends RadioSwitcherBehaviour {
   #name;
   #colors;
 

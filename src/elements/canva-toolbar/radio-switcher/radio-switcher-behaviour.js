@@ -1,8 +1,8 @@
 import { CanvaToolbar } from '../canva-toolbar.js';
 
-export class RadioCheckboxBehaviour extends CanvaToolbar {
+export class RadioSwitcherBehaviour extends CanvaToolbar {
   connectedCallback() {
-    this.form.classList.add('content-switcher');
+    this.form.classList.add('radio-switcher');
 
     // Fire mode change event on each change
     this.form.addEventListener('change', this.#onFormChange.bind(this));
