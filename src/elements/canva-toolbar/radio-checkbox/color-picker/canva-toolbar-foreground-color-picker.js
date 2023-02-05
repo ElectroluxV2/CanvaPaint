@@ -1,3 +1,4 @@
+import { ForegroundColorChangeEvent } from '../../../canva-canvas/events/foreground-color-change-event.js';
 import { ColorPicker } from './color-picker.js';
 
 export class CanvaToolbarForegroundColorPicker extends ColorPicker {
@@ -6,6 +7,6 @@ export class CanvaToolbarForegroundColorPicker extends ColorPicker {
   }
 
   emitChange(color) {
-    console.log(color);
+    this.dispatchEvent(new ForegroundColorChangeEvent(color));
   }
 }
